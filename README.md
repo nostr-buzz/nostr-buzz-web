@@ -15,6 +15,6 @@
   Stay tuned for updates as we prepare to unveil a unique addition to the Nostr ecosystem. 🚀
 </p>
 
-<p style="text-align: center; font-size: 1.1em; font-weight: bold;">
+<p style="text-align: center; font-size: 1.3em; font-weight: bold; color: #fcd34d; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
   The future is buzzing! 🐝
 </p>
