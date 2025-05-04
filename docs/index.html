@@ -13,99 +13,99 @@
       font-family: 'Inter', sans-serif;
     }
     html, body {
-      height: 100%; /* Ensure html and body take full height */
-      overflow-x: hidden; /* Prevent horizontal scrollbars */
+      height: 100%; 
+      overflow-x: hidden; 
     }
     body {
       background-color: #1e1e1e;
       color: #ffffff;
       display: flex;
       flex-direction: column;
-      align-items: center; /* Center horizontally */
-      justify-content: center; /* Center vertically */
-      min-height: 100vh; /* Use min-height for flexibility */
+      align-items: center; 
+      justify-content: center; 
+      min-height: 100vh; 
       text-align: center;
-      padding: 1rem; /* Use smaller padding for smaller screens */
+      padding: 1rem; 
     }
     .logo-container {
-      position: relative; /* Needed for absolute positioning of pseudo-elements */
-      width: 300px; /* Adjust width as needed */
-      max-width: 80%; /* Prevent logo from becoming too large on wide screens */
-      aspect-ratio: 1 / 1; /* Maintain square aspect ratio, adjust if logo isn't square */
+      position: relative; 
+      width: 300px; 
+      max-width: 80%; 
+      aspect-ratio: 1 / 1; 
       background-image: url('logo.png');
-      background-size: contain; /* Scale the image down to fit */
+      background-size: contain; 
       background-repeat: no-repeat;
       background-position: center;
       margin-bottom: 1.5rem;
-      z-index: 1; /* Ensure container is above pseudo-elements if needed */
+      z-index: 1; 
     }
-    /* Static Yellow Glow */
+    
     .logo-container::after {
       content: '';
       position: absolute;
-      bottom: -5px; /* Move glow closer to the bottom edge */
+      bottom: -5px; 
       left: 50%;
       transform: translateX(-50%);
-      width: 90%; /* Adjust size */
-      height: 30px; /* Adjust size */
+      width: 90%; 
+      height: 30px; 
       background: radial-gradient(ellipse at center, rgba(252, 211, 77, 0.6) 0%, rgba(252, 211, 77, 0) 70%);
-      filter: blur(15px); /* Adjust blur */
-      z-index: 0; /* Behind the logo container */
+      filter: blur(15px); 
+      z-index: 0; 
       transition: opacity 0.3s ease-in-out;
     }
-    /* Dynamic White Light (Follows Mouse) */
+    
     .logo-container::before {
       content: '';
       position: absolute;
-      /* Position updated by JS using CSS variables */
+      
       left: var(--mouse-x, 50%);
       top: var(--mouse-y, 50%);
-      transform: translate(-50%, -50%); /* Center the effect on the coordinates */
-      width: 120px; /* Adjust size */
-      height: 120px; /* Adjust size */
+      transform: translate(-50%, -50%); 
+      width: 120px; 
+      height: 120px; 
       background: radial-gradient(circle, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 65%);
       border-radius: 50%;
-      filter: blur(25px); /* Adjust blur */
-      z-index: 0; /* Behind the logo container */
-      pointer-events: none; /* Prevent pseudo-element from interfering */
-      opacity: 0; /* Hidden by default */
-      transition: opacity 0.2s ease-out; /* Smooth fade in/out */
+      filter: blur(25px); 
+      z-index: 0; 
+      pointer-events: none; 
+      opacity: 0; 
+      transition: opacity 0.2s ease-out; 
     }
-    /* Show white light on hover */
+    
     .logo-container:hover::before {
       opacity: 1;
     }
-    /* Optional: Hide yellow glow on hover */
+    
     /* .logo-container:hover::after {
       opacity: 0;
     } */
 
     h1 {
-      font-size: 2rem; /* Adjust base font size */
+      font-size: 2rem; 
       font-weight: 800;
       margin-bottom: 1rem;
     }
     p {
-      font-size: 1rem; /* Adjust base font size */
-      max-width: 90%; /* Use percentage for responsiveness */
-      margin-bottom: 1.5rem; /* Adjust spacing */
+      font-size: 1rem; 
+      max-width: 90%; 
+      margin-bottom: 1.5rem; 
       color: #cfcfcf;
     }
     .cta {
       background-color: #fcd34d;
       color: #000;
-      padding: 0.7rem 1.3rem; /* Adjust padding */
-      border-radius: 8px; /* Adjust border-radius */
+      padding: 0.7rem 1.3rem; 
+      border-radius: 8px; 
       font-weight: 600;
       text-decoration: none;
       transition: background-color 0.2s;
-      font-size: 1rem; /* Adjust font size */
+      font-size: 1rem; 
     }
     .cta:hover {
       background-color: #fbbf24;
     }
 
-    /* Shake Animation */
+    
     @keyframes shake {
       10%, 90% { transform: translate3d(-1px, 0, 0); }
       20%, 80% { transform: translate3d(2px, 0, 0); }
@@ -114,21 +114,21 @@
     }
 
     .shake {
-      /* Apply the shake animation */
+      
       animation: shake 0.8s cubic-bezier(.36,.07,.19,.97) both;
     }
 
-    /* Responsive adjustments */
+    
     @media (min-width: 600px) {
       .logo-container {
-        width: 320px; /* Larger logo on wider screens */
+        width: 320px; 
       }
       h1 {
-        font-size: 2.5rem; /* Larger heading */
+        font-size: 2.5rem; 
       }
       p {
         font-size: 1.2rem;
-        max-width: 600px; /* Fixed max-width on larger screens */
+        max-width: 600px; 
       }
       .cta {
         padding: 0.8rem 1.5rem;
@@ -138,59 +138,59 @@
   </style>
 </head>
 <body>
-  <!-- Logo is now a background image of this div -->
+  
   <div class="logo-container" aria-label="nostr.buzz logo"></div>
   <h1>Welcome to nostr.buzz</h1>
-  <!-- Removed the paragraph as it wasn't in the original final code -->
+  
   <a href="#" class="cta">Buzz</a>
 
   <audio id="buzzSound" src="buzz.mp3" preload="auto"></audio>
 
   <script>
-    // Get elements
+    
     const logoContainer = document.querySelector('.logo-container');
     const ctaButton = document.querySelector('.cta');
     const buzzSound = document.getElementById('buzzSound');
     const body = document.body;
 
-    // Logo hover effect - Update light position
+    
     logoContainer.addEventListener('mousemove', (e) => {
       const rect = logoContainer.getBoundingClientRect();
-      // Calculate mouse position relative to the container
+      
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      // Update CSS custom properties
+      
       logoContainer.style.setProperty('--mouse-x', `${x}px`);
       logoContainer.style.setProperty('--mouse-y', `${y}px`);
     });
 
-    // Reset light position slightly on mouse leave (optional)
+    
     logoContainer.addEventListener('mouseleave', () => {
-      // Let the CSS :hover handle opacity, just reset position vars if needed
+      
       logoContainer.style.setProperty('--mouse-x', `50%`);
       logoContainer.style.setProperty('--mouse-y', `50%`);
     });
 
-    // Button click effect
+    
     ctaButton.addEventListener('click', (event) => {
-      event.preventDefault(); // Prevent default link behavior
+      event.preventDefault(); 
 
-      // Play sound
-      buzzSound.currentTime = 0; // Rewind to start
+      
+      buzzSound.currentTime = 0; 
       buzzSound.play().catch(error => {
         console.error("Audio playback failed:", error);
-        // Inform user or handle error (e.g., browser autoplay policy)
+        
       });
 
-      // Add shake class to body
+      
       body.classList.add('shake');
 
-      // Remove shake class after 3 seconds (adjust duration if needed)
-      // Match timeout duration to animation duration or desired effect time
+      
+      
       setTimeout(() => {
         body.classList.remove('shake');
-      }, 800); // Match animation duration (0.8s) for a single shake
-      // Use 3000 if you want the *effect* to last 3 seconds, even if animation repeats or finishes early
+      }, 800); 
+      
     });
   </script>
 </body>
