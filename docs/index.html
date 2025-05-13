@@ -37,7 +37,7 @@
       display: flex;
       flex-direction: column;
       min-height: 100vh;
-      padding-top: 0; /* No padding needed without header */
+      padding-top: 0;
       position: relative;
     }
 
@@ -46,7 +46,6 @@
       scroll-padding-top: 20px;
     }
 
-    /* Improved scrollbar styling for a nicer scroll experience */
     ::-webkit-scrollbar {
       width: 5px;
     }
@@ -64,7 +63,6 @@
       background: var(--primary);
     }
     
-    /* Hero Section - refined for perfect mobile display */
     .hero {
       padding: 2rem 1rem;
       min-height: 100vh;
@@ -75,7 +73,7 @@
       text-align: center;
       position: relative;
       overflow: hidden;
-      box-sizing: border-box; /* Ensure padding is included in height calculation */
+      box-sizing: border-box;
     }
     
     .particles-container {
@@ -286,7 +284,6 @@
       box-shadow: 0 5px 15px rgba(252, 211, 77, 0.2);
     }
 
-    /* Sections Divider */
     .divider {
       height: 150px;
       width: 100%;
@@ -307,23 +304,6 @@
       margin-bottom: -1px;
     }
     
-    /* Project Goals Styles */
-    #project-goals {
-      display: block;
-      max-width: 1100px;
-      width: 90%;
-      margin: 0 auto 3rem;
-      padding: 2rem;
-      border-radius: 20px;
-      background: rgba(30, 30, 30, 0.7);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      backdrop-filter: blur(10px);
-      text-align: left;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      position: relative;
-      z-index: 2;
-    }
-    
     .section-title {
       margin-bottom: 2rem;
       text-align: center;
@@ -331,17 +311,11 @@
       font-size: 2.2rem;
       position: relative;
     }
-    
-    .section-title::after {
-      content: '';
-      position: absolute;
-      bottom: -10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 80px;
-      height: 3px;
-      background: linear-gradient(90deg, var(--primary), transparent);
-      border-radius: 3px;
+       
+    .features-title {
+      margin-top: 2rem;
+      color: var(--primary);
+      text-align: center;
     }
     
     .goals-container {
@@ -446,7 +420,6 @@
       animation: shake 0.8s cubic-bezier(.36,.07,.19,.97) both;
     }
 
-    /* Game Section */
     .game-section {
       background: linear-gradient(180deg, var(--dark) 0%, var(--darker) 100%);
       padding: 3rem 1rem;
@@ -460,7 +433,6 @@
       font-family: 'Pacifico', cursive;
     }
     
-    /* Bee Game Styles */
     #bee-game-area {
       margin: 0 auto;
       padding: 2rem;
@@ -528,7 +500,6 @@
       border: 1px solid rgba(252, 211, 77, 0.2);
     }
     
-    /* Footer */
     .footer {
       padding: 2rem;
       background: rgba(0,0,0,0.3);
@@ -559,11 +530,10 @@
       font-size: 0.9rem;
     }
     
-    /* Responsive styles */
     @media (max-width: 768px) {
       .hero {
         padding: 2rem 0.5rem;
-        min-height: 100vh; /* Keep full height but will respect content */
+        min-height: 100vh;
         height: auto;
         justify-content: center;
       }
@@ -573,9 +543,9 @@
       }
       
       .logo-container {
-        width: 180px; /* Even smaller logo for better fit */
+        width: 180px;
         margin-bottom: 1rem;
-        aspect-ratio: 1/1; /* Maintain aspect ratio */
+        aspect-ratio: 1/1;
       }
       
       h1 {
@@ -612,12 +582,11 @@
       }
       
       .divider {
-        height: 80px; /* Smaller divider for mobile */
+        height: 80px;
       }
     }
     
     @media (max-width: 350px) {
-      /* Additional styles for very small screens */
       .hero {
         padding: 1.5rem 0.5rem;
       }
@@ -664,7 +633,6 @@
       }
     }
 
-    /* Special handling for taller mobile devices */
     @media (max-height: 700px) and (max-width: 768px) {
       .hero {
         padding: 1rem 0.5rem;
@@ -693,7 +661,6 @@
       }
     }
 
-    /* Core Features Section Styles */
     #core-features {
       background: linear-gradient(180deg, var(--darker) 0%, var(--dark) 100%);
       padding: 4rem 0;
@@ -819,7 +786,6 @@
   </style>
 </head>
 <body>
-  <!-- Hero Section - now starts at the top of the page -->
   <section class="hero">
     <div class="particles-container" id="particles"></div>
     <div class="hero-content">
@@ -840,12 +806,9 @@
     </svg>
   </div>
   
-  <!-- Project Goals Section -->
-  <section id="project-goals">
-    <h2 class="section-title">nostr.buzz Features</h2>
-    <div class="goals-container">
+  <h2 class="section-title features-title">nostr.buzz Features</h2>
+  <div class="goals-container" style="max-width: 1100px; width: 90%; margin: 0 auto 3rem; padding: 0 2rem;">
 
-      <!-- NIP-05 Username Marketplace - Enhanced -->
       <div class="goal-category">
         <div class="category-header">
           <span class="category-emoji">🛒</span>
@@ -865,7 +828,6 @@
         </div>
       </div>
       
-      <!-- Comprehensive Nostr Search Engine -->
       <div class="goal-category">
         <div class="category-header">
           <span class="category-emoji">🔍</span>
@@ -885,7 +847,6 @@
         </div>
       </div>
       
-      <!-- Nostr Tools Directory -->
       <div class="goal-category">
         <div class="category-header">
           <span class="category-emoji">🧰</span>
@@ -905,7 +866,6 @@
         </div>
       </div>
       
-      <!-- Advanced Zap Wallet -->
       <div class="goal-category">
         <div class="category-header">
           <span class="category-emoji">⚡</span>
@@ -927,7 +887,6 @@
         </div>
       </div>
     </div>
-  </section>
   
   <div class="divider reverse-divider">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
@@ -935,7 +894,6 @@
     </svg>
   </div>
   
-  <!-- Core Features Section -->
   <section id="core-features">
     <div class="container">
       <h2 class="section-title">Core Technology Capabilities</h2>
@@ -1031,7 +989,6 @@
     </div>
   </section>
   
-  <!-- Game Section -->
   <section class="game-section">
     <h3 class="game-heading">Catch the Buzz!</h3>
     <div id="bee-game-area">
@@ -1042,7 +999,6 @@
     </div>
   </section>
   
-  <!-- Footer -->
   <footer class="footer">
     <div class="social-links">
       <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
@@ -1056,19 +1012,17 @@
   <audio id="buzzSound" src="buzz.mp3" preload="auto"></audio>
 
   <script>
-    // Create particles - improved for perfect mobile display
     function createParticles() {
       const particlesContainer = document.getElementById('particles');
-      particlesContainer.innerHTML = ''; // Clear existing particles if any
+      particlesContainer.innerHTML = '';
       
       const isMobile = window.innerWidth <= 768;
-      const numberOfParticles = isMobile ? 15 : 40; // Even fewer particles on mobile for performance
+      const numberOfParticles = isMobile ? 15 : 40;
       
       for (let i = 0; i < numberOfParticles; i++) {
         const particle = document.createElement('div');
         particle.classList.add('particle');
         
-        // Better positioning for mobile devices
         const posX = Math.random() * 100;
         const posY = Math.random() * (isMobile ? 50 : 100) + (isMobile ? 20 : 30);
         const size = Math.random() * (isMobile ? 3 : 6) + (isMobile ? 2 : 2);
@@ -1077,9 +1031,8 @@
         particle.style.top = `${posY}%`;
         particle.style.width = `${size}px`;
         particle.style.height = `${size}px`;
-        particle.style.opacity = isMobile ? '0.25' : '0.3'; // Slightly less visible on mobile
+        particle.style.opacity = isMobile ? '0.25' : '0.3';
         
-        // Adjusted animation for mobile
         const delay = Math.random() * (isMobile ? 5 : 10);
         const duration = Math.random() * (isMobile ? 10 : 15) + (isMobile ? 8 : 10);
         particle.style.animationDelay = `${delay}s`;
@@ -1089,7 +1042,6 @@
       }
     }
     
-    // Logo interaction
     const logoContainer = document.querySelector('.logo-container');
     logoContainer.addEventListener('mousemove', (e) => {
       const rect = logoContainer.getBoundingClientRect();
@@ -1104,7 +1056,6 @@
       logoContainer.style.setProperty('--mouse-y', `50%`);
     });
     
-    // Button effects
     const ctaButton = document.querySelector('.cta');
     const buzzSound = document.getElementById('buzzSound');
     const body = document.body;
@@ -1121,7 +1072,6 @@
       }, 800);
     });
     
-    // Bee Game
     const gameArea = document.getElementById('bee-game-area');
     const bee = document.getElementById('moving-bee');
     const catchMessage = document.getElementById('catch-message');
@@ -1197,19 +1147,14 @@
         }
     });
     
-    // Initialize everything with enhanced mobile optimization
     document.addEventListener('DOMContentLoaded', () => {
-      // Initial creation of particles
       createParticles();
       updateScore();
       startGame();
       
-      // Enhanced resize handler for perfect responsiveness
       function handleResize() {
-        // Recreate particles on resize to ensure proper positioning
         createParticles();
         
-        // Adjust bee position for the game
         if (beeInterval) {
           clearInterval(beeInterval);
           moveBee();
@@ -1217,14 +1162,12 @@
         }
       }
       
-      // Debounced resize handler for better performance
       let resizeTimer;
       window.addEventListener('resize', function() {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(handleResize, 250);
       });
       
-      // Enhanced mobile touch experience for buttons
       const buttons = document.querySelectorAll('.cta, .learn-more');
       buttons.forEach(button => {
         button.addEventListener('touchstart', function() {
@@ -1236,7 +1179,6 @@
         });
       });
       
-      // Toggle goals section visibility - enhanced for mobile
       const toggleGoalsButton = document.getElementById('toggle-goals');
       const projectGoalsSection = document.getElementById('project-goals');
       
@@ -1247,9 +1189,7 @@
         });
       });
       
-      // Ensure proper initial layout on page load
       setTimeout(() => {
-        // This timeout helps ensure everything is properly rendered
         window.scrollTo(0, 0);
       }, 100);
     });
