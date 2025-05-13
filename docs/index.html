@@ -2,32 +2,132 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>nostr.buzz</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Pacifico&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Pacifico&family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Inter', sans-serif;
+      font-family: 'Poppins', sans-serif;
     }
+    
+    :root {
+      --primary: #fcd34d;
+      --primary-dark: #fbbf24;
+      --primary-light: rgba(252, 211, 77, 0.2);
+      --secondary: #8b5cf6;
+      --dark: #1e1e1e;
+      --darker: #131313;
+      --light: #ffffff;
+      --gray: #cfcfcf;
+    }
+    
     html, body {
       height: 100%;
       overflow-x: hidden;
+      scroll-behavior: smooth;
     }
+    
     body {
-      background-color: #1e1e1e;
-      color: #ffffff;
+      background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+      color: var(--light);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      padding-top: 0; /* No padding needed without header */
+      position: relative;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 20px;
+    }
+
+    /* Improved scrollbar styling for a nicer scroll experience */
+    ::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.2);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--primary-dark);
+      border-radius: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary);
+    }
+    
+    /* Hero Section - refined for perfect mobile display */
+    .hero {
+      padding: 2rem 1rem;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
       text-align: center;
-      padding: 1rem;
-      position: relative; /* Needed for absolute positioning of game area */
+      position: relative;
+      overflow: hidden;
+      box-sizing: border-box; /* Ensure padding is included in height calculation */
     }
+    
+    .particles-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 0;
+    }
+    
+    .particle {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: var(--primary);
+      border-radius: 50%;
+      opacity: 0.3;
+      animation: float 15s infinite linear;
+    }
+    
+    @keyframes float {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.5;
+      }
+      90% {
+        opacity: 0.5;
+      }
+      100% {
+        transform: translateY(-1000px) rotate(720deg);
+        opacity: 0;
+      }
+    }
+    
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
+    
     .logo-container {
       position: relative;
       width: 300px;
@@ -37,8 +137,18 @@
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
-      margin-bottom: 1.5rem;
+      margin: 0 auto 2rem;
       z-index: 1;
+      animation: pulse 6s infinite alternate;
+    }
+    
+    @keyframes pulse {
+      0% {
+        filter: drop-shadow(0 0 15px rgba(252, 211, 77, 0.2));
+      }
+      100% {
+        filter: drop-shadow(0 0 30px rgba(252, 211, 77, 0.7));
+      }
     }
 
     .logo-container::after {
@@ -58,7 +168,6 @@
     .logo-container::before {
       content: '';
       position: absolute;
-
       left: var(--mouse-x, 50%);
       top: var(--mouse-y, 50%);
       transform: translate(-50%, -50%);
@@ -78,41 +187,249 @@
     }
 
     h1 {
-      font-size: 2rem;
+      font-size: 3.5rem;
       font-weight: 800;
-      margin-bottom: 1rem;
-    }
-    p {
-      font-size: 1rem;
-      max-width: 90%;
       margin-bottom: 1.5rem;
-      color: #cfcfcf;
+      background: linear-gradient(135deg, var(--primary) 0%, #ff9d00 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 10px rgba(252, 211, 77, 0.3);
     }
+    
+    .hero p {
+      font-size: 1.2rem;
+      max-width: 90%;
+      margin: 0 auto 2rem;
+      color: var(--gray);
+      line-height: 1.6;
+    }
+    
     .slogan {
-      font-family: 'Pacifico', cursive; /* Fun, cursive font */
-      font-size: 1.5em;
-      font-weight: bold; /* Adjusted from 1.3em */
-      color: #fcd34d;
-      text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
-      margin-top: 1rem; /* Add some space above */
-      margin-bottom: 2rem; /* Add space below */
+      font-family: 'Pacifico', cursive;
+      font-size: 2em;
+      color: var(--primary);
+      text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+      margin: 2rem auto;
+      animation: glow 3s infinite alternate;
     }
+    
+    @keyframes glow {
+      from {
+        text-shadow: 0 0 10px rgba(252, 211, 77, 0.3), 0 0 20px rgba(252, 211, 77, 0.3);
+      }
+      to {
+        text-shadow: 0 0 20px rgba(252, 211, 77, 0.6), 0 0 30px rgba(252, 211, 77, 0.6);
+      }
+    }
+    
+    .btn-container {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 3rem;
+    }
+    
     .cta {
-      background-color: #fcd34d;
-      color: #000;
-      padding: 0.7rem 1.3rem;
-      border-radius: 8px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: var(--dark);
+      padding: 0.9rem 2rem;
+      border-radius: 50px;
       font-weight: 600;
       text-decoration: none;
-      transition: background-color 0.2s;
-      font-size: 1rem;
-      margin-bottom: 3rem; /* Add space below button */
+      transition: all 0.3s;
+      font-size: 1.1rem;
+      box-shadow: 0 4px 10px rgba(252, 211, 77, 0.3);
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
     }
+    
+    .cta:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: 0.5s;
+      z-index: -1;
+    }
+    
     .cta:hover {
-      background-color: #fbbf24;
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(252, 211, 77, 0.4);
+    }
+    
+    .cta:hover:before {
+      left: 100%;
+    }
+    
+    .learn-more {
+      background-color: transparent;
+      color: var(--primary);
+      padding: 0.8rem 1.8rem;
+      border: 2px solid var(--primary);
+      border-radius: 50px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    
+    .learn-more:hover {
+      background-color: var(--primary-light);
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(252, 211, 77, 0.2);
     }
 
-
+    /* Sections Divider */
+    .divider {
+      height: 150px;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .divider svg {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: auto;
+    }
+    
+    /* Project Goals Styles */
+    #project-goals {
+      display: block;
+      max-width: 1100px;
+      width: 90%;
+      margin: 0 auto 3rem;
+      padding: 2rem;
+      border-radius: 20px;
+      background: rgba(30, 30, 30, 0.7);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      text-align: left;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      position: relative;
+      z-index: 2;
+    }
+    
+    .section-title {
+      margin-bottom: 2rem;
+      text-align: center;
+      color: var(--primary);
+      font-size: 2.2rem;
+      position: relative;
+    }
+    
+    .section-title::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), transparent);
+      border-radius: 3px;
+    }
+    
+    .goals-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    .goal-category {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 0;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      background-color: rgba(40, 40, 40, 0.5);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .goal-category:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      border-color: rgba(252, 211, 77, 0.3);
+    }
+    
+    .category-header {
+      display: flex;
+      align-items: center;
+      padding: 1rem 1.2rem;
+      background-color: rgba(50, 50, 50, 0.8);
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .category-header h3 {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    
+    .category-emoji {
+      font-size: 1.8rem;
+      margin-right: 1rem;
+      min-width: 2.5rem;
+      height: 2.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease;
+    }
+    
+    .goal-category:hover .category-emoji {
+      transform: scale(1.1) rotate(5deg);
+      background: rgba(252, 211, 77, 0.2);
+    }
+    
+    .goal-details {
+      padding: 1.2rem 1.5rem 1.5rem;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .goal-details ul {
+      margin: 0;
+      padding-left: 1rem;
+      color: var(--gray);
+      list-style-type: none;
+    }
+    
+    .goal-details li {
+      margin-bottom: 0.8rem;
+      font-size: 1rem;
+      position: relative;
+      padding-left: 1.5rem;
+      line-height: 1.4;
+    }
+    
+    .goal-details li::before {
+      content: '\f00c';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      color: var(--primary);
+      position: absolute;
+      left: 0;
+    }
+    
     @keyframes shake {
       10%, 90% { transform: translate3d(-1px, 0, 0); }
       20%, 80% { transform: translate3d(2px, 0, 0); }
@@ -124,202 +441,287 @@
       animation: shake 0.8s cubic-bezier(.36,.07,.19,.97) both;
     }
 
+    /* Game Section */
+    .game-section {
+      background: linear-gradient(180deg, var(--dark) 0%, var(--darker) 100%);
+      padding: 3rem 1rem;
+      position: relative;
+    }
+    
+    .game-heading {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: var(--primary);
+      font-family: 'Pacifico', cursive;
+    }
+    
     /* Bee Game Styles */
     #bee-game-area {
-      margin-top: auto; /* Push to bottom */
-      padding: 20px;
-      border-top: 1px dashed #555;
+      margin: 0 auto;
+      padding: 2rem;
+      border: 2px dashed rgba(252, 211, 77, 0.3);
       width: 100%;
-      max-width: 600px; /* Limit width */
-      position: relative; /* Context for absolute bee */
-      min-height: 150px; /* Ensure space for the bee */
-      display: flex; /* Use flexbox for centering */
+      max-width: 650px;
+      position: relative;
+      min-height: 200px;
+      display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      border-radius: 20px;
+      background: rgba(0, 0, 0, 0.2);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2), inset 0 0 20px rgba(252, 211, 77, 0.1);
     }
+    
     #bee-game-area p {
-        margin-bottom: 10px;
-        font-size: 0.9rem;
-        color: #aaa;
+      margin-bottom: 15px;
+      font-size: 1rem;
+      color: var(--gray);
+      text-align: center;
     }
+    
     #moving-bee {
       position: absolute;
-      font-size: 2.5rem; /* Make bee bigger */
+      font-size: 2.8rem;
       cursor: pointer;
-      user-select: none; /* Prevent text selection */
-      /* Dynamic transition duration will be set via JS */
-      transition: top 0.3s ease-out, left 0.3s ease-out;
+      user-select: none;
+      transition: top 0.3s ease-out, left 0.3s ease-out, transform 0.2s ease;
       z-index: 10;
+      filter: drop-shadow(0 2px 5px rgba(0,0,0,0.3));
     }
-     #catch-message {
-        font-size: 1.2rem;
-        color: #fcd34d;
-        font-weight: bold;
-        margin-top: 10px;
-        display: none; /* Hidden initially */
-        cursor: pointer; /* Indicate it's clickable for restart */
-     }
-     #score-display {
-        position: absolute;
-        top: 5px;
-        right: 10px;
-        font-size: 1rem;
-        color: #fcd34d;
-        font-weight: bold;
-     }
-
-    /* Project Goals Section Styles */
-    #project-goals {
+    
+    #moving-bee:hover {
+      transform: scale(1.1);
+    }
+    
+    #catch-message {
+      font-size: 1.4rem;
+      color: var(--primary);
+      font-weight: bold;
+      margin-top: 15px;
       display: none;
-      max-width: 800px;
-      width: 90%;
-      margin: 0 auto 2rem auto;
-      padding: 1rem;
-      border-radius: 10px;
-      background-color: rgba(30, 30, 30, 0.7);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      text-align: left;
+      cursor: pointer;
+      text-shadow: 0 1px 5px rgba(0,0,0,0.5);
+      animation: bounce 1s infinite alternate;
     }
     
-    .goals-container {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1rem;
+    @keyframes bounce {
+      from { transform: translateY(0); }
+      to { transform: translateY(-10px); }
     }
     
-    @media (min-width: 768px) {
-      .goals-container {
-        grid-template-columns: 1fr;
+    #score-display {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 1.2rem;
+      color: var(--primary);
+      font-weight: bold;
+      background: rgba(0,0,0,0.3);
+      padding: 0.5rem 1rem;
+      border-radius: 30px;
+      border: 1px solid rgba(252, 211, 77, 0.2);
+    }
+    
+    /* Footer */
+    .footer {
+      padding: 2rem;
+      background: rgba(0,0,0,0.3);
+      border-top: 1px solid rgba(255,255,255,0.1);
+      text-align: center;
+    }
+    
+    .social-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .social-link {
+      color: var(--gray);
+      font-size: 1.5rem;
+      transition: all 0.3s ease;
+    }
+    
+    .social-link:hover {
+      color: var(--primary);
+      transform: translateY(-3px);
+    }
+    
+    .copyright {
+      color: var(--gray);
+      font-size: 0.9rem;
+    }
+    
+    /* Responsive styles */
+    @media (max-width: 768px) {
+      .hero {
+        padding: 2rem 0.5rem;
+        min-height: 100vh; /* Keep full height but will respect content */
+        height: auto;
+        justify-content: center;
+      }
+      
+      .hero-content {
+        padding: 0.5rem;
+      }
+      
+      .logo-container {
+        width: 180px; /* Even smaller logo for better fit */
+        margin-bottom: 1rem;
+        aspect-ratio: 1/1; /* Maintain aspect ratio */
+      }
+      
+      h1 {
+        font-size: 2rem;
+        margin-bottom: 0.8rem;
+        padding: 0 0.5rem;
+      }
+      
+      .hero p {
+        font-size: 0.95rem;
+        margin: 0 auto 1.5rem;
+        padding: 0 0.5rem;
+        max-width: 100%;
+      }
+      
+      .slogan {
+        font-size: 1.4em;
+        margin: 0.8rem auto;
+      }
+      
+      .btn-container {
+        flex-direction: column;
+        gap: 0.8rem;
+        margin-bottom: 1.5rem;
+        width: 100%;
+        padding: 0 1rem;
+      }
+      
+      .cta, .learn-more {
+        padding: 0.8rem 1rem;
+        font-size: 0.95rem;
+        width: 100%;
+        max-width: 220px;
+      }
+      
+      .divider {
+        height: 80px; /* Smaller divider for mobile */
       }
     }
     
-    .goal-category {
-      border: 1px solid #333;
-      border-radius: 8px;
-      padding: 0;
-      margin-bottom: 1rem;
-      overflow: hidden;
-      transition: all 0.3s ease;
-      background-color: rgba(40, 40, 40, 0.7);
-    }
-    
-    .category-header {
-      display: flex;
-      align-items: center;
-      padding: 0.8rem 1rem;
-      background-color: rgba(50, 50, 50, 0.7);
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-    
-    .category-header:hover {
-      background-color: rgba(60, 60, 60, 0.7);
-    }
-    
-    .category-header h3 {
-      margin: 0;
-      font-size: 1.1rem;
-      font-weight: 600;
-    }
-    
-    .category-emoji {
-      font-size: 1.6rem;
-      margin-right: 0.8rem;
-      min-width: 2rem;
-      text-align: center;
-    }
-    
-    .goal-details {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.4s ease;
-      padding: 0 1rem;
-    }
-    
-    .goal-details.expanded {
-      max-height: 400px;
-      padding: 0.8rem 1rem 1rem;
-      transition: max-height 0.6s ease, padding 0.2s ease;
-    }
-    
-    .goal-details ul {
-      margin: 0;
-      padding-left: 2rem;
-      color: #cfcfcf;
-    }
-    
-    .goal-details li {
-      margin-bottom: 0.5rem;
-      font-size: 0.95rem;
-    }
-    
-    .section-title {
-      margin-bottom: 1.5rem;
-      text-align: center;
-      color: #fcd34d;
-      font-size: 1.8rem;
-    }
-    
-    .learn-more {
-      background-color: transparent;
-      color: #fcd34d;
-      padding: 0.6rem 1.2rem;
-      border: 2px solid #fcd34d;
-      border-radius: 8px;
-      font-weight: 600;
-      text-decoration: none;
-      transition: all 0.2s;
-      font-size: 0.9rem;
-      margin-top: 0.5rem;
-      cursor: pointer;
-    }
-    
-    .learn-more:hover {
-      background-color: rgba(252, 211, 77, 0.2);
+    @media (max-width: 350px) {
+      /* Additional styles for very small screens */
+      .hero {
+        padding: 1.5rem 0.5rem;
+      }
+      
+      .logo-container {
+        width: 150px;
+        margin-bottom: 0.8rem;
+      }
+      
+      h1 {
+        font-size: 1.7rem;
+        margin-bottom: 0.7rem;
+      }
+      
+      .slogan {
+        font-size: 1.3em;
+        margin: 0.7rem auto;
+      }
+      
+      .hero p {
+        font-size: 0.9rem;
+        margin-bottom: 1.2rem;
+      }
+      
+      .cta, .learn-more {
+        padding: 0.7rem 1rem;
+        font-size: 0.9rem;
+        max-width: 200px;
+      }
     }
 
-    @media (min-width: 600px) {
+    @media (min-width: 769px) {
       .logo-container {
-        width: 320px;
+        width: 350px;
       }
+      
       h1 {
-        font-size: 2.5rem;
+        font-size: 4rem;
       }
-      p {
-        font-size: 1.2rem;
-        max-width: 600px;
-      }
-       .slogan {
-         font-size: 1.8em; 
-       }
+      
       .cta {
-        padding: 0.8rem 1.5rem;
-        font-size: 1.1rem;
+        padding: 1rem 2.5rem;
+        font-size: 1.2rem;
+      }
+    }
+
+    /* Special handling for taller mobile devices */
+    @media (max-height: 700px) and (max-width: 768px) {
+      .hero {
+        padding: 1rem 0.5rem;
+      }
+      
+      .logo-container {
+        width: 140px;
+        margin-bottom: 0.7rem;
+      }
+      
+      h1 {
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+      }
+      
+      .hero p {
+        margin-bottom: 1rem;
+      }
+      
+      .slogan {
+        margin: 0.5rem auto;
+      }
+      
+      .btn-container {
+        margin-bottom: 1rem;
       }
     }
   </style>
 </head>
 <body>
-
-  <div class="logo-container" aria-label="nostr.buzz logo"></div>
-  <h1>Welcome to nostr.buzz</h1>
-  <p>Get ready for something exciting! We're building a new buzz in the Nostr universe. Stay tuned!</p>
-  <p class="slogan">The future is buzzing! 🐝</p>
-  <a href="#" class="cta">Buzz</a>
-  <button class="learn-more" id="toggle-goals">Learn More</button>
+  <!-- Hero Section - now starts at the top of the page -->
+  <section class="hero">
+    <div class="particles-container" id="particles"></div>
+    <div class="hero-content">
+      <div class="logo-container" aria-label="nostr.buzz logo"></div>
+      <h1>Welcome to nostr.buzz</h1>
+      <p>Get ready for something exciting! We're building a revolutionary platform in the Nostr universe where content, community, and creativity come together seamlessly.</p>
+      <p class="slogan">The future is buzzing! 🐝</p>
+      <div class="btn-container">
+        <a href="#" class="cta">Start Buzzing</a>
+        <button class="learn-more" id="toggle-goals">Explore Features</button>
+      </div>
+    </div>
+  </section>
+  
+  <div class="divider">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+      <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="#131313"></path>
+    </svg>
+  </div>
   
   <!-- Project Goals Section -->
   <section id="project-goals">
-    <h2 class="section-title">nostr.buzz Project Goals</h2>
+    <h2 class="section-title">nostr.buzz Features</h2>
     <div class="goals-container">
       <!-- Viral Feed -->
       <div class="goal-category">
-        <div class="category-header" data-target="viral-feed">
+        <div class="category-header">
           <span class="category-emoji">🧠</span>
           <h3>Viral Feed</h3>
         </div>
-        <div class="goal-details" id="viral-feed">
+        <div class="goal-details">
           <ul>
             <li>Main feed with high-engagement posts (based on zaps, reposts, timestamp)</li>
             <li>Content ranking algorithm using NIP-13 (PoW) and zap count</li>
@@ -330,11 +732,11 @@
       
       <!-- Zap System -->
       <div class="goal-category">
-        <div class="category-header" data-target="zap-system">
+        <div class="category-header">
           <span class="category-emoji">⚡</span>
           <h3>Professional Zap System</h3>
         </div>
-        <div class="goal-details" id="zap-system">
+        <div class="goal-details">
           <ul>
             <li>Display zap count for each post</li>
             <li>Interactive zap icon with animation</li>
@@ -346,11 +748,11 @@
       
       <!-- Leaderboards -->
       <div class="goal-category">
-        <div class="category-header" data-target="leaderboards">
+        <div class="category-header">
           <span class="category-emoji">🏆</span>
           <h3>Leaderboards</h3>
         </div>
-        <div class="goal-details" id="leaderboards">
+        <div class="goal-details">
           <ul>
             <li>Top users based on zaps</li>
             <li>Top posts of the day, week, month</li>
@@ -361,11 +763,11 @@
       
       <!-- User Profiles -->
       <div class="goal-category">
-        <div class="category-header" data-target="profiles">
+        <div class="category-header">
           <span class="category-emoji">🐝</span>
           <h3>Buzz Profiles</h3>
         </div>
-        <div class="goal-details" id="profiles">
+        <div class="goal-details">
           <ul>
             <li>Avatar, name, bio, social links</li>
             <li>List of published posts</li>
@@ -377,11 +779,11 @@
       
       <!-- Content Creation Tools -->
       <div class="goal-category">
-        <div class="category-header" data-target="creation-tools">
+        <div class="category-header">
           <span class="category-emoji">🎨</span>
           <h3>Content Creation Tools</h3>
         </div>
-        <div class="goal-details" id="creation-tools">
+        <div class="goal-details">
           <ul>
             <li>Meme Generator (fast, no registration required)</li>
             <li>Markdown Editor for long notes</li>
@@ -392,11 +794,11 @@
       
       <!-- Username Marketplace -->
       <div class="goal-category">
-        <div class="category-header" data-target="username-market">
+        <div class="category-header">
           <span class="category-emoji">🪙</span>
           <h3>Username Marketplace</h3>
         </div>
-        <div class="goal-details" id="username-market">
+        <div class="goal-details">
           <ul>
             <li>Buy/sell NIP-05 names like name@nostr.buzz</li>
             <li>Lightning payment integration</li>
@@ -407,11 +809,11 @@
       
       <!-- Content Types -->
       <div class="goal-category">
-        <div class="category-header" data-target="content-types">
+        <div class="category-header">
           <span class="category-emoji">📺</span>
           <h3>Content Type Support</h3>
         </div>
-        <div class="goal-details" id="content-types">
+        <div class="goal-details">
           <ul>
             <li>Text (kind: 1)</li>
             <li>Images and videos (kind: 1063 - NIP-94)</li>
@@ -423,11 +825,11 @@
       
       <!-- X-Style UI -->
       <div class="goal-category">
-        <div class="category-header" data-target="ui-structure">
+        <div class="category-header">
           <span class="category-emoji">🧵</span>
           <h3>X-Style UI Structure</h3>
         </div>
-        <div class="goal-details" id="ui-structure">
+        <div class="goal-details">
           <ul>
             <li>Twitter/X-like design</li>
             <li>Reply threads</li>
@@ -439,11 +841,11 @@
       
       <!-- Nostr Protocols -->
       <div class="goal-category">
-        <div class="category-header" data-target="protocols">
+        <div class="category-header">
           <span class="category-emoji">🧩</span>
           <h3>Nostr Protocol Support</h3>
         </div>
-        <div class="goal-details" id="protocols">
+        <div class="goal-details">
           <ul>
             <li>NIP-01: Basic standard</li>
             <li>NIP-05: Domain-based user identification</li>
@@ -456,11 +858,11 @@
       
       <!-- Admin Tools -->
       <div class="goal-category">
-        <div class="category-header" data-target="admin-tools">
+        <div class="category-header">
           <span class="category-emoji">💼</span>
           <h3>Admin Dashboard</h3>
         </div>
-        <div class="goal-details" id="admin-tools">
+        <div class="goal-details">
           <ul>
             <li>Verified user management</li>
             <li>Review reported content</li>
@@ -472,11 +874,11 @@
       
       <!-- Social Features -->
       <div class="goal-category">
-        <div class="category-header" data-target="social-features">
+        <div class="category-header">
           <span class="category-emoji">💡</span>
           <h3>Social & Interactive Features</h3>
         </div>
-        <div class="goal-details" id="social-features">
+        <div class="goal-details">
           <ul>
             <li>Follow/unfollow system</li>
             <li>Notification system (WebSocket)</li>
@@ -488,11 +890,11 @@
       
       <!-- Future Plans -->
       <div class="goal-category">
-        <div class="category-header" data-target="future-plans">
+        <div class="category-header">
           <span class="category-emoji">🧪</span>
           <h3>Future Plans</h3>
         </div>
-        <div class="goal-details" id="future-plans">
+        <div class="goal-details">
           <ul>
             <li>Decentralized advertising (NIP-23-based promoted notes)</li>
             <li>Zap competitions & rewards</li>
@@ -504,23 +906,66 @@
     </div>
   </section>
   
-  <audio id="buzzSound" src="buzz.mp3" preload="auto"></audio>
-
-  <div id="bee-game-area">
+  <!-- Game Section -->
+  <section class="game-section">
+    <h3 class="game-heading">Catch the Buzz!</h3>
+    <div id="bee-game-area">
       <div id="score-display">Score: 0</div>
       <p>Quick! Catch the buzzing bee as many times as you can!</p>
       <span id="moving-bee">🐝</span>
       <div id="catch-message">Gotcha! Click me to play again! 😉</div>
-  </div>
+    </div>
+  </section>
+  
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="social-links">
+      <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+      <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+      <a href="#" class="social-link"><i class="fab fa-discord"></i></a>
+      <a href="#" class="social-link"><i class="fab fa-telegram"></i></a>
+    </div>
+    <p class="copyright">© 2023 nostr.buzz. All rights reserved.</p>
+  </footer>
+
+  <audio id="buzzSound" src="buzz.mp3" preload="auto"></audio>
 
   <script>
+    // Create particles - improved for perfect mobile display
+    function createParticles() {
+      const particlesContainer = document.getElementById('particles');
+      particlesContainer.innerHTML = ''; // Clear existing particles if any
+      
+      const isMobile = window.innerWidth <= 768;
+      const numberOfParticles = isMobile ? 15 : 40; // Even fewer particles on mobile for performance
+      
+      for (let i = 0; i < numberOfParticles; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        
+        // Better positioning for mobile devices
+        const posX = Math.random() * 100;
+        const posY = Math.random() * (isMobile ? 50 : 100) + (isMobile ? 20 : 30);
+        const size = Math.random() * (isMobile ? 3 : 6) + (isMobile ? 2 : 2);
+        
+        particle.style.left = `${posX}%`;
+        particle.style.top = `${posY}%`;
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.opacity = isMobile ? '0.25' : '0.3'; // Slightly less visible on mobile
+        
+        // Adjusted animation for mobile
+        const delay = Math.random() * (isMobile ? 5 : 10);
+        const duration = Math.random() * (isMobile ? 10 : 15) + (isMobile ? 8 : 10);
+        particle.style.animationDelay = `${delay}s`;
+        particle.style.animationDuration = `${duration}s`;
+        
+        particlesContainer.appendChild(particle);
+      }
+    }
     
+    // Logo interaction
     const logoContainer = document.querySelector('.logo-container');
-    const ctaButton = document.querySelector('.cta');
-    const buzzSound = document.getElementById('buzzSound');
-    const body = document.body;
-
-    
     logoContainer.addEventListener('mousemove', (e) => {
       const rect = logoContainer.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -528,12 +973,16 @@
       logoContainer.style.setProperty('--mouse-x', `${x}px`);
       logoContainer.style.setProperty('--mouse-y', `${y}px`);
     });
+    
     logoContainer.addEventListener('mouseleave', () => {
       logoContainer.style.setProperty('--mouse-x', `50%`);
       logoContainer.style.setProperty('--mouse-y', `50%`);
     });
-
-
+    
+    // Button effects
+    const ctaButton = document.querySelector('.cta');
+    const buzzSound = document.getElementById('buzzSound');
+    const body = document.body;
     
     ctaButton.addEventListener('click', (event) => {
       event.preventDefault();
@@ -546,8 +995,8 @@
         body.classList.remove('shake');
       }, 800);
     });
-
     
+    // Bee Game
     const gameArea = document.getElementById('bee-game-area');
     const bee = document.getElementById('moving-bee');
     const catchMessage = document.getElementById('catch-message');
@@ -572,15 +1021,12 @@
         const padding = 20; 
         const beeRect = bee.getBoundingClientRect();
 
-        
         const maxX = areaRect.width - beeRect.width - (padding * 2);
         const maxY = areaRect.height - beeRect.height - (padding * 2);
 
-        
         const randomX = Math.max(0, Math.random() * maxX) + padding;
         const randomY = Math.max(0, Math.random() * maxY) + padding;
 
-        
         const transitionDuration = Math.max(0.1, (currentMoveInterval / 3) / 1000); 
         bee.style.transition = `top ${transitionDuration}s ease-out, left ${transitionDuration}s ease-out`;
 
@@ -594,11 +1040,9 @@
         bee.style.opacity = 1;
         bee.style.cursor = 'pointer'; 
 
-        
         if (score === 0) {
             currentMoveInterval = 1500; 
         } else {
-            
             currentMoveInterval = Math.max(minMoveInterval, currentMoveInterval - intervalDecrease);
         }
 
@@ -619,56 +1063,71 @@
             catchMessage.style.display = 'block'; 
             bee.style.opacity = 0.6; 
             bee.style.cursor = 'default'; 
-
-            
         }
     });
 
-    
     catchMessage.addEventListener('click', () => {
         if (beeCaught) { 
              startGame();
         }
     });
-
     
-    updateScore(); 
-    startGame();
-
-    const learnMoreBtn = document.getElementById('toggle-goals');
-    const projectGoals = document.getElementById('project-goals');
-    const goalCategories = document.querySelectorAll('.goal-category');
-
-    learnMoreBtn.addEventListener('click', () => {
-      const isDisplayed = projectGoals.style.display === 'block';
-      projectGoals.style.display = isDisplayed ? 'none' : 'block';
-      learnMoreBtn.textContent = isDisplayed ? 'Learn More' : 'Hide Details';
+    // Initialize everything with enhanced mobile optimization
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initial creation of particles
+      createParticles();
+      updateScore();
+      startGame();
       
-      if (!isDisplayed) {
-        setTimeout(() => {
-          projectGoals.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
+      // Enhanced resize handler for perfect responsiveness
+      function handleResize() {
+        // Recreate particles on resize to ensure proper positioning
+        createParticles();
+        
+        // Adjust bee position for the game
+        if (beeInterval) {
+          clearInterval(beeInterval);
+          moveBee();
+          beeInterval = setInterval(moveBee, currentMoveInterval);
+        }
       }
-    });
-
-    goalCategories.forEach(category => {
-      const header = category.querySelector('.category-header');
-      const details = category.querySelector('.goal-details');
-
-      header.addEventListener('click', () => {
-        const targetId = header.getAttribute('data-target');
-        const targetDetails = document.getElementById(targetId);
+      
+      // Debounced resize handler for better performance
+      let resizeTimer;
+      window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(handleResize, 250);
+      });
+      
+      // Enhanced mobile touch experience for buttons
+      const buttons = document.querySelectorAll('.cta, .learn-more');
+      buttons.forEach(button => {
+        button.addEventListener('touchstart', function() {
+          this.style.transform = 'scale(0.95)';
+        });
         
-        targetDetails.classList.toggle('expanded');
-        
-        document.querySelectorAll('.goal-details').forEach(details => {
-          if (details.id !== targetId) {
-            details.classList.remove('expanded');
-          }
+        button.addEventListener('touchend', function() {
+          this.style.transform = '';
         });
       });
+      
+      // Toggle goals section visibility - enhanced for mobile
+      const toggleGoalsButton = document.getElementById('toggle-goals');
+      const projectGoalsSection = document.getElementById('project-goals');
+      
+      toggleGoalsButton.addEventListener('click', function() {
+        projectGoalsSection.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      });
+      
+      // Ensure proper initial layout on page load
+      setTimeout(() => {
+        // This timeout helps ensure everything is properly rendered
+        window.scrollTo(0, 0);
+      }, 100);
     });
-
   </script>
 </body>
 </html>
