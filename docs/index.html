@@ -169,6 +169,116 @@
         font-weight: bold;
      }
 
+    /* Project Goals Section Styles */
+    #project-goals {
+      display: none;
+      max-width: 800px;
+      width: 90%;
+      margin: 0 auto 2rem auto;
+      padding: 1rem;
+      border-radius: 10px;
+      background-color: rgba(30, 30, 30, 0.7);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      text-align: left;
+    }
+    
+    .goals-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    @media (min-width: 768px) {
+      .goals-container {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .goal-category {
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 0;
+      margin-bottom: 1rem;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      background-color: rgba(40, 40, 40, 0.7);
+    }
+    
+    .category-header {
+      display: flex;
+      align-items: center;
+      padding: 0.8rem 1rem;
+      background-color: rgba(50, 50, 50, 0.7);
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .category-header:hover {
+      background-color: rgba(60, 60, 60, 0.7);
+    }
+    
+    .category-header h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    
+    .category-emoji {
+      font-size: 1.6rem;
+      margin-right: 0.8rem;
+      min-width: 2rem;
+      text-align: center;
+    }
+    
+    .goal-details {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+      padding: 0 1rem;
+    }
+    
+    .goal-details.expanded {
+      max-height: 400px;
+      padding: 0.8rem 1rem 1rem;
+      transition: max-height 0.6s ease, padding 0.2s ease;
+    }
+    
+    .goal-details ul {
+      margin: 0;
+      padding-left: 2rem;
+      color: #cfcfcf;
+    }
+    
+    .goal-details li {
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+    
+    .section-title {
+      margin-bottom: 1.5rem;
+      text-align: center;
+      color: #fcd34d;
+      font-size: 1.8rem;
+    }
+    
+    .learn-more {
+      background-color: transparent;
+      color: #fcd34d;
+      padding: 0.6rem 1.2rem;
+      border: 2px solid #fcd34d;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+      cursor: pointer;
+    }
+    
+    .learn-more:hover {
+      background-color: rgba(252, 211, 77, 0.2);
+    }
+
     @media (min-width: 600px) {
       .logo-container {
         width: 320px;
@@ -197,7 +307,203 @@
   <p>Get ready for something exciting! We're building a new buzz in the Nostr universe. Stay tuned!</p>
   <p class="slogan">The future is buzzing! 🐝</p>
   <a href="#" class="cta">Buzz</a>
-
+  <button class="learn-more" id="toggle-goals">Learn More</button>
+  
+  <!-- Project Goals Section -->
+  <section id="project-goals">
+    <h2 class="section-title">nostr.buzz Project Goals</h2>
+    <div class="goals-container">
+      <!-- Viral Feed -->
+      <div class="goal-category">
+        <div class="category-header" data-target="viral-feed">
+          <span class="category-emoji">🧠</span>
+          <h3>Viral Feed</h3>
+        </div>
+        <div class="goal-details" id="viral-feed">
+          <ul>
+            <li>Main feed with high-engagement posts (based on zaps, reposts, timestamp)</li>
+            <li>Content ranking algorithm using NIP-13 (PoW) and zap count</li>
+            <li>Time filter: today, week, month</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Zap System -->
+      <div class="goal-category">
+        <div class="category-header" data-target="zap-system">
+          <span class="category-emoji">⚡</span>
+          <h3>Professional Zap System</h3>
+        </div>
+        <div class="goal-details" id="zap-system">
+          <ul>
+            <li>Display zap count for each post</li>
+            <li>Interactive zap icon with animation</li>
+            <li>Zap statistics in user profile</li>
+            <li>Leaderboard of most viewed posts and users</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Leaderboards -->
+      <div class="goal-category">
+        <div class="category-header" data-target="leaderboards">
+          <span class="category-emoji">🏆</span>
+          <h3>Leaderboards</h3>
+        </div>
+        <div class="goal-details" id="leaderboards">
+          <ul>
+            <li>Top users based on zaps</li>
+            <li>Top posts of the day, week, month</li>
+            <li>Categories: memes, news, podcasts, tutorials, analysis</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- User Profiles -->
+      <div class="goal-category">
+        <div class="category-header" data-target="profiles">
+          <span class="category-emoji">🐝</span>
+          <h3>Buzz Profiles</h3>
+        </div>
+        <div class="goal-details" id="profiles">
+          <ul>
+            <li>Avatar, name, bio, social links</li>
+            <li>List of published posts</li>
+            <li>Received zaps</li>
+            <li>Followers and following</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Content Creation Tools -->
+      <div class="goal-category">
+        <div class="category-header" data-target="creation-tools">
+          <span class="category-emoji">🎨</span>
+          <h3>Content Creation Tools</h3>
+        </div>
+        <div class="goal-details" id="creation-tools">
+          <ul>
+            <li>Meme Generator (fast, no registration required)</li>
+            <li>Markdown Editor for long notes</li>
+            <li>AI image generator (in advanced version)</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Username Marketplace -->
+      <div class="goal-category">
+        <div class="category-header" data-target="username-market">
+          <span class="category-emoji">🪙</span>
+          <h3>Username Marketplace</h3>
+        </div>
+        <div class="goal-details" id="username-market">
+          <ul>
+            <li>Buy/sell NIP-05 names like name@nostr.buzz</li>
+            <li>Lightning payment integration</li>
+            <li>Public sales, auctions, rentals</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Content Types -->
+      <div class="goal-category">
+        <div class="category-header" data-target="content-types">
+          <span class="category-emoji">📺</span>
+          <h3>Content Type Support</h3>
+        </div>
+        <div class="goal-details" id="content-types">
+          <ul>
+            <li>Text (kind: 1)</li>
+            <li>Images and videos (kind: 1063 - NIP-94)</li>
+            <li>Podcasts and spaces (kind: 30023 - NIP-95)</li>
+            <li>Polls (coming soon)</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- X-Style UI -->
+      <div class="goal-category">
+        <div class="category-header" data-target="ui-structure">
+          <span class="category-emoji">🧵</span>
+          <h3>X-Style UI Structure</h3>
+        </div>
+        <div class="goal-details" id="ui-structure">
+          <ul>
+            <li>Twitter/X-like design</li>
+            <li>Reply threads</li>
+            <li>Infinite scroll</li>
+            <li>Live typing and interactive experience</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Nostr Protocols -->
+      <div class="goal-category">
+        <div class="category-header" data-target="protocols">
+          <span class="category-emoji">🧩</span>
+          <h3>Nostr Protocol Support</h3>
+        </div>
+        <div class="goal-details" id="protocols">
+          <ul>
+            <li>NIP-01: Basic standard</li>
+            <li>NIP-05: Domain-based user identification</li>
+            <li>NIP-57: Lightning zaps</li>
+            <li>NIP-13: PoW sorting</li>
+            <li>NIP-94/95: Files and media</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Admin Tools -->
+      <div class="goal-category">
+        <div class="category-header" data-target="admin-tools">
+          <span class="category-emoji">💼</span>
+          <h3>Admin Dashboard</h3>
+        </div>
+        <div class="goal-details" id="admin-tools">
+          <ul>
+            <li>Verified user management</li>
+            <li>Review reported content</li>
+            <li>NIP-05 renewal and transfer</li>
+            <li>Transaction review and dispute resolution</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Social Features -->
+      <div class="goal-category">
+        <div class="category-header" data-target="social-features">
+          <span class="category-emoji">💡</span>
+          <h3>Social & Interactive Features</h3>
+        </div>
+        <div class="goal-details" id="social-features">
+          <ul>
+            <li>Follow/unfollow system</li>
+            <li>Notification system (WebSocket)</li>
+            <li>Favorite post saving</li>
+            <li>Zap badges and scoring</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Future Plans -->
+      <div class="goal-category">
+        <div class="category-header" data-target="future-plans">
+          <span class="category-emoji">🧪</span>
+          <h3>Future Plans</h3>
+        </div>
+        <div class="goal-details" id="future-plans">
+          <ul>
+            <li>Decentralized advertising (NIP-23-based promoted notes)</li>
+            <li>Zap competitions & rewards</li>
+            <li>BuzzRank (viral content search engine)</li>
+            <li>Buzz Magazine (weekly viral newsletter)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+  
   <audio id="buzzSound" src="buzz.mp3" preload="auto"></audio>
 
   <div id="bee-game-area">
@@ -328,6 +634,40 @@
     
     updateScore(); 
     startGame();
+
+    const learnMoreBtn = document.getElementById('toggle-goals');
+    const projectGoals = document.getElementById('project-goals');
+    const goalCategories = document.querySelectorAll('.goal-category');
+
+    learnMoreBtn.addEventListener('click', () => {
+      const isDisplayed = projectGoals.style.display === 'block';
+      projectGoals.style.display = isDisplayed ? 'none' : 'block';
+      learnMoreBtn.textContent = isDisplayed ? 'Learn More' : 'Hide Details';
+      
+      if (!isDisplayed) {
+        setTimeout(() => {
+          projectGoals.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      }
+    });
+
+    goalCategories.forEach(category => {
+      const header = category.querySelector('.category-header');
+      const details = category.querySelector('.goal-details');
+
+      header.addEventListener('click', () => {
+        const targetId = header.getAttribute('data-target');
+        const targetDetails = document.getElementById(targetId);
+        
+        targetDetails.classList.toggle('expanded');
+        
+        document.querySelectorAll('.goal-details').forEach(details => {
+          if (details.id !== targetId) {
+            details.classList.remove('expanded');
+          }
+        });
+      });
+    });
 
   </script>
 </body>
