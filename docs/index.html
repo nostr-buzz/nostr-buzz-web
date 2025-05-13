@@ -302,6 +302,11 @@
       height: auto;
     }
     
+    .reverse-divider {
+      transform: rotate(180deg);
+      margin-bottom: -1px;
+    }
+    
     /* Project Goals Styles */
     #project-goals {
       display: block;
@@ -687,6 +692,130 @@
         margin-bottom: 1rem;
       }
     }
+
+    /* Core Features Section Styles */
+    #core-features {
+      background: linear-gradient(180deg, var(--darker) 0%, var(--dark) 100%);
+      padding: 4rem 0;
+      position: relative;
+    }
+    
+    #core-features .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    
+    .feature-spotlight {
+      background: rgba(30, 30, 30, 0.7);
+      border-radius: 16px;
+      margin-bottom: 3rem;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .feature-spotlight:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+      border-color: rgba(252, 211, 77, 0.2);
+    }
+    
+    .feature-header {
+      display: flex;
+      align-items: center;
+      padding: 1.5rem;
+      background: rgba(20, 20, 20, 0.8);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .feature-icon {
+      font-size: 2.5rem;
+      margin-right: 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    
+    .feature-header h3 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 0;
+    }
+    
+    .feature-content {
+      padding: 1.5rem;
+    }
+    
+    .feature-content p {
+      color: var(--gray);
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    
+    .feature-content h4 {
+      color: var(--primary);
+      margin: 0 0 1rem 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    
+    .feature-content ul {
+      list-style-type: none;
+      padding: 0;
+      margin-bottom: 1.5rem;
+    }
+    
+    .feature-content li {
+      margin-bottom: 1rem;
+      padding-left: 1.8rem;
+      position: relative;
+    }
+    
+    .feature-content li::before {
+      content: '\f058';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      color: var(--primary);
+      position: absolute;
+      left: 0;
+    }
+    
+    .feature-content strong {
+      color: var(--primary);
+      font-weight: 600;
+    }
+    
+    @media (max-width: 768px) {
+      #core-features {
+        padding: 2rem 0;
+      }
+      
+      .feature-header {
+        padding: 1rem;
+      }
+      
+      .feature-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 2rem;
+      }
+      
+      .feature-header h3 {
+        font-size: 1.3rem;
+      }
+      
+      .feature-content {
+        padding: 1.2rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -715,192 +844,188 @@
   <section id="project-goals">
     <h2 class="section-title">nostr.buzz Features</h2>
     <div class="goals-container">
-      <!-- Viral Feed -->
+
+      <!-- NIP-05 Username Marketplace - Enhanced -->
       <div class="goal-category">
         <div class="category-header">
-          <span class="category-emoji">🧠</span>
-          <h3>Viral Feed</h3>
+          <span class="category-emoji">🛒</span>
+          <h3>Advanced NIP-05 Username Marketplace</h3>
         </div>
         <div class="goal-details">
           <ul>
-            <li>Main feed with high-engagement posts (based on zaps, reposts, timestamp)</li>
-            <li>Content ranking algorithm using NIP-13 (PoW) and zap count</li>
-            <li>Time filter: today, week, month</li>
+            <li>Buy, sell, and trade premium usernames like name@nostr.buzz with escrow protection</li>
+            <li>Auction system with reserve prices, time limits, and automatic transfers</li>
+            <li>Username valuation algorithm based on length, uniqueness, and market demand</li>
+            <li>Domain management dashboard for multiple identities</li>
+            <li>Automatic DNS validation and verification process</li>
+            <li>Bulk registration for teams and organizations with discounts</li>
+            <li>Secondary market with transfer history and ownership verification</li>
+            <li>Username leasing with configurable expirations and renewal options</li>
           </ul>
         </div>
       </div>
       
-      <!-- Zap System -->
+      <!-- Comprehensive Nostr Search Engine -->
+      <div class="goal-category">
+        <div class="category-header">
+          <span class="category-emoji">🔍</span>
+          <h3>Universal Nostr Search Engine</h3>
+        </div>
+        <div class="goal-details">
+          <ul>
+            <li>Real-time indexing of content across multiple relays with millisecond response times</li>
+            <li>Advanced filters for content type, time range, engagement metrics, and author reputation</li>
+            <li>Semantic search capabilities understanding natural language queries</li>
+            <li>Multi-format results including text notes, images, videos, spaces, and encrypted content</li>
+            <li>Personalized search results based on your social graph and interests</li>
+            <li>Trending topics and hashtag discovery with visualization tools</li>
+            <li>Search API for developers building on the nostr ecosystem</li>
+            <li>Privacy-focused with client-side query encryption options</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Nostr Tools Directory -->
+      <div class="goal-category">
+        <div class="category-header">
+          <span class="category-emoji">🧰</span>
+          <h3>Nostr Tools & Apps Directory</h3>
+        </div>
+        <div class="goal-details">
+          <ul>
+            <li>Comprehensive catalog of clients, extensions, and tools built on nostr protocol</li>
+            <li>Verified developer profiles and project documentation</li>
+            <li>Community reviews and ratings for each tool with detailed metrics</li>
+            <li>Integration guides and SDK access for developers</li>
+            <li>Analytics dashboard for adoption rates and usage statistics</li>
+            <li>Cross-platform compatibility information and feature comparison</li>
+            <li>Developer showcase with bounties for requested features</li>
+            <li>One-click installation and integration with nostr.buzz</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Advanced Zap Wallet -->
       <div class="goal-category">
         <div class="category-header">
           <span class="category-emoji">⚡</span>
-          <h3>Professional Zap System</h3>
+          <h3>Advanced Multi-Protocol Zap Wallet</h3>
         </div>
         <div class="goal-details">
           <ul>
-            <li>Display zap count for each post</li>
-            <li>Interactive zap icon with animation</li>
-            <li>Zap statistics in user profile</li>
-            <li>Leaderboard of most viewed posts and users</li>
+            <li>Seamless integration with Lightning, Liquid, Bitcoin on-chain, and Cashu</li>
+            <li>Built-in atomic swap capabilities between protocols with best rate sourcing</li>
+            <li>Fiat on-ramp/off-ramp through multiple payment providers with minimal fees</li>
+            <li>Scheduled and automated zaps for content creators and subscriptions</li>
+            <li>Multi-signature wallet options for team and business accounts</li>
+            <li>Advanced analytics on spending, receiving, and ROI for content creation</li>
+            <li>NFC and QR support for in-person zaps and payments</li>
+            <li>Cold storage integration with hardware wallet support</li>
+            <li>Instant notification system for received payments and successful swaps</li>
+            <li>Unified transaction history across all payment protocols and currencies</li>
           </ul>
         </div>
       </div>
+    </div>
+  </section>
+  
+  <div class="divider reverse-divider">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+      <path d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1132.19,118.92,1055.71,111.31,985.66,92.83Z" fill="#131313"></path>
+    </svg>
+  </div>
+  
+  <!-- Core Features Section -->
+  <section id="core-features">
+    <div class="container">
+      <h2 class="section-title">Core Technology Capabilities</h2>
       
-      <!-- Leaderboards -->
-      <div class="goal-category">
-        <div class="category-header">
-          <span class="category-emoji">🏆</span>
-          <h3>Leaderboards</h3>
+      <div class="feature-spotlight">
+        <div class="feature-header">
+          <span class="feature-icon">🛒</span>
+          <h3>NIP-05 Username Marketplace</h3>
         </div>
-        <div class="goal-details">
+        <div class="feature-content">
+          <p>Our NIP-05 Username Marketplace revolutionizes digital identity in the nostr ecosystem by providing a secure, transparent platform for acquiring and managing valuable verified identities.</p>
+          
+          <h4>Key Capabilities:</h4>
           <ul>
-            <li>Top users based on zaps</li>
-            <li>Top posts of the day, week, month</li>
-            <li>Categories: memes, news, podcasts, tutorials, analysis</li>
+            <li><strong>Premium Domain Ownership:</strong> Secure your unique identity with name@nostr.buzz domains, fully compliant with NIP-05 standards and instantly verified across the nostr ecosystem.</li>
+            <li><strong>Dynamic Marketplace:</strong> Our advanced trading platform features auctions, buy-now options, and make-offer functionality with real-time pricing data based on market trends.</li>
+            <li><strong>Smart Contracts:</strong> Every transaction is secured by automated Lightning Network escrow protocols ensuring safe transfers between buyers and sellers.</li>
+            <li><strong>Portfolio Management:</strong> Invest in multiple usernames with our domain portfolio tools, allowing you to track value appreciation and manage all your digital identities.</li>
+            <li><strong>Enterprise Solutions:</strong> Organizations can register and manage multiple employee identities with centralized administrative controls and verification.</li>
+            <li><strong>Renewal Protection:</strong> Advanced auto-renewal system ensures you never lose your valuable nostr identity with configurable payment thresholds and notification systems.</li>
           </ul>
+          
+          <p>Our marketplace integrates seamlessly with popular nostr clients, providing instant verification and profile updates when you acquire a new username. With transparent pricing history and trend analysis, users can make informed decisions about username investments.</p>
         </div>
       </div>
       
-      <!-- User Profiles -->
-      <div class="goal-category">
-        <div class="category-header">
-          <span class="category-emoji">🐝</span>
-          <h3>Buzz Profiles</h3>
+      <div class="feature-spotlight">
+        <div class="feature-header">
+          <span class="feature-icon">🔍</span>
+          <h3>Universal Nostr Search Engine</h3>
         </div>
-        <div class="goal-details">
+        <div class="feature-content">
+          <p>Our groundbreaking search technology indexes the decentralized nostr network in real-time, providing unprecedented access to content across the entire ecosystem regardless of which relays you're connected to.</p>
+          
+          <h4>Key Capabilities:</h4>
           <ul>
-            <li>Avatar, name, bio, social links</li>
-            <li>List of published posts</li>
-            <li>Received zaps</li>
-            <li>Followers and following</li>
+            <li><strong>Distributed Relay Indexing:</strong> Our advanced crawler connects to hundreds of relays, indexing content while respecting privacy preferences and encryption.</li>
+            <li><strong>AI-Powered Semantic Search:</strong> Go beyond simple keyword matching with natural language processing that understands context, sentiment, and relevance.</li>
+            <li><strong>Multi-Format Discovery:</strong> Find text notes, images, videos, audio recordings, live spaces, and more through a unified search interface.</li>
+            <li><strong>Social Graph Intelligence:</strong> Personalized search results prioritize content from your network and those with high reputation within your extended graph.</li>
+            <li><strong>Advanced Filters:</strong> Refine results by date ranges, engagement metrics, content types, languages, and verification status of authors.</li>
+            <li><strong>Trending Analysis:</strong> Discover what's popular in real-time with our heat-mapping of trending topics, hashtags, and discussions across the nostrverse.</li>
           </ul>
+          
+          <p>Our search engine operates with strict privacy principles, performing many operations client-side to minimize data collection. With customizable indexes, you can create personal search domains focused on your interests while contributing to the broader search ecosystem.</p>
         </div>
       </div>
       
-      <!-- Content Creation Tools -->
-      <div class="goal-category">
-        <div class="category-header">
-          <span class="category-emoji">🎨</span>
-          <h3>Content Creation Tools</h3>
+      <div class="feature-spotlight">
+        <div class="feature-header">
+          <span class="feature-icon">🧰</span>
+          <h3>Comprehensive Nostr Tools Directory</h3>
         </div>
-        <div class="goal-details">
+        <div class="feature-content">
+          <p>Navigate the expanding nostr ecosystem with our professionally curated tools directory, showcasing the most innovative and reliable applications built on the protocol.</p>
+          
+          <h4>Key Capabilities:</h4>
           <ul>
-            <li>Meme Generator (fast, no registration required)</li>
-            <li>Markdown Editor for long notes</li>
-            <li>AI image generator (in advanced version)</li>
+            <li><strong>Verified Listings:</strong> Every tool undergoes security validation and feature verification before being listed in our directory.</li>
+            <li><strong>Categorical Organization:</strong> Find exactly what you need with tools organized by function: clients, wallets, content creation, development, data analysis, and more.</li>
+            <li><strong>Interactive Demonstrations:</strong> Test drive applications directly within our platform before installation with our sandboxed preview environment.</li>
+            <li><strong>Compatibility Matrix:</strong> Easily identify which tools work with your existing setup, including cross-platform support and integration capabilities.</li>
+            <li><strong>Developer Showcase:</strong> Connect with the brilliant minds behind nostr innovations through verified developer profiles and support channels.</li>
+            <li><strong>Community Feedback:</strong> Make informed decisions with user reviews, ratings, and usage statistics from the broader community.</li>
           </ul>
+          
+          <p>Beyond simple listings, our tools directory serves as an innovation hub where developers can publish roadmaps, users can request features, and the community can fund development through Lightning-powered bounties and donations. One-click installation and configuration makes adopting new tools effortless.</p>
         </div>
       </div>
       
-      <!-- Username Marketplace -->
-      <div class="goal-category">
-        <div class="category-header">
-          <span class="category-emoji">🪙</span>
-          <h3>Username Marketplace</h3>
+      <div class="feature-spotlight">
+        <div class="feature-header">
+          <span class="feature-icon">⚡</span>
+          <h3>Multi-Protocol Zap Wallet</h3>
         </div>
-        <div class="goal-details">
+        <div class="feature-content">
+          <p>Our revolutionary wallet system unifies Bitcoin's Lightning Network, on-chain transactions, Liquid sidechain, and Cashu tokens into a seamless payment experience designed specifically for the nostr ecosystem.</p>
+          
+          <h4>Key Capabilities:</h4>
           <ul>
-            <li>Buy/sell NIP-05 names like name@nostr.buzz</li>
-            <li>Lightning payment integration</li>
-            <li>Public sales, auctions, rentals</li>
+            <li><strong>Protocol Interoperability:</strong> Manage Lightning, Bitcoin on-chain, Liquid assets, and Cashu e-cash from a single interface with unified balance display.</li>
+            <li><strong>Intelligent Routing:</strong> Automatically selects the optimal payment network based on transaction size, recipient capabilities, and fee considerations.</li>
+            <li><strong>Cross-Protocol Swaps:</strong> Instantly exchange between payment methods with our built-in atomic swap engine, sourcing the best rates across multiple liquidity providers.</li>
+            <li><strong>Fiat Gateway:</strong> Purchase Bitcoin and zap directly with traditional payment methods including credit cards, bank transfers, and popular payment apps.</li>
+            <li><strong>Advanced Zap Features:</strong> Schedule recurring zaps to favorite creators, split zaps among multiple recipients, and set up conditional zaps based on content engagement.</li>
+            <li><strong>Business Tools:</strong> Generate invoices, track payments, and manage subscription revenues with comprehensive analytics and reporting features.</li>
+            <li><strong>Security Options:</strong> Choose your security model from convenient hot wallet to multi-signature setups and cold storage integration with hardware wallet support.</li>
           </ul>
-        </div>
-      </div>
-      
-      <!-- Content Types -->
-      <div class="goal-category">
-        <div class="category-header">
-          <span class="category-emoji">📺</span>
-          <h3>Content Type Support</h3>
-        </div>
-        <div class="goal-details">
-          <ul>
-            <li>Text (kind: 1)</li>
-            <li>Images and videos (kind: 1063 - NIP-94)</li>
-            <li>Podcasts and spaces (kind: 30023 - NIP-95)</li>
-            <li>Polls (coming soon)</li>
-          </ul>
-        </div>
-      </div>
-      
-      <!-- X-Style UI -->
-      <div class="goal-category">
-        <div class="category-header">
-          <span class="category-emoji">🧵</span>
-          <h3>X-Style UI Structure</h3>
-        </div>
-        <div class="goal-details">
-          <ul>
-            <li>Twitter/X-like design</li>
-            <li>Reply threads</li>
-            <li>Infinite scroll</li>
-            <li>Live typing and interactive experience</li>
-          </ul>
-        </div>
-      </div>
-      
-      <!-- Nostr Protocols -->
-      <div class="goal-category">
-        <div class="category-header">
-          <span class="category-emoji">🧩</span>
-          <h3>Nostr Protocol Support</h3>
-        </div>
-        <div class="goal-details">
-          <ul>
-            <li>NIP-01: Basic standard</li>
-            <li>NIP-05: Domain-based user identification</li>
-            <li>NIP-57: Lightning zaps</li>
-            <li>NIP-13: PoW sorting</li>
-            <li>NIP-94/95: Files and media</li>
-          </ul>
-        </div>
-      </div>
-      
-      <!-- Admin Tools -->
-      <div class="goal-category">
-        <div class="category-header">
-          <span class="category-emoji">💼</span>
-          <h3>Admin Dashboard</h3>
-        </div>
-        <div class="goal-details">
-          <ul>
-            <li>Verified user management</li>
-            <li>Review reported content</li>
-            <li>NIP-05 renewal and transfer</li>
-            <li>Transaction review and dispute resolution</li>
-          </ul>
-        </div>
-      </div>
-      
-      <!-- Social Features -->
-      <div class="goal-category">
-        <div class="category-header">
-          <span class="category-emoji">💡</span>
-          <h3>Social & Interactive Features</h3>
-        </div>
-        <div class="goal-details">
-          <ul>
-            <li>Follow/unfollow system</li>
-            <li>Notification system (WebSocket)</li>
-            <li>Favorite post saving</li>
-            <li>Zap badges and scoring</li>
-          </ul>
-        </div>
-      </div>
-      
-      <!-- Future Plans -->
-      <div class="goal-category">
-        <div class="category-header">
-          <span class="category-emoji">🧪</span>
-          <h3>Future Plans</h3>
-        </div>
-        <div class="goal-details">
-          <ul>
-            <li>Decentralized advertising (NIP-23-based promoted notes)</li>
-            <li>Zap competitions & rewards</li>
-            <li>BuzzRank (viral content search engine)</li>
-            <li>Buzz Magazine (weekly viral newsletter)</li>
-          </ul>
+          
+          <p>The wallet seamlessly integrates with your nostr identity, allowing one-click zaps directly from content feeds while maintaining detailed records of your support for creators. Advanced privacy features include Payjoin support for on-chain transactions and customizable routing preferences for Lightning payments.</p>
         </div>
       </div>
     </div>
@@ -925,7 +1050,7 @@
       <a href="#" class="social-link"><i class="fab fa-discord"></i></a>
       <a href="#" class="social-link"><i class="fab fa-telegram"></i></a>
     </div>
-    <p class="copyright">© 2023 nostr.buzz. All rights reserved.</p>
+    <p class="copyright">© 2025 nostr.buzz. All rights reserved.</p>
   </footer>
 
   <audio id="buzzSound" src="buzz.mp3" preload="auto"></audio>
