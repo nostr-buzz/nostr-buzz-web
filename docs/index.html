@@ -435,12 +435,12 @@
     
     #bee-game-area {
       margin: 0 auto;
-      padding: 2rem;
+      padding: 3rem;
       border: 2px dashed rgba(252, 211, 77, 0.3);
       width: 100%;
-      max-width: 650px;
+      max-width: 800px;
       position: relative;
-      min-height: 200px;
+      min-height: 350px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -448,6 +448,14 @@
       border-radius: 20px;
       background: rgba(0, 0, 0, 0.2);
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2), inset 0 0 20px rgba(252, 211, 77, 0.1);
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      -webkit-user-drag: none;
+      -khtml-user-drag: none;
+      -moz-user-drag: none;
+      -o-user-drag: none;
     }
     
     #bee-game-area p {
@@ -791,11 +799,11 @@
     <div class="hero-content">
       <div class="logo-container" aria-label="nostr.buzz logo"></div>
       <h1>Welcome to nostr.buzz</h1>
-      <p>Building the next generation of Nostr infrastructure with advanced identity, search, and payment solutions.</p>
+      <p>Building truly decentralized chat applications using the Nostr protocol. Experience censorship-resistant communication across desktop, web, and mobile platforms.</p>
       <p class="slogan">The future is buzzing! 🐝</p>
       <div class="btn-container">
-        <a href="#" class="cta">Start Buzzing</a>
-        <button class="learn-more" id="toggle-goals">Explore Features</button>
+        <a href="#nostr-explanation" class="cta">Learn About Nostr</a>
+        <button class="learn-more" id="toggle-goals">See Development Plan</button>
       </div>
     </div>
   </section>
@@ -806,65 +814,301 @@
     </svg>
   </div>
   
+  <section id="nostr-explanation" style="background: linear-gradient(180deg, var(--dark) 0%, var(--darker) 100%); padding: 4rem 0;">
+    <div style="max-width: 1100px; margin: 0 auto; padding: 0 2rem;">
+      <h2 class="section-title">What is Nostr?</h2>
+      
+      <div style="background: rgba(30, 30, 30, 0.7); border-radius: 16px; margin-bottom: 3rem; padding: 2rem; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);">
+        <div style="display: flex; align-items: center; margin-bottom: 1.5rem;">
+          <i class="fas fa-network-wired" style="font-size: 3rem; margin-right: 1rem; color: var(--primary);"></i>
+          <h3 style="color: var(--primary); font-size: 1.8rem; margin: 0;">Notes and Other Stuff Transmitted by Relays</h3>
+        </div>
+        <p style="color: var(--gray); line-height: 1.7; font-size: 1.1rem; margin-bottom: 1.5rem;">
+          Nostr is a revolutionary protocol that enables truly decentralized social networks and communication platforms. 
+          Unlike traditional centralized platforms, Nostr ensures that no single entity can control, censor, or shut down your communications.
+        </p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
+        
+        <div style="background: rgba(30, 30, 30, 0.7); border-radius: 12px; padding: 1.5rem; border: 1px solid rgba(139, 92, 246, 0.2);">
+          <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+            <span style="font-size: 2rem; margin-right: 0.8rem;"><i class="fas fa-key" style="color: var(--secondary);"></i></span>
+            <h4 style="color: var(--secondary); margin: 0;">Cryptographic Identity</h4>
+          </div>
+          <p style="color: var(--gray); line-height: 1.6;">Your identity is based on cryptographic keys, not usernames controlled by corporations. You own your identity completely.</p>
+        </div>
+
+        <div style="background: rgba(30, 30, 30, 0.7); border-radius: 12px; padding: 1.5rem; border: 1px solid rgba(139, 92, 246, 0.2);">
+          <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+            <i class="fas fa-bolt" style="font-size: 2rem; margin-right: 0.8rem; color: var(--secondary);"></i>
+            <h4 style="color: var(--secondary); margin: 0;">Lightning Integration</h4>
+          </div>
+          <p style="color: var(--gray); line-height: 1.6;">Built-in Bitcoin Lightning support enables instant, low-cost micropayments and tips directly within chat applications.</p>
+        </div>
+
+        <div style="background: rgba(30, 30, 30, 0.7); border-radius: 12px; padding: 1.5rem; border: 1px solid rgba(139, 92, 246, 0.2);">
+          <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+            <span style="font-size: 2rem; margin-right: 0.8rem;"><i class="fas fa-globe" style="color: var(--secondary);"></i></span>
+            <h4 style="color: var(--secondary); margin: 0;">Global Relay Network</h4>
+          </div>
+          <p style="color: var(--gray); line-height: 1.6;">Messages are distributed across multiple relays worldwide, ensuring redundancy and resistance to censorship.</p>
+        </div>
+
+        <div style="background: rgba(30, 30, 30, 0.7); border-radius: 12px; padding: 1.5rem; border: 1px solid rgba(139, 92, 246, 0.2);">
+          <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+            <i class="fas fa-sync-alt" style="font-size: 2rem; margin-right: 0.8rem; color: var(--secondary);"></i>
+            <h4 style="color: var(--secondary); margin: 0;">Interoperability</h4>
+          </div>
+          <p style="color: var(--gray); line-height: 1.6;">Switch between different Nostr clients while keeping your identity, followers, and message history intact.</p>
+        </div>
+
+        <div style="background: rgba(30, 30, 30, 0.7); border-radius: 12px; padding: 1.5rem; border: 1px solid rgba(139, 92, 246, 0.2);">
+          <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+            <i class="fas fa-shield-alt" style="font-size: 2rem; margin-right: 0.8rem; color: var(--secondary);"></i>
+            <h4 style="color: var(--secondary); margin: 0;">Censorship Resistant</h4>
+          </div>
+          <p style="color: var(--gray); line-height: 1.6;">No central authority can ban accounts, delete messages, or control what you can say or share.</p>
+        </div>
+
+        <div style="background: rgba(30, 30, 30, 0.7); border-radius: 12px; padding: 1.5rem; border: 1px solid rgba(139, 92, 246, 0.2);">
+          <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+            <i class="fas fa-mobile-alt" style="font-size: 2rem; margin-right: 0.8rem; color: var(--secondary);"></i>
+            <h4 style="color: var(--secondary); margin: 0;">Cross-Platform</h4>
+          </div>
+          <p style="color: var(--gray); line-height: 1.6;">Access your messages and connections from any device - desktop, web, or mobile - with seamless synchronization.</p>
+        </div>
+      </div>
+
+      <div style="background: linear-gradient(135deg, rgba(252, 211, 77, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border-radius: 16px; padding: 2rem; border: 1px solid rgba(252, 211, 77, 0.2); text-align: center;">
+        <h3 style="color: var(--primary); margin-bottom: 1rem; font-size: 1.5rem;">Why Nostr Matters for Chat Applications</h3>
+        <p style="color: var(--gray); line-height: 1.7; font-size: 1.1rem; max-width: 800px; margin: 0 auto;">
+          Traditional messaging platforms can read your messages, ban your account, or disappear overnight. 
+          With Nostr-based chat applications, you control your data, choose your relays, and communicate freely 
+          without intermediaries. It's time to take back control of digital communication.
+        </p>
+      </div>
+    </div>
+  </section>
+  
+  <section id="development-roadmap" style="background: linear-gradient(180deg, var(--darker) 0%, var(--dark) 100%); padding: 4rem 0;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+      <h2 class="section-title">Development Roadmap: Multi-Platform Chat Revolution</h2>
+      
+      <div style="background: rgba(30, 30, 30, 0.7); border-radius: 16px; margin-bottom: 3rem; padding: 2rem; border: 1px solid rgba(252, 211, 77, 0.2); text-align: center;">
+        <h3 style="color: var(--primary); margin-bottom: 1rem; font-size: 1.8rem;">Our Vision</h3>
+        <p style="color: var(--gray); line-height: 1.7; font-size: 1.2rem; max-width: 900px; margin: 0 auto;">
+          Create a unified Nostr chat ecosystem that works seamlessly across desktop, web, and mobile platforms. 
+          Starting with core chat functionality and expanding to advanced features like group management, 
+          media sharing, and Lightning-powered interactions.
+        </p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
+        
+        <!-- Desktop App -->
+        <div style="background: rgba(30, 30, 30, 0.7); border-radius: 16px; padding: 2rem; border: 1px solid rgba(255, 255, 255, 0.1); transition: transform 0.3s ease;">
+          <div style="text-align: center; margin-bottom: 1.5rem;">
+            <i class="fas fa-desktop" style="font-size: 4rem; display: block; margin-bottom: 1rem; color: var(--primary);"></i>
+            <h3 style="color: var(--primary); font-size: 1.5rem; margin: 0;">Desktop Application</h3>
+            <p style="color: var(--secondary); font-weight: 600; margin: 0.5rem 0;">Avalonia UI + C#</p>
+          </div>
+          <ul style="list-style: none; padding: 0; color: var(--gray); line-height: 1.6;">
+            <li style="margin-bottom: 0.8rem; padding-left: 1.5rem; position: relative;">
+              <span style="color: var(--primary); position: absolute; left: 0;">✓</span>
+              Native desktop performance and notifications
+            </li>
+            <li style="margin-bottom: 0.8rem; padding-left: 1.5rem; position: relative;">
+              <span style="color: var(--primary); position: absolute; left: 0;">✓</span>
+              System tray integration and keyboard shortcuts
+            </li>
+            <li style="margin-bottom: 0.8rem; padding-left: 1.5rem; position: relative;">
+              <span style="color: var(--primary); position: absolute; left: 0;">✓</span>
+              Advanced relay management interface
+            </li>
+            <li style="margin-bottom: 0.8rem; padding-left: 1.5rem; position: relative;">
+              <span style="color: var(--primary); position: absolute; left: 0;">✓</span>
+              File sharing and media preview
+            </li>
+            <li style="margin-bottom: 0.8rem; padding-left: 1.5rem; position: relative;">
+              <span style="color: var(--primary); position: absolute; left: 0;">✓</span>
+              Cross-platform (Windows, macOS, Linux)
+            </li>
+          </ul>
+        </div>
+
+        <!-- Web App -->
+        <div style="background: rgba(30, 30, 30, 0.7); border-radius: 16px; padding: 2rem; border: 1px solid rgba(255, 255, 255, 0.1); transition: transform 0.3s ease;">
+          <div style="text-align: center; margin-bottom: 1.5rem;">
+            <i class="fas fa-globe" style="font-size: 4rem; display: block; margin-bottom: 1rem; color: var(--primary);"></i>
+            <h3 style="color: var(--primary); font-size: 1.5rem; margin: 0;">Web Application</h3>
+            <p style="color: var(--secondary); font-weight: 600; margin: 0.5rem 0;">React + PWA</p>
+          </div>
+          <ul style="list-style: none; padding: 0; color: var(--gray); line-height: 1.6;">
+            <li style="margin-bottom: 0.8rem; padding-left: 1.5rem; position: relative;">
+              <span style="color: var(--primary); position: absolute; left: 0;">✓</span>
+              Instant access from any browser
+            </li>
+            <li style="margin-bottom: 0.8rem; padding-left: 1.5rem; position: relative;">
+              <span style="color: var(--primary); position: absolute; left: 0;">✓</span>
+              Progressive Web App (PWA) capabilities
+            </li>
+            <li style="margin-bottom: 0.8rem; padding-left: 1.5rem; position: relative;">
+              <span style="color: var(--primary); position: absolute; left: 0;">✓</span>
+              Responsive design for all screen sizes
+            </li>
+            <li style="margin-bottom: 0.8rem; padding-left: 1.5rem; position: relative;">
+              <span style="color: var(--primary); position: absolute; left: 0;">✓</span>
+              Offline message caching
+            </li>
+            <li style="margin-bottom: 0.8rem; padding-left: 1.5rem; position: relative;">
+              <span style="color: var(--primary); position: absolute; left: 0;">✓</span>
+              WebRTC for direct peer connections
+            </li>
+          </ul>
+        </div>
+
+        <!-- Mobile App -->
+        <div style="background: rgba(30, 30, 30, 0.7); border-radius: 16px; padding: 2rem; border: 1px solid rgba(255, 255, 255, 0.1); transition: transform 0.3s ease;">
+          <div style="text-align: center; margin-bottom: 1.5rem;">
+            <i class="fas fa-mobile-alt" style="font-size: 4rem; display: block; margin-bottom: 1rem; color: var(--primary);"></i>
+            <h3 style="color: var(--primary); font-size: 1.5rem; margin: 0;">Mobile Application</h3>
+            <p style="color: var(--secondary); font-weight: 600; margin: 0.5rem 0;">React Native</p>
+          </div>
+          <ul style="list-style: none; padding: 0; color: var(--gray); line-height: 1.6;">
+            <li style="margin-bottom: 0.8rem; padding-left: 1.5rem; position: relative;">
+              <span style="color: var(--primary); position: absolute; left: 0;">✓</span>
+              Native iOS and Android performance
+            </li>
+            <li style="margin-bottom: 0.8rem; padding-left: 1.5rem; position: relative;">
+              <span style="color: var(--primary); position: absolute; left: 0;">✓</span>
+              Push notifications and background sync
+            </li>
+            <li style="margin-bottom: 0.8rem; padding-left: 1.5rem; position: relative;">
+              <span style="color: var(--primary); position: absolute; left: 0;">✓</span>
+              Biometric authentication support
+            </li>
+            <li style="margin-bottom: 0.8rem; padding-left: 1.5rem; position: relative;">
+              <span style="color: var(--primary); position: absolute; left: 0;">✓</span>
+              Camera integration for media sharing
+            </li>
+            <li style="margin-bottom: 0.8rem; padding-left: 1.5rem; position: relative;">
+              <span style="color: var(--primary); position: absolute; left: 0;">✓</span>
+              Location sharing and contact integration
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Development Phases -->
+      <div style="background: rgba(30, 30, 30, 0.7); border-radius: 16px; padding: 2rem; border: 1px solid rgba(255, 255, 255, 0.1);">
+        <h3 style="color: var(--primary); text-align: center; margin-bottom: 2rem; font-size: 1.8rem;">Development Phases</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+          
+          <div style="background: rgba(40, 40, 40, 0.5); border-radius: 12px; padding: 1.5rem;">
+            <h4 style="color: var(--primary); margin: 0 0 1rem 0;">Phase 1: Core Chat (Current)</h4>
+            <ul style="list-style: none; padding: 0; color: var(--gray); line-height: 1.5;">
+              <li>• Basic messaging functionality</li>
+              <li>• User authentication with keys</li>
+              <li>• Real-time message synchronization</li>
+              <li>• Multi-relay support</li>
+            </ul>
+          </div>
+
+          <div style="background: rgba(40, 40, 40, 0.5); border-radius: 12px; padding: 1.5rem;">
+            <h4 style="color: var(--secondary); margin: 0 0 1rem 0;">Phase 2: Enhanced Features</h4>
+            <ul style="list-style: none; padding: 0; color: var(--gray); line-height: 1.5;">
+              <li>• Group chat creation and management</li>
+              <li>• Media sharing (images, videos, files)</li>
+              <li>• Message reactions and threading</li>
+              <li>• Contact management system</li>
+            </ul>
+          </div>
+
+          <div style="background: rgba(40, 40, 40, 0.5); border-radius: 12px; padding: 1.5rem;">
+            <h4 style="color: #10b981; margin: 0 0 1rem 0;">Phase 3: Lightning Integration</h4>
+            <ul style="list-style: none; padding: 0; color: var(--gray); line-height: 1.5;">
+              <li>• Lightning wallet integration</li>
+              <li>• In-chat tipping and payments</li>
+              <li>• Paid group access and premium features</li>
+              <li>• Micropayment-based spam protection</li>
+            </ul>
+          </div>
+
+          <div style="background: rgba(40, 40, 40, 0.5); border-radius: 12px; padding: 1.5rem;">
+            <h4 style="color: #f59e0b; margin: 0 0 1rem 0;">Phase 4: Advanced Features</h4>
+            <ul style="list-style: none; padding: 0; color: var(--gray); line-height: 1.5;">
+              <li>• End-to-end encryption options</li>
+              <li>• Voice and video calling</li>
+              <li>• Custom emoji and sticker packs</li>
+              <li>• Plugin system for extensibility</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <h2 class="section-title features-title">Key Capabilities</h2>
   <div class="goals-container" style="max-width: 1100px; width: 90%; margin: 0 auto 3rem; padding: 0 2rem;">
 
       <div class="goal-category">
         <div class="category-header">
-          <span class="category-emoji">🛒</span>
-          <h3>NIP-05 Identity Marketplace</h3>
+          <span class="category-emoji"><i class="fas fa-comments"></i></span>
+          <h3>Real-Time Chat Core</h3>
         </div>
         <div class="goal-details">
           <ul>
-            <li>Secure verified nostr identities with escrow protection</li>
-            <li>Advanced auction system with automated transfers</li>
-            <li>Enterprise identity management solutions</li>
-            <li>Seamless client integration across the ecosystem</li>
+            <li>Instant messaging with WebSocket connections</li>
+            <li>Message synchronization across all platforms</li>
+            <li>Offline message queuing and delivery</li>
+            <li>Multi-relay redundancy for reliability</li>
           </ul>
         </div>
       </div>
       
       <div class="goal-category">
         <div class="category-header">
-          <span class="category-emoji">🔍</span>
-          <h3>Universal Nostr Search</h3>
+          <span class="category-emoji"><i class="fas fa-users"></i></span>
+          <h3>Group Management</h3>
         </div>
         <div class="goal-details">
           <ul>
-            <li>Real-time multi-relay content indexing</li>
-            <li>AI-powered contextual search capabilities</li>
-            <li>Privacy-focused data handling architecture</li>
-            <li>Advanced filtering and discovery tools</li>
+            <li>Create and manage chat groups seamlessly</li>
+            <li>Admin controls and member permissions</li>
+            <li>Public and private group discovery</li>
+            <li>Encrypted group messaging options</li>
           </ul>
         </div>
       </div>
       
       <div class="goal-category">
         <div class="category-header">
-          <span class="category-emoji">🧰</span>
-          <h3>Ecosystem Directory</h3>
+          <i class="fas fa-mobile-alt category-emoji"></i>
+          <h3>Cross-Platform Sync</h3>
         </div>
         <div class="goal-details">
           <ul>
-            <li>Curated catalog of verified nostr applications</li>
-            <li>Interactive tool demonstrations and comparisons</li>
-            <li>Developer collaboration and bounty platform</li>
-            <li>Cross-application compatibility matrix</li>
+            <li>Seamless experience across desktop, web, mobile</li>
+            <li>Shared message history and contacts</li>
+            <li>Universal notification system</li>
+            <li>Consistent UI/UX design patterns</li>
           </ul>
         </div>
       </div>
       
       <div class="goal-category">
         <div class="category-header">
-          <span class="category-emoji">⚡</span>
-          <h3>Multi-Protocol Payments</h3>
+          <i class="fas fa-bolt category-emoji"></i>
+          <h3>Lightning-Powered Features</h3>
         </div>
         <div class="goal-details">
           <ul>
-            <li>Unified Lightning, on-chain, and token infrastructure</li>
-            <li>Automated protocol routing optimization</li>
-            <li>Conditional and scheduled zap functionality</li>
-            <li>Enterprise-grade security and analytics</li>
+            <li>In-chat Bitcoin Lightning payments</li>
+            <li>Tip users directly in conversations</li>
+            <li>Premium features via micropayments</li>
+            <li>Spam protection through economic incentives</li>
           </ul>
         </div>
       </div>
@@ -878,55 +1122,58 @@
   
   <section id="core-features">
     <div class="container">
-      <h2 class="section-title">Technology Overview</h2>
+      <h2 class="section-title">Technology Stack</h2>
       
       <div class="feature-spotlight">
         <div class="feature-header">
-          <span class="feature-icon">🛒</span>
-          <h3>NIP-05 Identity System</h3>
+          <span class="feature-icon"><i class="fas fa-sitemap"></i></span>
+          <h3>Chat Application Architecture</h3>
         </div>
         <div class="feature-content">
-          <p>Enterprise-grade identity verification infrastructure designed for the decentralized web.</p>
+          <p>Multi-platform chat applications built on the Nostr protocol with modern frameworks and real-time communication.</p>
           
-          <h4>Core Features:</h4>
+          <h4>Technical Implementation:</h4>
           <ul>
-            <li><strong>Secure Identity Management:</strong> Compliant with NIP-05 standards with instant ecosystem verification.</li>
-            <li><strong>Lightning-Secured Transactions:</strong> Automated escrow protocols ensure safe identity transfers.</li>
-            <li><strong>Enterprise Solutions:</strong> Manage organizational identities with centralized administrative controls.</li>
+            <li><strong>Desktop:</strong> Avalonia UI with C# for native cross-platform desktop experience across Windows, macOS, and Linux.</li>
+            <li><strong>Web:</strong> React-based Progressive Web App with service workers for offline functionality.</li>
+            <li><strong>Mobile:</strong> React Native for native iOS and Android performance with shared codebase.</li>
+            <li><strong>Real-time Sync:</strong> WebSocket connections to multiple Nostr relays for redundancy and speed.</li>
           </ul>
         </div>
       </div>
       
       <div class="feature-spotlight">
         <div class="feature-header">
-          <span class="feature-icon">🔍</span>
-          <h3>Search Infrastructure</h3>
+          <span class="feature-icon"><i class="fas fa-shield-alt"></i></span>
+          <h3>Security & Privacy</h3>
         </div>
         <div class="feature-content">
-          <p>Next-generation decentralized search technology enabling content discovery across the nostr network.</p>
+          <p>Advanced cryptographic security with user-controlled privacy settings and optional end-to-end encryption.</p>
           
-          <h4>Core Features:</h4>
+          <h4>Security Features:</h4>
           <ul>
-            <li><strong>Multi-Relay Indexing:</strong> Advanced crawling system that respects privacy preferences.</li>
-            <li><strong>Semantic Intelligence:</strong> Context-aware search with social graph integration.</li>
-            <li><strong>Multi-Format Support:</strong> Unified discovery for all content types and formats.</li>
+            <li><strong>Key Management:</strong> Secure storage of Nostr private keys with biometric protection on mobile.</li>
+            <li><strong>Message Encryption:</strong> Optional NIP-04 direct message encryption with forward secrecy.</li>
+            <li><strong>Relay Selection:</strong> User-controlled relay management with privacy-focused defaults.</li>
+            <li><strong>Local Storage:</strong> Encrypted local database for offline message access and caching.</li>
           </ul>
         </div>
       </div>
       
       <div class="feature-spotlight">
         <div class="feature-header">
-          <span class="feature-icon">⚡</span>
-          <h3>Payment Protocol Hub</h3>
+          <i class="fas fa-bolt feature-icon"></i>
+          <h3>Lightning Integration</h3>
         </div>
         <div class="feature-content">
-          <p>Unified payment infrastructure designed specifically for the nostr ecosystem.</p>
+          <p>Native Bitcoin Lightning Network integration for seamless micropayments and economic spam prevention.</p>
           
-          <h4>Core Features:</h4>
+          <h4>Payment Features:</h4>
           <ul>
-            <li><strong>Protocol Interoperability:</strong> Seamless integration between Lightning, on-chain, and token systems.</li>
-            <li><strong>Intelligent Routing:</strong> Automated optimization based on transaction requirements.</li>
-            <li><strong>Advanced Security:</strong> Multi-signature and cold storage integration with hardware support.</li>
+            <li><strong>Wallet Integration:</strong> Support for LND, CLN, and web-based Lightning wallets.</li>
+            <li><strong>In-Chat Payments:</strong> Send and receive sats directly within conversations.</li>
+            <li><strong>Economic Anti-Spam:</strong> Optional micropayment requirements for unsolicited messages.</li>
+            <li><strong>Group Monetization:</strong> Paid group access and premium features for content creators.</li>
           </ul>
         </div>
       </div>
@@ -938,8 +1185,8 @@
     <div id="bee-game-area">
       <div id="score-display">Score: 0</div>
       <p>Quick! Catch the buzzing bee as many times as you can!</p>
-      <span id="moving-bee">🐝</span>
-      <div id="catch-message">Gotcha! Click me to play again! 😉</div>
+      <div id="moving-bee" style="font-size: 2.8rem; position: absolute; cursor: pointer; user-select: none; transition: top 0.3s ease-out, left 0.3s ease-out, transform 0.2s ease; z-index: 10; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.3));">🐝</div>
+      <div id="catch-message">Gotcha! Click me to play again! <i class="fas fa-smile-wink" style="color: var(--primary);"></i></div>
     </div>
   </section>
   
@@ -1124,13 +1371,34 @@
       });
       
       const toggleGoalsButton = document.getElementById('toggle-goals');
-      const projectGoalsSection = document.getElementById('project-goals');
       
       toggleGoalsButton.addEventListener('click', function() {
-        projectGoalsSection.scrollIntoView({
+        const developmentSection = document.getElementById('development-roadmap');
+        developmentSection.scrollIntoView({
           behavior: 'smooth',
           block: 'start'
         });
+      });
+      
+      // Update CTA button to scroll to Nostr explanation
+      const ctaButton = document.querySelector('.cta');
+      ctaButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        const nostrSection = document.getElementById('nostr-explanation');
+        nostrSection.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+        
+        // Still play the buzz sound for fun
+        buzzSound.currentTime = 0;
+        buzzSound.play().catch(error => {
+          console.error("Audio playback failed:", error);
+        });
+        body.classList.add('shake');
+        setTimeout(() => {
+          body.classList.remove('shake');
+        }, 800);
       });
       
       setTimeout(() => {
