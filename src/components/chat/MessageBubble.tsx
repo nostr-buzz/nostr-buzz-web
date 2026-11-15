@@ -35,7 +35,7 @@ import {
 import { useDM } from '@/hooks/useDM';
 import { useToast } from '@/hooks/useToast';
 import { conversationRoute, isBuzz, messagePreview } from '@/lib/dm/conversation';
-import { isGroupInvite, parseInvite } from '@/lib/groups/groups';
+import { isGroupInvite, isGroupJoin, parseInvite } from '@/lib/groups/groups';
 import { nowSeconds } from '@/lib/dm/nip17';
 import { type ChatMessage, type Conversation, DM_KIND, type ReactionGroup } from '@/lib/dm/types';
 import { formatMessageTime, isEmojiOnly } from '@/lib/format';
@@ -177,6 +177,17 @@ export function MessageBubble(props: MessageBubbleProps) {
       </AlertDialogContent>
     </AlertDialog>
   );
+
+  /* --------------------------- joined by invite link -------------------------- */
+  if (isGroupJoin(message)) {
+    return (
+      <div id={`msg-${message.id}`} className="flex justify-center px-4 py-1.5">
+        <span className="max-w-full truncate rounded-full bg-background/80 px-3 py-1 text-xs text-muted-foreground" dir="auto">
+          {mine ? 'You' : <AuthorName pubkey={message.pubkey} className="font-semibold" />} joined the group
+        </span>
+      </div>
+    );
+  }
 
   /* ------------------------------ group invites ------------------------------ */
   if (isGroupInvite(message)) {

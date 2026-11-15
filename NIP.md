@@ -94,3 +94,11 @@ Keys are delivered as a normal NIP-17 chat message (kind `14`) to each member:
 
 Other clients show the invite text. Admins also send themselves an invite with the admin key as a backup,
 so groups come back on a new device from DM history.
+
+### Invite links
+
+Any member can share `https://nostr.buzz/join/<group npub>#k=<epoch secret>&n=<name>&r=<relay>`.
+The key is in the URL fragment, so it is never sent to a server. Whoever opens it gets the current epoch
+key and posts a kind `14` message with `["t", "buzz-group-join"]` into the group. Clients count people who
+joined through the current epoch as members; admins also add them to the encrypted member list.
+Admins can reset links by rotating the epoch key (current members get the new key by invite).

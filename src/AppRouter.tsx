@@ -6,6 +6,7 @@ import { AppShell } from "./components/chat/AppShell";
 import { DMProvider } from "./components/dm/DMProvider";
 import ChatPage from "./pages/ChatPage";
 import Index from "./pages/Index";
+import JoinPage from "./pages/JoinPage";
 import { NIP19Page } from "./pages/NIP19Page";
 import NotFound from "./pages/NotFound";
 import SettingsPage from "./pages/SettingsPage";
@@ -24,6 +25,8 @@ export function AppRouter() {
               <Route path="/chat/:id" element={<ChatPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
+            {/* Group invite links: /join/<group npub>#k=… */}
+            <Route path="/join/:npub" element={<JoinPage />} />
             {/* NIP-19 route for npub1, note1, naddr1, nevent1, nprofile1 */}
             <Route path="/:nip19" element={<NIP19Page />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

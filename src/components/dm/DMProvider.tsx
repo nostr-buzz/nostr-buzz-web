@@ -59,9 +59,14 @@ import {
   type GroupKeys,
   type GroupState,
   type GroupView,
+  buildInviteLink,
+  GROUP_JOIN_CONTENT,
+  GROUP_JOIN_TAG,
+  type GroupInvite,
   inviteTags,
   isActiveGroup,
   isGroupInvite,
+  isGroupJoin,
   loadKeyring,
   mergeInvite,
   newKeypair,
@@ -512,6 +517,19 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
 
   const activeGroups = useMemo(() => Object.values(keyring).filter(isActiveGroup), [keyring]);
 
+  /** People who joined a group with an invite link (announced through the current key). */
+  const groupJoiners = useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (const message of snapshot) {
+      if (!message.via || !isGroupJoin(message)) continue;
+      if (keyring[message.conversationId]?.current !== message.via) continue;
+      const list = map.get(message.conversationId) ?? [];
+      if (!list.includes(message.pubkey)) list.push(message.pubkey);
+      map.set(message.conversationId, list);
+    }
+    return map;
+  }, [snapshot, keyring]);
+
   const groupContexts = useMemo(() => {
     const map = new Map<string, GroupContext>();
     for (const keys of activeGroups) {
@@ -525,7 +543,7 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
           name: current?.name ?? keys.name ?? 'Group',
           about: current?.about,
           picture: current?.picture,
-          members: current?.members ?? (me ? [me] : []),
+          members: [...new Set([...(current?.members ?? (me ? [me] : [])), ...(groupJoiners.get(keys.id) ?? [])])],
           admins: current?.admins ?? [],
           muted,
           // Admin = holds the group key and is still listed as an admin.
@@ -537,7 +555,7 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
       });
     }
     return map;
-  }, [activeGroups, groupStates, me]);
+  }, [activeGroups, groupStates, groupJoiners, me]);
 
   /** Apply a group state event if it's newer than what we have. */
   const applyGroupState = useCallback((event: NostrEvent, keys: GroupKeys) => {
@@ -605,7 +623,7 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
       return;
     }
 
-    if (!VISIBLE_KINDS.has(message.kind) || !isKnown) return;
+    if (!VISIBLE_KINDS.has(message.kind) || !isKnown || isGroupJoin(message)) return;
     const visible = document.visibilityState === 'visible';
     if (visible && activeConversationId === message.conversationId) return;
     if (settings.messageSound) playMessageSound();
@@ -883,8 +901,8 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
 
   /** nostr.buzz groups: one gift wrap to the group's current epoch key reaches every member. */
   const deliverGroup = useCallback(
-    async (rumor: Rumor, groupId: string): Promise<boolean> => {
-      const keys = keyring[groupId];
+    async (rumor: Rumor, groupId: string, override?: GroupKeys): Promise<boolean> => {
+      const keys = override ?? keyring[groupId];
       if (!user || !me || !isActiveGroup(keys)) return false;
       const signer = user.signer;
       store.patch(rumor.id, { status: 'sending' });
@@ -1309,11 +1327,16 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
     [requireAdmin, publishGroupState, sendGroupInvite],
   );
 
-  /** Remove a member and rotate the shared key so they can't read new messages. */
-  const removeGroupMember = useCallback(
-    async (groupId: string, pubkey: string) => {
+  /**
+   * Rotate the shared key: everyone still in the group gets the new one, so old invite
+   * links (and `removed`, if given) can't read new messages.
+   */
+  const rotateGroup = useCallback(
+    async (groupId: string, removed?: string) => {
       const { keys, state } = requireAdmin(groupId);
-      if (pubkey === me) throw new Error('Use "Leave group" to leave.');
+      if (removed === me) throw new Error('Use "Leave group" to leave.');
+      // Include people who joined by link but aren't in the saved member list yet.
+      const known = [...new Set([...state.members, ...(groupContexts.get(groupId)?.view.members ?? [])])];
       const epoch = newKeypair();
       const now = Math.max(nowSeconds(), state.updatedAt + 1);
       const epochs = Object.fromEntries(
@@ -1322,8 +1345,8 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
       const nextKeys: GroupKeys = { ...keys, current: epoch.pubkey, epochs: { ...epochs, [epoch.pubkey]: { secret: epoch.secret, since: now } } };
       const nextState: GroupState = {
         ...state,
-        members: state.members.filter((p) => p !== pubkey),
-        admins: state.admins.filter((p) => p !== pubkey),
+        members: known.filter((p) => p !== removed),
+        admins: state.admins.filter((p) => p !== removed),
         epoch: epoch.pubkey,
         updatedAt: now,
       };
@@ -1334,8 +1357,67 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
         ...nextState.members.filter((p) => p !== me).map((p) => sendGroupInvite(p, nextKeys, nextState.name, false)),
       ]);
     },
-    [me, requireAdmin, publishGroupState, sendGroupInvite],
+    [me, requireAdmin, groupContexts, publishGroupState, sendGroupInvite],
   );
+
+  const removeGroupMember = useCallback((groupId: string, pubkey: string) => rotateGroup(groupId, pubkey), [rotateGroup]);
+
+  /** Admins: make every existing invite link stop working. */
+  const resetInviteLink = useCallback((groupId: string) => rotateGroup(groupId), [rotateGroup]);
+
+  /** Any member can share a link to join the group (it carries the current group key). */
+  const getInviteLink = useCallback(
+    (groupId: string) => {
+      const keys = keyring[groupId];
+      if (!isActiveGroup(keys)) return undefined;
+      const name = groupContexts.get(groupId)?.view.name ?? keys.name;
+      return buildInviteLink(window.location.origin, { ...keys, name });
+    },
+    [keyring, groupContexts],
+  );
+
+  /** Join a group from an invite link and say hello so everyone sees the new member. */
+  const joinGroup = useCallback(
+    async (invite: GroupInvite) => {
+      if (!me) throw new Error('You need to be logged in.');
+      const existing = keyring[invite.groupId];
+      if (isActiveGroup(existing) && existing.epochs[invite.epochPubkey]) return invite.groupId;
+      const keys = mergeInvite(keyring, invite)[invite.groupId];
+      setKeyring((current) => mergeInvite(current, invite));
+      const rumor = createRumor({
+        pubkey: me,
+        kind: DM_KIND.chat,
+        content: GROUP_JOIN_CONTENT,
+        tags: [
+          ['p', invite.groupId],
+          ['t', GROUP_JOIN_TAG],
+        ],
+      });
+      store.upsert([{ ...rumor, protocol: 'nip17', conversationId: invite.groupId, via: keys.current, status: 'sending' }], true);
+      await deliverGroup(rumor, invite.groupId, keys);
+      return invite.groupId;
+    },
+    [me, keyring, store, deliverGroup],
+  );
+
+  // Admins: write people who joined by link into the encrypted member list.
+  const acceptedJoins = useRef(new Set<string>());
+  useEffect(() => {
+    for (const [groupId, group] of groupContexts) {
+      const state = groupStates.get(groupId);
+      if (!group.view.isAdmin || !state || state === 'removed') continue;
+      const missing = group.view.members.filter((p) => !state.members.includes(p)).sort();
+      if (missing.length === 0) continue;
+      const key = `${groupId}:${state.updatedAt}:${missing.join(',')}`;
+      if (acceptedJoins.current.has(key)) continue;
+      acceptedJoins.current.add(key);
+      void publishGroupState(group.keys, {
+        ...state,
+        members: [...state.members, ...missing],
+        updatedAt: Math.max(nowSeconds(), state.updatedAt + 1),
+      }).catch(() => acceptedJoins.current.delete(key));
+    }
+  }, [groupContexts, groupStates, publishGroupState]);
 
   const leaveGroup = useCallback((groupId: string) => {
     setKeyring((current) =>
@@ -1422,6 +1504,9 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
       leaveGroup,
       setGroupAdmin,
       setGroupMuted,
+      getInviteLink,
+      resetInviteLink,
+      joinGroup,
     };
   }, [
     me,
@@ -1450,6 +1535,9 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
     leaveGroup,
     setGroupAdmin,
     setGroupMuted,
+    getInviteLink,
+    resetInviteLink,
+    joinGroup,
   ]);
 
   return <DMContext.Provider value={value}>{children}</DMContext.Provider>;

@@ -1,5 +1,5 @@
 import type { NostrEvent } from '@nostrify/nostrify';
-import { finalizeEvent, generateSecretKey, getPublicKey, nip44 } from 'nostr-tools';
+import { finalizeEvent, generateSecretKey, getPublicKey, nip19, nip44 } from 'nostr-tools';
 import { z } from 'zod';
 
 import { uniqueRelays } from '@/lib/dm/relays';
@@ -17,6 +17,46 @@ import { uniqueRelays } from '@/lib/dm/relays';
 export const GROUP_STATE_KIND = 30078;
 export const GROUP_STATE_D = 'nostr-buzz-group';
 export const GROUP_INVITE_TAG = 'buzz-group-invite';
+/** Posted in a group by someone who joined with an invite link. */
+export const GROUP_JOIN_TAG = 'buzz-group-join';
+export const GROUP_JOIN_CONTENT = '👋 joined the group';
+
+export function isGroupJoin(message: { tags: string[][] }): boolean {
+  return message.tags.some(([name, value]) => name === 't' && value === GROUP_JOIN_TAG);
+}
+
+/**
+ * Invite link: /join/<group npub>#k=<epoch secret>&n=<name>&r=<relay>…
+ * The key lives in the URL fragment, which browsers never send to servers.
+ */
+export function buildInviteLink(origin: string, keys: GroupKeys): string {
+  const params = new URLSearchParams();
+  params.set('k', keys.epochs[keys.current].secret);
+  if (keys.name) params.set('n', keys.name);
+  for (const relay of keys.relays.slice(0, 3)) params.append('r', relay);
+  return `${origin}/join/${nip19.npubEncode(keys.id)}#${params.toString()}`;
+}
+
+export function parseInviteLink(npub: string | undefined, hash: string): GroupInvite | undefined {
+  try {
+    if (!npub) return undefined;
+    const decoded = nip19.decode(npub);
+    if (decoded.type !== 'npub') return undefined;
+    const params = new URLSearchParams(hash.replace(/^#/, ''));
+    const epochSecret = params.get('k') ?? '';
+    if (!HEX64.test(epochSecret)) return undefined;
+    return {
+      groupId: decoded.data,
+      epochSecret,
+      epochPubkey: pubkeyOf(epochSecret),
+      relays: uniqueRelays(params.getAll('r')).slice(0, 5),
+      name: params.get('n')?.slice(0, 80) || undefined,
+      createdAt: Math.floor(Date.now() / 1000),
+    };
+  } catch {
+    return undefined;
+  }
+}
 
 const HEX64 = /^[0-9a-f]{64}$/;
 

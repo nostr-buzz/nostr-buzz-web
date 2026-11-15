@@ -1,6 +1,7 @@
 import { createContext } from 'react';
 
 import type { ChatMessage, Conversation } from '@/lib/dm/types';
+import type { GroupInvite } from '@/lib/groups/groups';
 
 export type DMStatus = 'idle' | 'loading' | 'ready';
 
@@ -60,6 +61,12 @@ export interface DMContextValue {
   setGroupAdmin(groupId: string, pubkey: string, admin: boolean): Promise<void>;
   /** Admins only: stop or allow a member to send messages. */
   setGroupMuted(groupId: string, pubkey: string, muted: boolean): Promise<void>;
+  /** Any member: a link that lets someone join the group. */
+  getInviteLink(groupId: string): string | undefined;
+  /** Admins only: make all existing invite links stop working (rotates the group key). */
+  resetInviteLink(groupId: string): Promise<void>;
+  /** Join a group from an invite link. Resolves to the group id. */
+  joinGroup(invite: GroupInvite): Promise<string>;
 }
 
 export const DMContext = createContext<DMContextValue | undefined>(undefined);

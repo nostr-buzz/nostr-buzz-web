@@ -2,12 +2,15 @@ import {
   Camera,
   Copy,
   ExternalLink,
+  Link2,
   Loader2,
   LogOut,
   MessageSquare,
   MessageSquareOff,
   MoreVertical,
   Pencil,
+  RotateCcw,
+  Share2,
   ShieldCheck,
   ShieldOff,
   UserMinus,
@@ -280,6 +283,8 @@ function NostrGroupInfo({ conversation, group, onClose }: { conversation: Conver
           <p className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">You're no longer in this group.</p>
         )}
 
+        {!group.removed && <InviteLinkSection group={group} />}
+
         <section>
           <h3 className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Group ID</h3>
           <button
@@ -514,5 +519,100 @@ function EditGroupForm({ group, onDone }: { group: GroupView; onDone: () => void
         </Button>
       </DialogFooter>
     </>
+  );
+}
+
+/** Any member can share a join link; admins can reset it so old links stop working. */
+function InviteLinkSection({ group }: { group: GroupView }) {
+  const { getInviteLink, resetInviteLink } = useDM();
+  const { toast } = useToast();
+  const [shown, setShown] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const link = shown ? getInviteLink(group.id) : undefined;
+  const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+
+  const copy = async () => {
+    if (!link) return;
+    try {
+      await navigator.clipboard.writeText(link);
+      toast({ title: 'Invite link copied' });
+    } catch {
+      toast({ title: 'Could not copy', variant: 'destructive' });
+    }
+  };
+
+  const reset = async () => {
+    setResetting(true);
+    try {
+      await resetInviteLink(group.id);
+      toast({ title: 'Invite link reset' });
+    } catch (error) {
+      toast({ title: 'Could not reset', description: error instanceof Error ? error.message : undefined, variant: 'destructive' });
+    } finally {
+      setResetting(false);
+    }
+  };
+
+  return (
+    <section>
+      <h3 className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Invite link</h3>
+      {!link ? (
+        <Button variant="outline" className="h-11 w-full rounded-xl" onClick={() => setShown(true)}>
+          <Link2 /> Create invite link
+        </Button>
+      ) : (
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => void copy()}
+            className="flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors hover:bg-accent"
+          >
+            <span className="min-w-0 flex-1 truncate font-mono text-xs text-muted-foreground">{link}</span>
+            <Copy className="size-4 shrink-0" />
+          </button>
+          <div className="flex gap-2">
+            <Button className="h-10 flex-1 rounded-xl" onClick={() => void copy()}>
+              <Copy /> Copy
+            </Button>
+            {canShare && (
+              <Button
+                variant="outline"
+                className="h-10 flex-1 rounded-xl"
+                onClick={() => void navigator.share({ title: group.name, url: link }).catch(() => undefined)}
+              >
+                <Share2 /> Share
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">Anyone with this link can join.</p>
+          {group.isAdmin && (
+            <Button
+              variant="ghost"
+              className="w-full rounded-xl text-destructive hover:text-destructive"
+              disabled={resetting}
+              onClick={() => setConfirmReset(true)}
+            >
+              {resetting ? <Loader2 className="animate-spin" /> : <RotateCcw />} Reset link
+            </Button>
+          )}
+        </div>
+      )}
+
+      <AlertDialog open={confirmReset} onOpenChange={setConfirmReset}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset invite link?</AlertDialogTitle>
+            <AlertDialogDescription>Old links will stop working.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-white hover:bg-destructive/90" onClick={() => void reset()}>
+              Reset
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </section>
   );
 }
