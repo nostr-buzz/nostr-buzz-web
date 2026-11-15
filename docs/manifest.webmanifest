@@ -1,0 +1,9 @@
+{
+  "name": "nostr.buzz",
+  "short_name": "nostr.buzz",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#131313",
+  "theme_color": "#fcd34d",
+  "icons": [{ "src": "logo-black.png", "sizes": "1024x1024", "type": "image/png" }]
+}

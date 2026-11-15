@@ -1,0 +1,15 @@
+{
+  "name": "nostr.buzz",
+  "short_name": "nostr.buzz",
+  "description": "Private, end-to-end encrypted chats on Nostr — with a BUZZ.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#131313",
+  "theme_color": "#fbbf24",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
