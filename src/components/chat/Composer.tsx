@@ -49,7 +49,8 @@ interface ComposerProps {
 export function Composer({ conversation, replyTo, editing, onCancelReply, onCancelEdit, subject }: ComposerProps) {
   const { sendText, sendFile, editMessage, canEncrypt: signerCanEncrypt } = useDM();
   const removed = !!conversation.group?.removed;
-  const canEncrypt = signerCanEncrypt && !removed;
+  const mutedHere = !!conversation.group?.isMuted;
+  const canEncrypt = signerCanEncrypt && !removed && !mutedHere;
   const { settings } = useChatSettings();
   const { toast } = useToast();
   const [text, setText] = useState(() => editing?.content ?? loadDraft(conversation.id));
@@ -191,7 +192,15 @@ export function Composer({ conversation, replyTo, editing, onCancelReply, onCanc
               onPaste={onPaste}
               dir="auto"
               disabled={!canEncrypt}
-              placeholder={canEncrypt ? 'Message' : removed ? "You're not a member" : 'Encryption not supported'}
+              placeholder={
+                canEncrypt
+                  ? 'Message'
+                  : removed
+                    ? "You're not a member"
+                    : mutedHere
+                      ? "You can't send messages here"
+                      : 'Encryption not supported'
+              }
               aria-label="Message"
               className="max-h-[200px] w-full resize-none bg-transparent text-base leading-6 outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
             />
@@ -223,7 +232,7 @@ export function Composer({ conversation, replyTo, editing, onCancelReply, onCanc
             </>
           )}
 
-          {hasText || editing || conversation.isSelf ? (
+          {hasText || editing || conversation.isSelf || !canEncrypt ? (
             <Button
               size="icon"
               className={cn('size-11 shrink-0 rounded-full transition-transform active:scale-95', !hasText && 'opacity-60')}

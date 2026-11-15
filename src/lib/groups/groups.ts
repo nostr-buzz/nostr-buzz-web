@@ -200,6 +200,8 @@ export interface GroupState {
   picture?: string;
   members: string[];
   admins: string[];
+  /** Members who can't send messages, with the time they were muted (unix seconds). */
+  muted?: Record<string, number>;
   epoch: string;
   updatedAt: number;
 }
@@ -210,6 +212,7 @@ const stateSchema = z.object({
   picture: z.string().max(2000).optional(),
   members: z.array(z.string().regex(HEX64)).max(200),
   admins: z.array(z.string().regex(HEX64)),
+  muted: z.record(z.string().regex(HEX64), z.number()).optional(),
   epoch: z.string().regex(HEX64),
   updatedAt: z.number(),
 });
@@ -256,7 +259,11 @@ export interface GroupView {
   picture?: string;
   members: string[];
   admins: string[];
+  /** Muted members → since when (messages after that are hidden). */
+  muted: Record<string, number>;
   isAdmin: boolean;
+  /** The current user can't send messages here. */
+  isMuted: boolean;
   /** The current state is encrypted for a newer key: we were removed. */
   removed: boolean;
   /** The state has been fetched at least once. */

@@ -1,4 +1,20 @@
-import { Camera, Copy, ExternalLink, Loader2, LogOut, Pencil, UserPlus, Users, X, Zap } from 'lucide-react';
+import {
+  Camera,
+  Copy,
+  ExternalLink,
+  Loader2,
+  LogOut,
+  MessageSquare,
+  MessageSquareOff,
+  MoreVertical,
+  Pencil,
+  ShieldCheck,
+  ShieldOff,
+  UserMinus,
+  UserPlus,
+  Users,
+  Zap,
+} from 'lucide-react';
 import { nip19 } from 'nostr-tools';
 import { type ChangeEvent, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -19,6 +35,13 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { QRCodeCanvas } from '@/components/ui/qrcode';
@@ -201,7 +224,7 @@ function GroupInfo({ conversation, onNavigate }: { conversation: Conversation; o
 
 function NostrGroupInfo({ conversation, group, onClose }: { conversation: Conversation; group: GroupView; onClose: () => void }) {
   const { user } = useCurrentUser();
-  const { addGroupMembers, removeGroupMember, leaveGroup } = useDM();
+  const { addGroupMembers, removeGroupMember, leaveGroup, setGroupAdmin, setGroupMuted } = useDM();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [editOpen, setEditOpen] = useState(false);
@@ -221,11 +244,13 @@ function NostrGroupInfo({ conversation, group, onClose }: { conversation: Conver
     }
   };
 
-  const remove = (pubkey: string) => {
-    removeGroupMember(group.id, pubkey).catch((error: unknown) =>
-      toast({ title: 'Could not remove', description: error instanceof Error ? error.message : undefined, variant: 'destructive' }),
+  const run = (action: Promise<void>, failTitle: string) => {
+    action.catch((error: unknown) =>
+      toast({ title: failTitle, description: error instanceof Error ? error.message : undefined, variant: 'destructive' }),
     );
   };
+
+  const remove = (pubkey: string) => run(removeGroupMember(group.id, pubkey), 'Could not remove');
 
   return (
     <>
@@ -240,7 +265,9 @@ function NostrGroupInfo({ conversation, group, onClose }: { conversation: Conver
             {group.about}
           </p>
         )}
-        {!group.removed && <BuzzButton conversationId={conversation.id} variant="large" className="mt-3 w-full" />}
+        {!group.removed && !group.isMuted && (
+          <BuzzButton conversationId={conversation.id} variant="large" className="mt-3 w-full" />
+        )}
         {canEdit && (
           <Button variant="outline" className="mt-2 h-11 w-full rounded-xl" onClick={() => setEditOpen(true)}>
             <Pencil /> Edit group
@@ -288,17 +315,41 @@ function NostrGroupInfo({ conversation, group, onClose }: { conversation: Conver
                     {pubkey === me && <span className="ml-1 text-muted-foreground">(you)</span>}
                   </span>
                   {group.admins.includes(pubkey) && <span className="text-xs text-muted-foreground">admin</span>}
+                  {group.muted[pubkey] !== undefined && <span className="text-xs text-destructive">muted</span>}
                 </Link>
                 {canEdit && pubkey !== me && (
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    className="rounded-full text-muted-foreground"
-                    aria-label="Remove member"
-                    onClick={() => setRemoving(pubkey)}
-                  >
-                    <X />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon-sm" className="rounded-full text-muted-foreground" aria-label="Member options">
+                        <MoreVertical />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-52" onCloseAutoFocus={(event) => event.preventDefault()}>
+                      {group.admins.includes(pubkey) ? (
+                        <DropdownMenuItem onSelect={() => run(setGroupAdmin(group.id, pubkey, false), 'Could not update admin')}>
+                          <ShieldOff /> Remove admin
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem onSelect={() => run(setGroupAdmin(group.id, pubkey, true), 'Could not make admin')}>
+                          <ShieldCheck /> Make admin
+                        </DropdownMenuItem>
+                      )}
+                      {!group.admins.includes(pubkey) &&
+                        (group.muted[pubkey] !== undefined ? (
+                          <DropdownMenuItem onSelect={() => run(setGroupMuted(group.id, pubkey, false), 'Could not unmute')}>
+                            <MessageSquare /> Allow messages
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem onSelect={() => run(setGroupMuted(group.id, pubkey, true), 'Could not mute')}>
+                            <MessageSquareOff /> Mute (no sending)
+                          </DropdownMenuItem>
+                        ))}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem variant="destructive" onSelect={() => setRemoving(pubkey)}>
+                        <UserMinus /> Remove from group
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
               </li>
             ))}

@@ -322,6 +322,9 @@ function buildConversations(
       if (!group) continue;
       const retiredAt = group.keys.epochs[message.via]?.retiredAt;
       if (retiredAt !== undefined && message.created_at > retiredAt + 60) continue;
+      // Muted members can't post: hide anything they sent after being muted.
+      const mutedAt = group.view.muted[message.pubkey];
+      if (mutedAt !== undefined && message.created_at >= mutedAt) continue;
     }
     let list = buckets.get(message.conversationId);
     if (!list) buckets.set(message.conversationId, (list = []));
@@ -514,6 +517,7 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
     for (const keys of activeGroups) {
       const state = groupStates.get(keys.id);
       const current = state && state !== 'removed' ? state : undefined;
+      const muted = current?.muted ?? {};
       map.set(keys.id, {
         keys,
         view: {
@@ -523,7 +527,10 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
           picture: current?.picture,
           members: current?.members ?? (me ? [me] : []),
           admins: current?.admins ?? [],
-          isAdmin: !!keys.identitySecret,
+          muted,
+          // Admin = holds the group key and is still listed as an admin.
+          isAdmin: !!keys.identitySecret && (!current || (!!me && current.admins.includes(me))),
+          isMuted: !!me && muted[me] !== undefined,
           removed: state === 'removed',
           loaded: state !== undefined,
         },
@@ -579,6 +586,8 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
     if (!isFresh || prefs.muted.includes(message.conversationId)) return;
 
     const conversation = conversationMap.get(message.conversationId);
+    const mutedAt = conversation?.group?.muted[message.pubkey];
+    if (mutedAt !== undefined && message.created_at >= mutedAt) return;
     const isKnown =
       followSet.has(message.pubkey) || (conversation ? !conversation.isRequest : false);
     const author = queryClient.getQueryData<{ metadata?: NostrMetadata }>(['nostr', 'author', message.pubkey]);
@@ -1199,9 +1208,39 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
       const state = groupStates.get(groupId);
       if (!isActiveGroup(keys) || !keys.identitySecret) throw new Error('Only admins can edit this group.');
       if (!state || state === 'removed') throw new Error('Group info is still loading.');
+      if (!me || !state.admins.includes(me)) throw new Error('Only admins can edit this group.');
       return { keys, state };
     },
-    [keyring, groupStates],
+    [me, keyring, groupStates],
+  );
+
+  /** Promote or demote an admin. New admins get the group key over NIP-17. */
+  const setGroupAdmin = useCallback(
+    async (groupId: string, pubkey: string, admin: boolean) => {
+      const { keys, state } = requireAdmin(groupId);
+      if (!state.members.includes(pubkey)) throw new Error('Not a member of this group.');
+      const admins = admin ? [...new Set([...state.admins, pubkey])] : state.admins.filter((p) => p !== pubkey);
+      if (admins.length === 0) throw new Error('A group needs at least one admin.');
+      const muted = { ...state.muted };
+      if (admin) delete muted[pubkey];
+      await publishGroupState(keys, { ...state, admins, muted, updatedAt: Math.max(nowSeconds(), state.updatedAt + 1) });
+      if (admin && pubkey !== me) await sendGroupInvite(pubkey, keys, state.name, true);
+    },
+    [me, requireAdmin, publishGroupState, sendGroupInvite],
+  );
+
+  /** Stop (or allow) a member from sending messages. */
+  const setGroupMuted = useCallback(
+    async (groupId: string, pubkey: string, mute: boolean) => {
+      const { keys, state } = requireAdmin(groupId);
+      if (mute && state.admins.includes(pubkey)) throw new Error('Remove admin rights first.');
+      const now = Math.max(nowSeconds(), state.updatedAt + 1);
+      const muted = { ...state.muted };
+      if (mute) muted[pubkey] = now;
+      else delete muted[pubkey];
+      await publishGroupState(keys, { ...state, muted, updatedAt: now });
+    },
+    [requireAdmin, publishGroupState],
   );
 
   const createGroup = useCallback(
@@ -1381,6 +1420,8 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
       addGroupMembers,
       removeGroupMember,
       leaveGroup,
+      setGroupAdmin,
+      setGroupMuted,
     };
   }, [
     me,
@@ -1407,6 +1448,8 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
     addGroupMembers,
     removeGroupMember,
     leaveGroup,
+    setGroupAdmin,
+    setGroupMuted,
   ]);
 
   return <DMContext.Provider value={value}>{children}</DMContext.Provider>;

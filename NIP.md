@@ -67,6 +67,11 @@ A kind `30078` (NIP-78) event signed by the identity key:
 Clients must query it with `authors: [<group pubkey>]`. If the content can't be decrypted with any epoch key
 the client holds, the user was removed.
 
+- `admins`: members allowed to edit. New admins receive the identity key in an invite. A client only treats
+  a key holder as admin while they are listed here.
+- `muted`: `{ <pubkey>: <unix seconds> }`. Clients hide messages from a muted member sent at or after that
+  time, and disable sending for them.
+
 ### Messages
 
 Rumors (kind `14`, `15`, `7`, `5`) carry `["p", <group pubkey>]`. They are sealed by the sender and

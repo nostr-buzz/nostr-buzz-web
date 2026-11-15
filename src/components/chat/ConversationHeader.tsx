@@ -83,7 +83,7 @@ export function ConversationHeader({ conversation, onOpenInfo }: ConversationHea
           </span>
         </button>
 
-        {!conversation.isSelf && !conversation.group?.removed && (
+        {!conversation.isSelf && !conversation.group?.removed && !conversation.group?.isMuted && (
           <>
             <BuzzButton conversationId={conversation.id} variant="icon" className="sm:hidden" />
             <BuzzButton conversationId={conversation.id} variant="pill" className="hidden sm:inline-flex" />

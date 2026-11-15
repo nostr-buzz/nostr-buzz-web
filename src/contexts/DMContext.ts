@@ -56,6 +56,10 @@ export interface DMContextValue {
   removeGroupMember(groupId: string, pubkey: string): Promise<void>;
   /** Stop showing / receiving a group on this account. */
   leaveGroup(groupId: string): void;
+  /** Admins only: make a member an admin (sends them the group key) or remove admin rights. */
+  setGroupAdmin(groupId: string, pubkey: string, admin: boolean): Promise<void>;
+  /** Admins only: stop or allow a member to send messages. */
+  setGroupMuted(groupId: string, pubkey: string, muted: boolean): Promise<void>;
 }
 
 export const DMContext = createContext<DMContextValue | undefined>(undefined);
