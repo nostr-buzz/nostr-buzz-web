@@ -132,7 +132,7 @@ export function EncryptedFile({ message }: { message: ChatMessage }) {
           )}
         </button>
         <Dialog open={lightbox} onOpenChange={setLightbox}>
-          <DialogContent className="max-w-[min(64rem,calc(100vw-1rem))] gap-3 border-none bg-black/95 p-2 sm:max-w-[min(64rem,calc(100vw-2rem))]">
+          <DialogContent className="max-w-[min(64rem,calc(100vw-1rem))] gap-3 border-none bg-black/95 p-2 sm:max-w-[min(64rem,calc(100vw-2rem))] [&_[data-slot=dialog-close]]:bg-black/50 [&_[data-slot=dialog-close]]:text-white [&_[data-slot=dialog-close]:hover]:bg-white/20">
             <DialogTitle className="sr-only">Photo</DialogTitle>
             <DialogDescription className="sr-only">Encrypted photo shared in this chat</DialogDescription>
             <img src={src} alt="" className="max-h-[80dvh] w-full rounded-md object-contain" />

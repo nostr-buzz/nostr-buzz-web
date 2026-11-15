@@ -6,8 +6,8 @@ export function BeeMark({ className, wiggle = false }: { className?: string; wig
     <img
       src="/bee.png"
       alt=""
-      width={256}
-      height={256}
+      width={384}
+      height={384}
       draggable={false}
       className={cn('select-none object-contain', wiggle && 'bee-wiggle', className)}
     />

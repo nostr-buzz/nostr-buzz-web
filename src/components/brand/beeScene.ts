@@ -19,6 +19,8 @@ export interface BeeSceneOptions {
   reducedMotion?: boolean;
   /** Called after the first frame has been drawn. */
   onReady?: () => void;
+  /** Draw the soft floor shadow (default true). Turned off for logo/icon renders. */
+  shadow?: boolean;
 }
 
 const COLORS = {
@@ -193,7 +195,7 @@ export class BeeScene {
     this.renderer.toneMappingExposure = 1;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = THREE.PCFShadowMap;
 
     this.pmrem = new THREE.PMREMGenerator(this.renderer);
     const env = studioEnvironment();
@@ -217,6 +219,7 @@ export class BeeScene {
       new THREE.MeshBasicMaterial({ map: shadowTexture(), transparent: true, depthWrite: false, opacity: 0.5 }),
     );
     this.shadow.rotation.x = -Math.PI / 2;
+    this.shadow.visible = options.shadow ?? true;
     this.scene.add(this.shadow);
 
     this.frameModel();
