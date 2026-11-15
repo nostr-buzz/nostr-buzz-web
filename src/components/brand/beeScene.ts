@@ -179,6 +179,8 @@ export class BeeScene {
   private frame = 0;
   private running = false;
   private readyFired = false;
+  /** When the entrance ("pop in") animation started: the first rendered frame. */
+  private introStart = -1;
   private readonly start = performance.now();
   private readonly options: BeeSceneOptions;
 
@@ -452,16 +454,25 @@ export class BeeScene {
     const still = !!this.options.reducedMotion;
     const excitement = still ? 0 : THREE.MathUtils.clamp((this.excitedUntil - ms) / 1500, 0, 1);
 
+    // Entrance: the bee pops in with a little overshoot and spins into its pose.
+    // It starts on the first frame the bee is actually on screen and playing.
+    if (this.introStart < 0 && this.running) this.introStart = ms;
+    const intro = still ? 1 : this.introStart < 0 ? 0 : THREE.MathUtils.clamp((ms - this.introStart) / 750, 0, 1);
+    const overshoot = 1.7;
+    const eased = intro >= 1 ? 1 : 1 + (overshoot + 1) * Math.pow(intro - 1, 3) + overshoot * Math.pow(intro - 1, 2);
+    this.hover.scale.setScalar(Math.max(0.001, eased));
+    const spin = (1 - THREE.MathUtils.smootherstep(intro, 0, 1)) * -0.9;
+
     if (!still) {
       // Gentle hover, sway and a hint of squash & stretch.
       const bob = Math.sin(t * 1.8) * 0.09;
       this.hover.position.y = bob;
       this.hover.rotation.z = Math.sin(t * 1.2) * 0.04;
-      this.hover.rotation.y = Math.sin(t * 0.7) * 0.12;
+      this.hover.rotation.y = Math.sin(t * 0.7) * 0.12 + spin;
       this.hover.position.x = excitement > 0 ? Math.sin(t * 68) * 0.07 * excitement : 0;
       const stretch = 1 + Math.cos(t * 1.8) * 0.01;
       this.bee.scale.set(1 / Math.sqrt(stretch), stretch, 1 / Math.sqrt(stretch));
-      this.shadow.scale.setScalar(1 - bob);
+      this.shadow.scale.setScalar((1 - bob) * Math.max(0.001, eased));
       this.shadow.material.opacity = 0.45 - bob;
 
       // Wings: a fast in-plane beat plus a twist that catches the light.

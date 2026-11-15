@@ -17,7 +17,7 @@ export interface Bee3DProps {
 export default function Bee3DCanvas({ className, interactive = false, label }: Bee3DProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [ready, setReady] = useState(false);
+  const [unsupported, setUnsupported] = useState(false);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -27,10 +27,11 @@ export default function Bee3DCanvas({ className, interactive = false, label }: B
     const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     let scene: BeeScene;
     try {
-      scene = new BeeScene(canvas, { interactive, reducedMotion, onReady: () => setReady(true) });
+      scene = new BeeScene(canvas, { interactive, reducedMotion });
     } catch (error) {
-      // No WebGL: the PNG bee underneath stays visible.
+      // No WebGL on this device: fall back to the static logo bee.
       console.warn('3D bee unavailable', error);
+      queueMicrotask(() => setUnsupported(true));
       return;
     }
 
@@ -69,20 +70,11 @@ export default function Bee3DCanvas({ className, interactive = false, label }: B
       aria-label={label}
       aria-hidden={label ? undefined : true}
     >
-      <BeeMark
-        className={cn(
-          'absolute inset-0 size-full p-[14%] transition-opacity duration-500',
-          ready ? 'opacity-0' : 'opacity-100',
-        )}
-      />
-      <canvas
-        ref={canvasRef}
-        className={cn(
-          'absolute inset-0 size-full transition-opacity duration-500',
-          ready ? 'opacity-100' : 'opacity-0',
-          interactive && 'cursor-pointer',
-        )}
-      />
+      {unsupported ? (
+        <BeeMark className="absolute inset-0 size-full p-[14%]" />
+      ) : (
+        <canvas ref={canvasRef} className={cn('absolute inset-0 size-full', interactive && 'cursor-pointer')} />
+      )}
     </div>
   );
 }
