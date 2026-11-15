@@ -320,6 +320,13 @@
   height: var(--vv-height, 100dvh);
 }
 
+/* While the messenger is open the page itself never scrolls; only its panes do. */
+:root[data-app-shell],
+:root[data-app-shell] body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 :root {
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
