@@ -10,6 +10,9 @@ const HEX64 = /^[0-9a-f]{64}$/;
 export const MAX_GROUP_PARTICIPANTS = 10;
 
 export const BUZZ_TAG = 'buzz';
+
+/** Window event (detail = message id) asking the open chat to scroll to a message. */
+export const JUMP_TO_MESSAGE_EVENT = 'nostr-buzz:jump-to-message';
 export const BUZZ_CONTENT = 'BUZZ!!! 🐝';
 
 /** Everyone in a NIP-17 room: the author plus every `p` tag. */

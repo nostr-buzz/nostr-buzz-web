@@ -67,6 +67,8 @@ export interface DMContextValue {
   resetInviteLink(groupId: string): Promise<void>;
   /** Join a group from an invite link. Resolves to the group id. */
   joinGroup(invite: GroupInvite): Promise<string>;
+  /** Admins only: pin or unpin a message for everyone. */
+  setGroupPinned(groupId: string, messageId: string, pinned: boolean): Promise<void>;
 }
 
 export const DMContext = createContext<DMContextValue | undefined>(undefined);

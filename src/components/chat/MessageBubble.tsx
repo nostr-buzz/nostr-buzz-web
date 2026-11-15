@@ -1,4 +1,4 @@
-import { Copy, MoreHorizontal, Pencil, Reply, RotateCw, Trash2, Users } from 'lucide-react';
+import { Copy, MoreHorizontal, Pencil, Pin, PinOff, Reply, RotateCw, Trash2, Users } from 'lucide-react';
 import { nip19 } from 'nostr-tools';
 import { type ComponentType, type ReactNode, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -75,7 +75,7 @@ const DROPDOWN_KIT: MenuKit = { Item: DropdownMenuItem, Separator: DropdownMenuS
 
 export function MessageBubble(props: MessageBubbleProps) {
   const { message, mine, conversation, first, last, replyTarget, reactions, edited, onReply, onEdit, onJump } = props;
-  const { toggleReaction, deleteMessage, retryMessage, discardMessage } = useDM();
+  const { toggleReaction, deleteMessage, retryMessage, discardMessage, setGroupPinned } = useDM();
   const { toast } = useToast();
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -86,6 +86,9 @@ export function MessageBubble(props: MessageBubbleProps) {
   // Group admins can delete anyone's message.
   const canModerate = !!conversation.group?.isAdmin && !conversation.group.removed;
   const canDelete = (mine || canModerate) && isNip17 && message.status !== 'sending';
+  const isPinned = !!conversation.group?.pinned.includes(message.id);
+  const groupId = conversation.group?.id;
+  const canPin = canModerate && isNip17 && !isLocal && !message.status;
 
   const react = (emoji: string) => {
     toggleReaction(message, emoji).catch((error: unknown) =>
@@ -132,6 +135,17 @@ export function MessageBubble(props: MessageBubbleProps) {
         {!isLocal && message.status !== 'failed' && (
           <Item onSelect={() => onReply(message)}>
             <Reply /> Reply
+          </Item>
+        )}
+        {canPin && groupId && (
+          <Item
+            onSelect={() =>
+              setGroupPinned(groupId, message.id, !isPinned).catch((error: unknown) =>
+                toast({ title: 'Could not update pin', description: error instanceof Error ? error.message : undefined, variant: 'destructive' }),
+              )
+            }
+          >
+            {isPinned ? <PinOff /> : <Pin />} {isPinned ? 'Unpin' : 'Pin'}
           </Item>
         )}
         {message.kind !== DM_KIND.file && message.content && (
@@ -258,6 +272,7 @@ export function MessageBubble(props: MessageBubbleProps) {
         emojiOnly ? 'rounded-full bg-background/80 px-2 py-1 text-muted-foreground shadow-sm' : 'text-bubble-meta',
       )}
     >
+      {isPinned && <Pin className="size-3" aria-label="Pinned" />}
       {edited && <span>edited</span>}
       <time dateTime={new Date(message.created_at * 1000).toISOString()}>{formatMessageTime(message.created_at)}</time>
       {mine && <DeliveryIcon status={message.status} className="size-3.5" />}

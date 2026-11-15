@@ -554,6 +554,7 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
           members: [...new Set([...(current?.members ?? (me ? [me] : [])), ...(groupJoiners.get(keys.id) ?? [])])],
           admins: current?.admins ?? [],
           muted,
+          pinned: current?.pinned ?? [],
           // Admin = holds the group key and is still listed as an admin.
           isAdmin: !!keys.identitySecret && (!current || (!!me && current.admins.includes(me))),
           isMuted: !!me && muted[me] !== undefined,
@@ -1265,6 +1266,17 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
     [me, requireAdmin, publishGroupState, sendGroupInvite],
   );
 
+  /** Pin or unpin a message for everyone in the group. */
+  const setGroupPinned = useCallback(
+    async (groupId: string, messageId: string, pin: boolean) => {
+      const { keys, state } = requireAdmin(groupId);
+      const current = state.pinned ?? [];
+      const pinned = pin ? [messageId, ...current.filter((id) => id !== messageId)].slice(0, 20) : current.filter((id) => id !== messageId);
+      await publishGroupState(keys, { ...state, pinned, updatedAt: Math.max(nowSeconds(), state.updatedAt + 1) });
+    },
+    [requireAdmin, publishGroupState],
+  );
+
   /** Stop (or allow) a member from sending messages. */
   const setGroupMuted = useCallback(
     async (groupId: string, pubkey: string, mute: boolean) => {
@@ -1525,6 +1537,7 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
       getInviteLink,
       resetInviteLink,
       joinGroup,
+      setGroupPinned,
     };
   }, [
     me,
@@ -1556,6 +1569,7 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
     getInviteLink,
     resetInviteLink,
     joinGroup,
+    setGroupPinned,
   ]);
 
   return <DMContext.Provider value={value}>{children}</DMContext.Provider>;

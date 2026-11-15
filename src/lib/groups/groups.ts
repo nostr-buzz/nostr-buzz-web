@@ -242,6 +242,8 @@ export interface GroupState {
   admins: string[];
   /** Members who can't send messages, with the time they were muted (unix seconds). */
   muted?: Record<string, number>;
+  /** Pinned message (rumor) ids, newest first. */
+  pinned?: string[];
   epoch: string;
   updatedAt: number;
 }
@@ -253,6 +255,7 @@ const stateSchema = z.object({
   members: z.array(z.string().regex(HEX64)).max(200),
   admins: z.array(z.string().regex(HEX64)),
   muted: z.record(z.string().regex(HEX64), z.number()).optional(),
+  pinned: z.array(z.string().regex(HEX64)).max(20).optional(),
   epoch: z.string().regex(HEX64),
   updatedAt: z.number(),
 });
@@ -301,6 +304,8 @@ export interface GroupView {
   admins: string[];
   /** Muted members → since when (messages after that are hidden). */
   muted: Record<string, number>;
+  /** Pinned message ids, newest first. */
+  pinned: string[];
   isAdmin: boolean;
   /** The current user can't send messages here. */
   isMuted: boolean;

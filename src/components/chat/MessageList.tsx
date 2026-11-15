@@ -1,5 +1,5 @@
 import { ArrowDown, Lock } from 'lucide-react';
-import { Fragment, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { Bee3D } from '@/components/brand/Bee3D';
 import { BuzzButton } from '@/components/chat/BuzzButton';
@@ -7,7 +7,7 @@ import { MessageBubble } from '@/components/chat/MessageBubble';
 import { ConversationAvatar, ConversationTitle } from '@/components/chat/UserAvatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { getReplyTarget, isBuzz } from '@/lib/dm/conversation';
+import { getReplyTarget, isBuzz, JUMP_TO_MESSAGE_EVENT } from '@/lib/dm/conversation';
 import type { ChatMessage, Conversation } from '@/lib/dm/types';
 import { dayKey, formatDayLabel } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -106,6 +106,17 @@ export function MessageList({ conversation, loading, onReply, onEdit }: MessageL
     pendingJumpRef.current = id;
     setLimit(messages.length - index + 10);
   };
+
+  // Let other parts of the chat (e.g. the pinned bar) scroll to a message.
+  const onJumpRequest = useEffectEvent((id: string) => jumpTo(id));
+  useEffect(() => {
+    const listener = (event: Event) => {
+      const id = (event as CustomEvent<unknown>).detail;
+      if (typeof id === 'string') onJumpRequest(id);
+    };
+    window.addEventListener(JUMP_TO_MESSAGE_EVENT, listener);
+    return () => window.removeEventListener(JUMP_TO_MESSAGE_EVENT, listener);
+  }, []);
 
   return (
     <div className="relative min-h-0 flex-1">
