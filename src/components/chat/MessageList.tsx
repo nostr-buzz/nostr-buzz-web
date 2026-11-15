@@ -78,6 +78,19 @@ export function MessageList({ conversation, loading, onReply, onEdit }: MessageL
     }
   }, [lastMessage, me, limit]);
 
+  // When the chat area shrinks (keyboard opens, composer grows), stay on the newest message.
+  useEffect(() => {
+    const element = scrollRef.current;
+    if (!element || typeof ResizeObserver === 'undefined') return;
+    let height = element.clientHeight;
+    const observer = new ResizeObserver(() => {
+      if (element.clientHeight !== height && atBottomRef.current) element.scrollTop = element.scrollHeight;
+      height = element.clientHeight;
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
   const onScroll = () => {
     const element = scrollRef.current;
     if (!element) return;

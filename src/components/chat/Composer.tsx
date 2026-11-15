@@ -145,7 +145,7 @@ export function Composer({ conversation, replyTo, editing, onCancelReply, onCanc
   const hasText = text.trim().length > 0;
 
   return (
-    <div className="border-t bg-background/90 px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-md md:px-4">
+    <div className="border-t bg-background/90 px-2 pt-2 pb-[max(0.5rem,var(--safe-bottom))] backdrop-blur-md md:px-4">
       <div className="mx-auto max-w-4xl">
         {context && (
           <div className="mb-2 flex items-center gap-3 rounded-xl bg-muted/70 py-1.5 pr-1.5 pl-3">

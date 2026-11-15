@@ -1,4 +1,5 @@
 import { useSeoMeta } from '@unhead/react';
+import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
@@ -6,6 +7,7 @@ import { Landing } from '@/components/landing/Landing';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useDM } from '@/hooks/useDM';
 import { cn } from '@/lib/utils';
+import { trackVisualViewport } from '@/lib/visualViewport';
 
 /**
  * Two-pane messenger layout. On phones only one pane shows at a time:
@@ -21,12 +23,15 @@ export function AppShell() {
     description: 'Private chats on Nostr with a BUZZ.',
   });
 
+  // Keep the composer right on top of the mobile keyboard.
+  useEffect(() => (user ? trackVisualViewport() : undefined), [user]);
+
   if (!user) return <Landing />;
 
   const isHome = location.pathname === '/';
 
   return (
-    <div className="flex h-dvh w-full overflow-hidden bg-background">
+    <div className="app-viewport flex w-full overflow-hidden bg-background">
       <aside
         aria-label="Chats"
         className={cn(

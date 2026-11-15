@@ -312,6 +312,22 @@
   min-height: 100dvh;
 }
 
+/* The messenger fills exactly the visible area, so the composer sits on the keyboard. */
+.app-viewport {
+  position: fixed;
+  inset-inline: 0;
+  top: var(--vv-top, 0px);
+  height: var(--vv-height, 100dvh);
+}
+
+:root {
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+:root[data-keyboard] {
+  --safe-bottom: 0px;
+}
+
 .buzz-shake {
   animation: buzz-shake 0.9s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
