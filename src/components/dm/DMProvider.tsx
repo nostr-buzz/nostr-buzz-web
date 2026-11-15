@@ -1,4 +1,4 @@
-import type { NostrEvent, NostrFilter, NostrMetadata, NostrSigner } from '@nostrify/nostrify';
+import { type NostrEvent, type NostrFilter, type NostrMetadata, type NostrSigner, NSecSigner } from '@nostrify/nostrify';
 import { BlossomUploader } from '@nostrify/nostrify/uploaders';
 import { useNostr } from '@nostrify/react';
 import type { NUser } from '@nostrify/react/login';
@@ -50,6 +50,25 @@ import {
 import { DEFAULT_INBOX_RELAYS, uniqueRelays } from '@/lib/dm/relays';
 import { type ChatMessage, type Conversation, DM_KIND, type ReactionGroup, type Rumor, VISIBLE_KINDS } from '@/lib/dm/types';
 import { displayName } from '@/lib/format';
+import {
+  decryptGroupState,
+  fromHex,
+  GROUP_STATE_D,
+  GROUP_STATE_KIND,
+  type GroupKeyring,
+  type GroupKeys,
+  type GroupState,
+  type GroupView,
+  inviteTags,
+  isActiveGroup,
+  isGroupInvite,
+  loadKeyring,
+  mergeInvite,
+  newKeypair,
+  parseInvite,
+  saveKeyring,
+  signGroupState,
+} from '@/lib/groups/groups';
 import { playMessageSound } from '@/lib/sounds';
 
 const TWO_DAYS = 2 * 24 * 60 * 60;
@@ -190,12 +209,19 @@ function emptyConversation(id: string, me: string): Conversation {
   };
 }
 
+/** A nostr.buzz group the user is in: its keys plus what the UI shows. */
+interface GroupContext {
+  keys: GroupKeys;
+  view: GroupView;
+}
+
 function buildConversation(
   id: string,
   list: ChatMessage[],
   me: string,
   follows: ReadonlySet<string>,
   prefs: DMPrefs,
+  group?: GroupContext,
 ): Conversation {
   list.sort(byTime);
 
@@ -246,7 +272,10 @@ function buildConversation(
   let subject: string | undefined;
   for (let i = list.length - 1; i >= 0 && !subject; i--) subject = getSubject(list[i]);
 
-  const participants = participantsFromConversationId(id);
+  if (group) subject = group.view.name;
+  const participants = group
+    ? group.view.members.filter((p) => p !== me)
+    : participantsFromConversationId(id);
   const isSelf = id === me;
   const lastMessage = messages.at(-1);
   const readAt = Math.max(prefs.read[id] ?? 0, prefs.firstSeen);
@@ -260,16 +289,17 @@ function buildConversation(
     id,
     participants,
     isSelf,
-    isGroup: participants.length > 1,
+    isGroup: group ? true : participants.length > 1,
     messages,
     reactions,
     editedIds,
     lastMessage,
-    lastActivity: lastMessage?.created_at ?? 0,
+    lastActivity: lastMessage?.created_at ?? group?.keys.joinedAt ?? 0,
     unreadCount,
     subject,
-    isRequest: !isSelf && !iParticipated && !participants.some((p) => follows.has(p)),
+    isRequest: group ? false : !isSelf && !iParticipated && !participants.some((p) => follows.has(p)),
     usesLegacy: list.some((message) => message.protocol === 'nip04'),
+    group: group?.view,
   };
 }
 
@@ -279,19 +309,34 @@ function buildConversations(
   follows: ReadonlySet<string>,
   prefs: DMPrefs,
   legacy: boolean,
+  groupContexts: ReadonlyMap<string, GroupContext>,
 ): Conversation[] {
-  const groups = new Map<string, ChatMessage[]>();
+  const buckets = new Map<string, ChatMessage[]>();
   for (const message of all) {
     if (!legacy && message.protocol === 'nip04') continue;
-    let list = groups.get(message.conversationId);
-    if (!list) groups.set(message.conversationId, (list = []));
+    // Group key backups the user sends to themselves stay out of "Saved messages".
+    if (message.conversationId === me && isGroupInvite(message)) continue;
+    if (message.via) {
+      const group = groupContexts.get(message.conversationId);
+      // A group we left, or a message sent with a key retired by a member removal.
+      if (!group) continue;
+      const retiredAt = group.keys.epochs[message.via]?.retiredAt;
+      if (retiredAt !== undefined && message.created_at > retiredAt + 60) continue;
+    }
+    let list = buckets.get(message.conversationId);
+    if (!list) buckets.set(message.conversationId, (list = []));
     list.push(message);
   }
 
   const conversations: Conversation[] = [];
-  for (const [id, list] of groups) {
-    const conversation = buildConversation(id, list, me, follows, prefs);
-    if (conversation.messages.length > 0) conversations.push(conversation);
+  for (const [id, list] of buckets) {
+    const group = groupContexts.get(id);
+    const conversation = buildConversation(id, list, me, follows, prefs, group);
+    if (conversation.messages.length > 0 || group) conversations.push(conversation);
+  }
+  // Groups show up in the list even before the first message.
+  for (const [id, group] of groupContexts) {
+    if (!buckets.has(id)) conversations.push(buildConversation(id, [], me, follows, prefs, group));
   }
 
   const pinned = new Map(prefs.pinned.map((id, index) => [id, index]));
@@ -342,6 +387,56 @@ async function decryptEvent(signer: NostrSigner, event: NostrEvent, me: string):
   return undefined;
 }
 
+type NostrPool = ReturnType<typeof useNostr>['nostr'];
+
+/**
+ * Keep a live subscription open (reconnecting if needed) and page through history.
+ * Resolves once history is loaded; the live part runs until `signal` aborts.
+ */
+async function streamFeed(
+  nostr: NostrPool,
+  opts: {
+    relays: string[];
+    signal: AbortSignal;
+    history: NostrFilter[];
+    live: NostrFilter[];
+    isKnown: (id: string) => boolean;
+    onEvent: (event: NostrEvent) => void | Promise<void>;
+  },
+): Promise<void> {
+  const { relays, signal } = opts;
+  void (async () => {
+    while (!signal.aborted) {
+      try {
+        for await (const msg of nostr.req(opts.live, { signal, relays })) {
+          if (msg[0] === 'EVENT') void opts.onEvent(msg[2]);
+        }
+      } catch {
+        // Connection dropped; retry below.
+      }
+      if (signal.aborted) break;
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+    }
+  })();
+
+  for (const filter of opts.history) {
+    let until: number | undefined;
+    for (let page = 0; page < 12 && !signal.aborted; page++) {
+      const events = await nostr.query([{ ...filter, limit: 300, ...(until !== undefined ? { until } : {}) }], {
+        signal: AbortSignal.any([signal, AbortSignal.timeout(15_000)]),
+        relays,
+      });
+      if (signal.aborted || events.length === 0) break;
+      const fresh = events.filter((event) => !opts.isKnown(event.id));
+      await Promise.all(fresh.map((event) => opts.onEvent(event)));
+      if (fresh.length === 0) break;
+      const oldest = Math.min(...events.map((event) => event.created_at));
+      if (until !== undefined && oldest >= until) break;
+      until = oldest - 1;
+    }
+  }
+}
+
 function showNotification(title: string, body: string, tag: string, onClick: () => void) {
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
   try {
@@ -389,6 +484,12 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
   const [status, setStatus] = useState<DMStatus>(me ? 'loading' : 'idle');
   const [prefs, setPrefs] = useState<DMPrefs>(() => loadPrefs(me));
   const [activeConversationId, setActiveConversationId] = useState<string>();
+  /** Keys for nostr.buzz groups (persisted; also restored from invites in DM history). */
+  const [keyring, setKeyring] = useState<GroupKeyring>(() => loadKeyring(me));
+  /** Latest decrypted state per group (`removed` when it's encrypted for a key we don't have). */
+  const [groupStates, setGroupStates] = useState<Map<string, GroupState | 'removed'>>(() => new Map());
+  /** created_at of the newest group state applied, per group. */
+  const groupStateAt = useRef(new Map<string, number>());
 
   /** Gift wrap / kind 4 ids already handled this session (or cached). */
   const knownIds = useRef(new Set<string>());
@@ -401,6 +502,48 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
   useEffect(() => {
     if (me) savePrefs(me, prefs);
   }, [me, prefs]);
+
+  useEffect(() => {
+    if (me) saveKeyring(me, keyring);
+  }, [me, keyring]);
+
+  const activeGroups = useMemo(() => Object.values(keyring).filter(isActiveGroup), [keyring]);
+
+  const groupContexts = useMemo(() => {
+    const map = new Map<string, GroupContext>();
+    for (const keys of activeGroups) {
+      const state = groupStates.get(keys.id);
+      const current = state && state !== 'removed' ? state : undefined;
+      map.set(keys.id, {
+        keys,
+        view: {
+          id: keys.id,
+          name: current?.name ?? keys.name ?? 'Group',
+          about: current?.about,
+          picture: current?.picture,
+          members: current?.members ?? (me ? [me] : []),
+          admins: current?.admins ?? [],
+          isAdmin: !!keys.identitySecret,
+          removed: state === 'removed',
+          loaded: state !== undefined,
+        },
+      });
+    }
+    return map;
+  }, [activeGroups, groupStates, me]);
+
+  /** Apply a group state event if it's newer than what we have. */
+  const applyGroupState = useCallback((event: NostrEvent, keys: GroupKeys) => {
+    if (event.created_at < (groupStateAt.current.get(event.pubkey) ?? 0)) return;
+    groupStateAt.current.set(event.pubkey, event.created_at);
+    const result = decryptGroupState(event, keys);
+    setGroupStates((previous) => new Map(previous).set(event.pubkey, result));
+  }, []);
+
+  const rememberInvites = useCallback((messages: ChatMessage[]) => {
+    const invites = messages.map(parseInvite).filter((invite) => invite !== undefined);
+    if (invites.length > 0) setKeyring((current) => invites.reduce(mergeInvite, current));
+  }, []);
 
   const followSet = useMemo(() => new Set(follows.data ?? []), [follows.data]);
 
@@ -420,8 +563,8 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
   );
 
   const conversations = useMemo(
-    () => (me ? buildConversations(snapshot, me, followSet, prefs, settings.legacyDMs) : []),
-    [snapshot, me, followSet, prefs, settings.legacyDMs],
+    () => (me ? buildConversations(snapshot, me, followSet, prefs, settings.legacyDMs, groupContexts) : []),
+    [snapshot, me, followSet, prefs, settings.legacyDMs, groupContexts],
   );
 
   const conversationMap = useMemo(() => new Map(conversations.map((c) => [c.id, c])), [conversations]);
@@ -472,16 +615,15 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
     void cachedRecords.then((records) => {
       if (cancelled) return;
       for (const record of records) knownIds.current.add(record.eventId);
-      store.upsert(
-        records.map((record) => record.message),
-        true,
-      );
+      const messages = records.map((record) => record.message);
+      store.upsert(messages, true);
+      rememberInvites(messages);
       if (records.length > 0) setStatus('ready');
     });
     return () => {
       cancelled = true;
     };
-  }, [me, cachedRecords, store]);
+  }, [me, cachedRecords, store, rememberInvites]);
 
   useEffect(() => {
     if (!user || !me || myRelays.isLoading) return;
@@ -508,6 +650,7 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
         if (!message || signal.aborted) return;
         pendingCache.push({ eventId: event.id, message });
         store.upsert([message]);
+        rememberInvites([message]);
         handleIncoming(message);
       } catch (error) {
         if (!signal.aborted) console.debug('Could not decrypt DM', event.id, error);
@@ -573,7 +716,100 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
       clearInterval(flushTimer);
       flushCache();
     };
-  }, [user, me, myRelays.isLoading, readRelaysKey, settings.legacyDMs, nostr, store, cachedRecords]);
+  }, [user, me, myRelays.isLoading, readRelaysKey, settings.legacyDMs, nostr, store, cachedRecords, rememberInvites]);
+
+  /* ------------------------------ group messages ----------------------------- */
+
+  // Restart the group feed only when the set of group keys or relays changes.
+  const groupFeedKey = useMemo(
+    () =>
+      JSON.stringify(
+        activeGroups
+          .map((keys) => [keys.id, Object.keys(keys.epochs).sort(), keys.relays])
+          .sort((a, b) => String(a[0]).localeCompare(String(b[0]))),
+      ),
+    [activeGroups],
+  );
+  const readActiveGroups = useEffectEvent(() => activeGroups);
+
+  useEffect(() => {
+    if (!me || groupFeedKey === '[]') return;
+    const groups = readActiveGroups();
+    const controller = new AbortController();
+    const { signal } = controller;
+
+    // Every epoch key we hold (old ones too, for history) → which group and how to decrypt.
+    const epochs = new Map<string, { groupId: string; signer: NSecSigner }>();
+    for (const keys of groups) {
+      for (const [epoch, { secret }] of Object.entries(keys.epochs)) {
+        epochs.set(epoch, { groupId: keys.id, signer: new NSecSigner(fromHex(secret)) });
+      }
+    }
+    const byId = new Map(groups.map((keys) => [keys.id, keys]));
+    const relays = uniqueRelays([...groups.flatMap((keys) => keys.relays), ...DEFAULT_INBOX_RELAYS]);
+    const groupIds = groups.map((keys) => keys.id);
+    const pendingCache: { eventId: string; message: ChatMessage }[] = [];
+    const flushCache = () => {
+      if (pendingCache.length > 0) void saveCachedMessages(me, pendingCache.splice(0));
+    };
+    const flushTimer = setInterval(flushCache, 1500);
+
+    const onEvent = async (event: NostrEvent) => {
+      if (event.kind === GROUP_STATE_KIND) {
+        const keys = byId.get(event.pubkey);
+        if (keys) applyGroupState(event, keys);
+        return;
+      }
+      if (event.kind !== 1059 || knownIds.current.has(event.id)) return;
+      knownIds.current.add(event.id);
+      const epoch = event.tags.find(([name, value]) => name === 'p' && value && epochs.has(value))?.[1];
+      const target = epoch ? epochs.get(epoch) : undefined;
+      if (!epoch || !target) return;
+      try {
+        const rumor = await unwrapGiftWrap(target.signer, event);
+        if (!NIP17_KINDS.has(rumor.kind)) return;
+        if (!rumor.tags.some(([name, value]) => name === 'p' && value === target.groupId)) return;
+        const message: ChatMessage = { ...rumor, protocol: 'nip17', conversationId: target.groupId, via: epoch };
+        if (signal.aborted) return;
+        pendingCache.push({ eventId: event.id, message });
+        store.upsert([message]);
+        handleIncoming(message);
+      } catch (error) {
+        if (!signal.aborted) console.debug('Could not decrypt group message', event.id, error);
+      }
+    };
+
+    void (async () => {
+      const cached = await cachedRecords;
+      for (const record of cached) knownIds.current.add(record.eventId);
+      if (signal.aborted) return;
+
+      const states = await nostr.query(
+        [{ kinds: [GROUP_STATE_KIND], authors: groupIds, '#d': [GROUP_STATE_D] }],
+        { signal: AbortSignal.any([signal, AbortSignal.timeout(8000)]), relays },
+      );
+      for (const event of states.sort((a, b) => a.created_at - b.created_at)) await onEvent(event);
+
+      await streamFeed(nostr, {
+        relays,
+        signal,
+        history: [{ kinds: [1059], '#p': [...epochs.keys()] }],
+        live: [
+          { kinds: [1059], '#p': [...epochs.keys()], since: nowSeconds() - TWO_DAYS - 600 },
+          { kinds: [GROUP_STATE_KIND], authors: groupIds, '#d': [GROUP_STATE_D], since: nowSeconds() - 5 },
+        ],
+        isKnown: (id) => knownIds.current.has(id),
+        onEvent,
+      });
+      flushCache();
+    })();
+
+    return () => {
+      controller.abort();
+      clearInterval(flushTimer);
+      flushCache();
+    };
+  }, [me, groupFeedKey, nostr, store, cachedRecords, applyGroupState]);
 
   /* ---------------------------------- sending -------------------------------- */
 
@@ -636,6 +872,33 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
     [user, me, store, relaysFor, nostr],
   );
 
+  /** nostr.buzz groups: one gift wrap to the group's current epoch key reaches every member. */
+  const deliverGroup = useCallback(
+    async (rumor: Rumor, groupId: string): Promise<boolean> => {
+      const keys = keyring[groupId];
+      if (!user || !me || !isActiveGroup(keys)) return false;
+      const signer = user.signer;
+      store.patch(rumor.id, { status: 'sending' });
+      try {
+        if (!signer.nip44) throw new Error(NIP44_UNSUPPORTED);
+        const seal = await sealRumor(signer, rumor, keys.current);
+        const wrap = wrapSeal(seal, keys.current);
+        knownIds.current.add(wrap.id);
+        const relays = uniqueRelays([...keys.relays, ...DEFAULT_INBOX_RELAYS]).slice(0, 6);
+        await nostr.event(wrap, { relays, signal: AbortSignal.timeout(15_000) });
+        store.patch(rumor.id, { status: 'sent' });
+        const stored = store.get(rumor.id);
+        if (stored) void saveCachedMessages(me, [{ eventId: wrap.id, message: stored }]);
+        return true;
+      } catch (error) {
+        console.warn('Group delivery failed', error);
+        store.patch(rumor.id, { status: 'failed' });
+        return false;
+      }
+    },
+    [user, me, keyring, store, nostr],
+  );
+
   const sendRumor = useCallback(
     async (
       conversationId: string,
@@ -645,13 +908,28 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
       opts?: { createdAt?: number; local?: Partial<ChatMessage> },
     ): Promise<boolean> => {
       if (!me) throw new Error('You need to be logged in.');
+      const groupKeys = keyring[conversationId];
+      if (isActiveGroup(groupKeys)) {
+        const rumor = createRumor({
+          pubkey: me,
+          kind,
+          content,
+          tags: [['p', conversationId], ...extraTags],
+          created_at: opts?.createdAt,
+        });
+        store.upsert(
+          [{ ...rumor, protocol: 'nip17', conversationId, via: groupKeys.current, status: 'sending', ...opts?.local }],
+          true,
+        );
+        return deliverGroup(rumor, conversationId);
+      }
       const others = participantsFromConversationId(conversationId).filter((p) => p !== me);
       const pTags = (others.length > 0 ? others : [me]).map((p) => ['p', p]);
       const rumor = createRumor({ pubkey: me, kind, content, tags: [...pTags, ...extraTags], created_at: opts?.createdAt });
       store.upsert([{ ...rumor, protocol: 'nip17', conversationId, status: 'sending', ...opts?.local }], true);
       return deliver(rumor, conversationId);
     },
-    [me, store, deliver],
+    [me, keyring, store, deliver, deliverGroup],
   );
 
   const publishLegacy = useCallback(
@@ -869,9 +1147,10 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
         tags: message.tags,
         content: message.content,
       };
-      await deliver(rumor, message.conversationId);
+      if (message.via) await deliverGroup(rumor, message.conversationId);
+      else await deliver(rumor, message.conversationId);
     },
-    [publishLegacy, deliver],
+    [publishLegacy, deliver, deliverGroup],
   );
 
   const discardMessage = useCallback(
@@ -882,6 +1161,148 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
     },
     [store],
   );
+
+  /* ---------------------------------- groups --------------------------------- */
+
+  const publishGroupState = useCallback(
+    async (keys: GroupKeys, state: GroupState) => {
+      if (!keys.identitySecret) throw new Error('Only admins can edit this group.');
+      const event = signGroupState(keys.identitySecret, state);
+      await nostr.event(event, {
+        relays: uniqueRelays([...keys.relays, ...DEFAULT_INBOX_RELAYS]),
+        signal: AbortSignal.timeout(12_000),
+      });
+      applyGroupState(event, keys);
+    },
+    [nostr, applyGroupState],
+  );
+
+  /** Send a member (or ourselves, as a key backup) the keys for a group over NIP-17. */
+  const sendGroupInvite = useCallback(
+    (to: string, keys: GroupKeys, name: string, withAdminKey: boolean) => {
+      const tags = inviteTags({
+        groupId: keys.id,
+        epochSecret: keys.epochs[keys.current].secret,
+        identitySecret: withAdminKey ? keys.identitySecret : undefined,
+        relays: keys.relays,
+        name,
+      });
+      const content = to === me ? `🔑 Keys for the group "${name}"` : `📨 You're invited to "${name}" on nostr.buzz`;
+      return sendRumor(to, DM_KIND.chat, content, tags);
+    },
+    [me, sendRumor],
+  );
+
+  const requireAdmin = useCallback(
+    (groupId: string): { keys: GroupKeys; state: GroupState } => {
+      const keys = keyring[groupId];
+      const state = groupStates.get(groupId);
+      if (!isActiveGroup(keys) || !keys.identitySecret) throw new Error('Only admins can edit this group.');
+      if (!state || state === 'removed') throw new Error('Group info is still loading.');
+      return { keys, state };
+    },
+    [keyring, groupStates],
+  );
+
+  const createGroup = useCallback(
+    async (input: { name: string; members: string[]; about?: string; picture?: string }) => {
+      if (!me) throw new Error('You need to be logged in.');
+      const identity = newKeypair();
+      const epoch = newKeypair();
+      const now = nowSeconds();
+      const name = input.name.trim().slice(0, 80) || 'New group';
+      const keys: GroupKeys = {
+        id: identity.pubkey,
+        identitySecret: identity.secret,
+        current: epoch.pubkey,
+        epochs: { [epoch.pubkey]: { secret: epoch.secret, since: now } },
+        relays: uniqueRelays([...(inboxRelays ?? []), ...DEFAULT_INBOX_RELAYS]).slice(0, 4),
+        name,
+        joinedAt: now,
+      };
+      const members = [...new Set([me, ...input.members])];
+      setKeyring((current) => ({ ...current, [keys.id]: keys }));
+      await publishGroupState(keys, {
+        name,
+        about: input.about,
+        picture: input.picture,
+        members,
+        admins: [me],
+        epoch: epoch.pubkey,
+        updatedAt: now,
+      });
+      await Promise.allSettled([
+        sendGroupInvite(me, keys, name, true),
+        ...members.filter((p) => p !== me).map((p) => sendGroupInvite(p, keys, name, false)),
+      ]);
+      return keys.id;
+    },
+    [me, inboxRelays, publishGroupState, sendGroupInvite],
+  );
+
+  const updateGroup = useCallback(
+    async (groupId: string, patch: { name?: string; about?: string; picture?: string }) => {
+      const { keys, state } = requireAdmin(groupId);
+      const name = patch.name !== undefined ? patch.name.trim().slice(0, 80) || state.name : state.name;
+      await publishGroupState(keys, {
+        ...state,
+        ...patch,
+        name,
+        updatedAt: Math.max(nowSeconds(), state.updatedAt + 1),
+      });
+      setKeyring((current) => (current[groupId] ? { ...current, [groupId]: { ...current[groupId], name } } : current));
+    },
+    [requireAdmin, publishGroupState],
+  );
+
+  const addGroupMembers = useCallback(
+    async (groupId: string, pubkeys: string[]) => {
+      const { keys, state } = requireAdmin(groupId);
+      const added = pubkeys.filter((p) => !state.members.includes(p));
+      if (added.length === 0) return;
+      await publishGroupState(keys, {
+        ...state,
+        members: [...state.members, ...added],
+        updatedAt: Math.max(nowSeconds(), state.updatedAt + 1),
+      });
+      await Promise.allSettled(added.map((p) => sendGroupInvite(p, keys, state.name, false)));
+    },
+    [requireAdmin, publishGroupState, sendGroupInvite],
+  );
+
+  /** Remove a member and rotate the shared key so they can't read new messages. */
+  const removeGroupMember = useCallback(
+    async (groupId: string, pubkey: string) => {
+      const { keys, state } = requireAdmin(groupId);
+      if (pubkey === me) throw new Error('Use "Leave group" to leave.');
+      const epoch = newKeypair();
+      const now = Math.max(nowSeconds(), state.updatedAt + 1);
+      const epochs = Object.fromEntries(
+        Object.entries(keys.epochs).map(([key, value]) => [key, value.retiredAt ? value : { ...value, retiredAt: now }]),
+      );
+      const nextKeys: GroupKeys = { ...keys, current: epoch.pubkey, epochs: { ...epochs, [epoch.pubkey]: { secret: epoch.secret, since: now } } };
+      const nextState: GroupState = {
+        ...state,
+        members: state.members.filter((p) => p !== pubkey),
+        admins: state.admins.filter((p) => p !== pubkey),
+        epoch: epoch.pubkey,
+        updatedAt: now,
+      };
+      setKeyring((current) => ({ ...current, [groupId]: nextKeys }));
+      await publishGroupState(nextKeys, nextState);
+      await Promise.allSettled([
+        sendGroupInvite(me ?? '', nextKeys, nextState.name, true),
+        ...nextState.members.filter((p) => p !== me).map((p) => sendGroupInvite(p, nextKeys, nextState.name, false)),
+      ]);
+    },
+    [me, requireAdmin, publishGroupState, sendGroupInvite],
+  );
+
+  const leaveGroup = useCallback((groupId: string) => {
+    setKeyring((current) =>
+      current[groupId] ? { ...current, [groupId]: { ...current[groupId], leftAt: nowSeconds() } } : current,
+    );
+  }, []);
 
   /* ---------------------------------- prefs ---------------------------------- */
 
@@ -955,6 +1376,11 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
       isPinned: (id) => prefs.pinned.includes(id),
       togglePin,
       clearLocalCache,
+      createGroup,
+      updateGroup,
+      addGroupMembers,
+      removeGroupMember,
+      leaveGroup,
     };
   }, [
     me,
@@ -976,6 +1402,11 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
     toggleMute,
     togglePin,
     clearLocalCache,
+    createGroup,
+    updateGroup,
+    addGroupMembers,
+    removeGroupMember,
+    leaveGroup,
   ]);
 
   return <DMContext.Provider value={value}>{children}</DMContext.Provider>;

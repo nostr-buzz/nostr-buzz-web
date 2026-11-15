@@ -15,7 +15,8 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useDM } from '@/hooks/useDM';
 import { useDiscoveryRelays } from '@/hooks/useDMRelays';
 import { useFollows } from '@/hooks/useFollows';
-import { conversationIdFromParticipants, conversationRoute, MAX_GROUP_PARTICIPANTS } from '@/lib/dm/conversation';
+import { useToast } from '@/hooks/useToast';
+import { conversationIdFromParticipants, conversationRoute } from '@/lib/dm/conversation';
 import { displayName, shortNpub } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
@@ -136,32 +137,46 @@ function matches(candidate: Candidate, needle: string): boolean {
   return [m?.display_name, m?.name, m?.nip05].some((field) => field?.toLowerCase().includes(needle));
 }
 
+const GROUP_MEMBER_LIMIT = 50;
+
+/** "Pick people" mode, e.g. adding members to an existing group. */
+interface PickOptions {
+  title: string;
+  confirmLabel: string;
+  /** People who can't be picked (already members). */
+  exclude: string[];
+  onConfirm: (pubkeys: string[]) => Promise<void>;
+}
+
 interface NewChatDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  pick?: PickOptions;
 }
 
-export function NewChatDialog({ open, onOpenChange }: NewChatDialogProps) {
+export function NewChatDialog({ open, onOpenChange, pick }: NewChatDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-[min(42rem,calc(100dvh-2rem))] flex-col gap-0 overflow-hidden p-0 sm:max-w-md">
-        {open && <NewChatPanel onDone={() => onOpenChange(false)} />}
+        {open && <NewChatPanel onDone={() => onOpenChange(false)} pick={pick} />}
       </DialogContent>
     </Dialog>
   );
 }
 
-function NewChatPanel({ onDone }: { onDone: () => void }) {
+function NewChatPanel({ onDone, pick }: { onDone: () => void; pick?: PickOptions }) {
   const { user } = useCurrentUser();
-  const { conversations } = useDM();
+  const { conversations, createGroup: createNostrGroup } = useDM();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const follows = useFollows(user?.pubkey);
   const contacts = useContactProfiles(follows.data);
 
-  const [mode, setMode] = useState<'direct' | 'group'>('direct');
+  const [mode, setMode] = useState<'direct' | 'group'>(pick ? 'group' : 'direct');
   const [input, setInput] = useState('');
   const [selected, setSelected] = useState<string[]>([]);
   const [groupName, setGroupName] = useState('');
+  const [busy, setBusy] = useState(false);
 
   const term = useDebounced(input.trim(), 350);
   const resolved = useResolvedIdentifier(term);
@@ -179,7 +194,7 @@ function NewChatPanel({ onDone }: { onDone: () => void }) {
 
   const results = useMemo((): { section: string; items: Candidate[] }[] => {
     const needle = term.toLowerCase();
-    const seen = new Set<string>([me]);
+    const seen = new Set<string>([me, ...(pick?.exclude ?? [])]);
     const take = (items: Candidate[]) =>
       items.filter((item) => {
         if (seen.has(item.pubkey)) return false;
@@ -199,7 +214,7 @@ function NewChatPanel({ onDone }: { onDone: () => void }) {
     sections.push({ section: 'Following', items: take((contacts.data ?? []).filter((c) => matches(c, needle)).slice(0, 30)) });
     sections.push({ section: 'Everyone on Nostr', items: take(remote.data ?? []) });
     return sections.filter((group) => group.items.length > 0);
-  }, [term, me, recent, contacts.data, resolved.pubkey, remote.data]);
+  }, [term, me, pick?.exclude, recent, contacts.data, resolved.pubkey, remote.data]);
 
   const openChat = (pubkey: string) => {
     navigate(conversationRoute(conversationIdFromParticipants([pubkey], me)));
@@ -210,18 +225,33 @@ function NewChatPanel({ onDone }: { onDone: () => void }) {
     setSelected((current) =>
       current.includes(pubkey)
         ? current.filter((p) => p !== pubkey)
-        : current.length >= MAX_GROUP_PARTICIPANTS - 1
+        : current.length >= GROUP_MEMBER_LIMIT
           ? current
           : [...current, pubkey],
     );
   };
 
-  const createGroup = () => {
-    if (selected.length < 2) return;
-    const id = conversationIdFromParticipants(selected, me);
-    const name = groupName.trim();
-    navigate(`${conversationRoute(id)}${name ? `?subject=${encodeURIComponent(name)}` : ''}`);
-    onDone();
+  const confirm = async () => {
+    if (selected.length === 0 || busy) return;
+    setBusy(true);
+    try {
+      if (pick) {
+        await pick.onConfirm(selected);
+        onDone();
+        return;
+      }
+      const groupId = await createNostrGroup({ name: groupName, members: selected });
+      navigate(conversationRoute(groupId));
+      onDone();
+    } catch (error) {
+      toast({
+        title: pick ? 'Could not add members' : 'Could not create group',
+        description: error instanceof Error ? error.message : undefined,
+        variant: 'destructive',
+      });
+    } finally {
+      setBusy(false);
+    }
   };
 
   const searching = (term !== input.trim() && input.trim().length > 0) || resolved.loading || remote.isFetching;
@@ -231,16 +261,16 @@ function NewChatPanel({ onDone }: { onDone: () => void }) {
     <>
       <DialogHeader className="border-b px-5 pt-5 pb-4 text-left">
         <div className="flex items-center gap-2">
-          {mode === 'group' && (
+          {mode === 'group' && !pick && (
             <Button variant="ghost" size="icon-sm" aria-label="Back" onClick={() => setMode('direct')}>
               <ArrowLeft />
             </Button>
           )}
-          <DialogTitle className="font-display text-xl">{mode === 'group' ? 'New group' : 'New chat'}</DialogTitle>
+          <DialogTitle className="font-display text-xl">
+            {pick ? pick.title : mode === 'group' ? 'New group' : 'New chat'}
+          </DialogTitle>
         </div>
-        <DialogDescription>
-          {mode === 'group' ? `Pick 2 to ${MAX_GROUP_PARTICIPANTS - 1} people.` : 'Name, npub or NIP-05.'}
-        </DialogDescription>
+        <DialogDescription>{mode === 'group' ? 'Pick people.' : 'Name, npub or NIP-05.'}</DialogDescription>
         <div className="relative mt-3">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -256,15 +286,17 @@ function NewChatPanel({ onDone }: { onDone: () => void }) {
         </div>
         {mode === 'group' && (
           <>
-            <Input
-              value={groupName}
-              onChange={(event) => setGroupName(event.target.value)}
-              placeholder="Group name (optional)"
-              aria-label="Group name"
-              dir="auto"
-              maxLength={80}
-              className="mt-2 h-11 rounded-xl"
-            />
+            {!pick && (
+              <Input
+                value={groupName}
+                onChange={(event) => setGroupName(event.target.value)}
+                placeholder="Group name"
+                aria-label="Group name"
+                dir="auto"
+                maxLength={80}
+                className="mt-2 h-11 rounded-xl"
+              />
+            )}
             {selected.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {selected.map((pubkey) => (
@@ -332,8 +364,10 @@ function NewChatPanel({ onDone }: { onDone: () => void }) {
 
       {mode === 'group' && (
         <div className="border-t p-4">
-          <Button className="h-11 w-full rounded-xl" disabled={selected.length < 2} onClick={createGroup}>
-            <Users /> Create group{selected.length > 0 ? ` · ${selected.length + 1} people` : ''}
+          <Button className="h-11 w-full rounded-xl" disabled={selected.length === 0 || busy} onClick={() => void confirm()}>
+            {busy ? <Loader2 className="animate-spin" /> : <Users />}
+            {pick ? pick.confirmLabel : 'Create group'}
+            {selected.length > 0 ? ` · ${selected.length}` : ''}
           </Button>
         </div>
       )}

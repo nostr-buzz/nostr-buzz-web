@@ -47,7 +47,9 @@ interface ComposerProps {
  * changes so the initial text is picked up without effects.
  */
 export function Composer({ conversation, replyTo, editing, onCancelReply, onCancelEdit, subject }: ComposerProps) {
-  const { sendText, sendFile, editMessage, canEncrypt } = useDM();
+  const { sendText, sendFile, editMessage, canEncrypt: signerCanEncrypt } = useDM();
+  const removed = !!conversation.group?.removed;
+  const canEncrypt = signerCanEncrypt && !removed;
   const { settings } = useChatSettings();
   const { toast } = useToast();
   const [text, setText] = useState(() => editing?.content ?? loadDraft(conversation.id));
@@ -189,7 +191,7 @@ export function Composer({ conversation, replyTo, editing, onCancelReply, onCanc
               onPaste={onPaste}
               dir="auto"
               disabled={!canEncrypt}
-              placeholder={canEncrypt ? 'Message' : 'Encryption not supported'}
+              placeholder={canEncrypt ? 'Message' : removed ? "You're not a member" : 'Encryption not supported'}
               aria-label="Message"
               className="max-h-[200px] w-full resize-none bg-transparent text-base leading-6 outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
             />
@@ -224,7 +226,7 @@ export function Composer({ conversation, replyTo, editing, onCancelReply, onCanc
           {hasText || editing || conversation.isSelf ? (
             <Button
               size="icon"
-              className={cn('size-11 shrink-0 rounded-full shadow-md shadow-amber-500/20 transition-transform active:scale-95', !hasText && 'opacity-60')}
+              className={cn('size-11 shrink-0 rounded-full transition-transform active:scale-95', !hasText && 'opacity-60')}
               aria-label={editing ? 'Save changes' : 'Send message'}
               disabled={!hasText || !canEncrypt}
               onClick={submit}
@@ -232,7 +234,7 @@ export function Composer({ conversation, replyTo, editing, onCancelReply, onCanc
               {editing ? <Check className="size-5" /> : <SendHorizontal className="size-5" />}
             </Button>
           ) : (
-            <BuzzButton conversationId={conversation.id} variant="icon" className="size-11 bg-primary text-primary-foreground shadow-md shadow-amber-500/20 hover:bg-primary/90" />
+            <BuzzButton conversationId={conversation.id} variant="icon" className="size-11 bg-primary text-primary-foreground hover:bg-primary/90" />
           )}
         </div>
       </div>

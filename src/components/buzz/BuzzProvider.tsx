@@ -124,7 +124,7 @@ function BuzzToast({ toast, onClose }: { toast: Toast; onClose: () => void }) {
             if (toast.conversationId) navigate(conversationRoute(toast.conversationId));
             onClose();
           }}
-          className="buzz-toast-in pointer-events-auto flex max-w-sm items-center gap-3 rounded-2xl border border-amber-300/70 bg-amber-300 px-4 py-3 text-left text-stone-950 shadow-xl shadow-amber-500/30 outline-none focus-visible:ring-4 focus-visible:ring-stone-950/40"
+          className="buzz-toast-in pointer-events-auto flex max-w-sm items-center gap-3 rounded-2xl border border-amber-300/70 bg-amber-300 px-4 py-3 text-left text-stone-950 outline-none focus-visible:ring-4 focus-visible:ring-stone-950/40"
         >
           <img src="/bee.png" alt="" className="bee-wiggle size-12 shrink-0 drop-shadow" />
           <span className="min-w-0">

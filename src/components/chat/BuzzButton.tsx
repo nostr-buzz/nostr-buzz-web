@@ -69,7 +69,7 @@ export function BuzzButton({ conversationId, variant = 'pill', className, onBuzz
         disabled={disabled}
         aria-label={label}
         className={cn(
-          'group relative inline-flex h-12 items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-6 font-display text-base font-bold text-primary-foreground shadow-md shadow-amber-500/25 transition-all hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 disabled:pointer-events-none disabled:opacity-60 focus-visible:ring-4 focus-visible:ring-ring/40 focus-visible:outline-none',
+          'group relative inline-flex h-12 items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-6 font-display text-base font-bold text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60 focus-visible:ring-4 focus-visible:ring-ring/40 focus-visible:outline-none',
           className,
         )}
       >
@@ -89,7 +89,7 @@ export function BuzzButton({ conversationId, variant = 'pill', className, onBuzz
         'group relative inline-flex shrink-0 items-center justify-center rounded-full font-display font-bold transition-all focus-visible:ring-4 focus-visible:ring-ring/40 focus-visible:outline-none disabled:cursor-not-allowed',
         variant === 'icon'
           ? 'size-10 hover:bg-accent'
-          : 'h-10 gap-1.5 bg-primary pr-4 pl-2 text-sm text-primary-foreground shadow-sm shadow-amber-500/30 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0',
+          : 'h-10 gap-1.5 bg-primary pr-4 pl-2 text-sm text-primary-foreground hover:bg-primary/90 active:scale-95',
         coolingDown && 'opacity-70',
         className,
       )}

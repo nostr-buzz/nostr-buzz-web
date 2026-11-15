@@ -1,4 +1,4 @@
-import { Copy, MoreHorizontal, Pencil, Reply, RotateCw, Trash2 } from 'lucide-react';
+import { Copy, MoreHorizontal, Pencil, Reply, RotateCw, Trash2, Users } from 'lucide-react';
 import { nip19 } from 'nostr-tools';
 import { type ComponentType, type ReactNode, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -34,7 +34,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useDM } from '@/hooks/useDM';
 import { useToast } from '@/hooks/useToast';
-import { isBuzz, messagePreview } from '@/lib/dm/conversation';
+import { conversationRoute, isBuzz, messagePreview } from '@/lib/dm/conversation';
+import { isGroupInvite, parseInvite } from '@/lib/groups/groups';
 import { nowSeconds } from '@/lib/dm/nip17';
 import { type ChatMessage, type Conversation, DM_KIND, type ReactionGroup } from '@/lib/dm/types';
 import { formatMessageTime, isEmojiOnly } from '@/lib/format';
@@ -177,6 +178,29 @@ export function MessageBubble(props: MessageBubbleProps) {
     </AlertDialog>
   );
 
+  /* ------------------------------ group invites ------------------------------ */
+  if (isGroupInvite(message)) {
+    const invite = parseInvite(message);
+    return (
+      <div id={`msg-${message.id}`} className="flex justify-center px-4 py-2">
+        <div className="flex max-w-full items-center gap-2 rounded-full border bg-background/90 py-1.5 pr-1.5 pl-3 text-sm">
+          <Users className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+          <span className="min-w-0 truncate" dir="auto">
+            {mine ? 'You sent an invite to' : 'Invite to'} <b>{invite?.name ?? 'a group'}</b>
+          </span>
+          {invite && (
+            <Link
+              to={conversationRoute(invite.groupId)}
+              className="shrink-0 rounded-full bg-primary px-3 py-0.5 font-semibold text-primary-foreground hover:bg-primary/90"
+            >
+              Open
+            </Link>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   /* -------------------------------- BUZZ!!! -------------------------------- */
   if (isBuzz(message)) {
     const fresh = nowSeconds() - message.created_at < 20;
@@ -316,7 +340,7 @@ export function MessageBubble(props: MessageBubbleProps) {
                 aria-pressed={!!group.mine}
                 aria-label={`${group.emoji} ${group.pubkeys.length}`}
                 className={cn(
-                  'inline-flex h-7 items-center gap-1 rounded-full border px-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+                  'inline-flex h-7 items-center gap-1 rounded-full border px-2 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
                   group.mine
                     ? 'border-amber-400 bg-amber-100 text-amber-950 dark:border-amber-400/60 dark:bg-amber-400/20 dark:text-amber-50'
                     : 'border-border bg-background/90 hover:bg-accent',

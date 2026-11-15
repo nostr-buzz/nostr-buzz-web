@@ -45,6 +45,17 @@ export interface DMContextValue {
   togglePin(conversationId: string): void;
   /** Forget decrypted messages cached on this device and reload them from relays. */
   clearLocalCache(): Promise<void>;
+
+  /** Create a group with its own npub. Resolves to the group's pubkey. */
+  createGroup(input: { name: string; members: string[]; about?: string; picture?: string }): Promise<string>;
+  /** Admins only: change the group's name, description or photo. */
+  updateGroup(groupId: string, patch: { name?: string; about?: string; picture?: string }): Promise<void>;
+  /** Admins only. */
+  addGroupMembers(groupId: string, pubkeys: string[]): Promise<void>;
+  /** Admins only. Rotates the group key so the removed member can't read new messages. */
+  removeGroupMember(groupId: string, pubkey: string): Promise<void>;
+  /** Stop showing / receiving a group on this account. */
+  leaveGroup(groupId: string): void;
 }
 
 export const DMContext = createContext<DMContextValue | undefined>(undefined);

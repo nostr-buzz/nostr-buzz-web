@@ -127,7 +127,7 @@ export function MessageList({ conversation, loading, onReply, onEdit }: MessageL
                   heightBeforeLoadRef.current = scrollRef.current?.scrollHeight ?? null;
                   setLimit((current) => current + PAGE_SIZE);
                 }}
-                className="rounded-full bg-background/80 px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur hover:bg-background"
+                className="rounded-full bg-background/80 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur hover:bg-background"
               >
                 Load earlier messages
               </button>
@@ -172,7 +172,7 @@ export function MessageList({ conversation, loading, onReply, onEdit }: MessageL
           type="button"
           onClick={scrollToBottom}
           aria-label={newCount > 0 ? `${newCount} new messages, scroll to bottom` : 'Scroll to bottom'}
-          className="absolute right-4 bottom-4 flex size-11 items-center justify-center rounded-full border bg-background text-foreground shadow-lg transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          className="absolute right-4 bottom-4 flex size-11 items-center justify-center rounded-full border bg-background text-foreground transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
         >
           <ArrowDown className="size-5" />
           {newCount > 0 && (

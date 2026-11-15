@@ -109,7 +109,7 @@ function ProfileForm({ onDone }: { onDone: () => void }) {
             type="button"
             onClick={() => fileRef.current?.click()}
             aria-label="Upload profile photo"
-            className="absolute -right-1 -bottom-1 flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow ring-2 ring-background"
+            className="absolute -right-1 -bottom-1 flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground ring-2 ring-background"
           >
             {upload.isPending ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-4" />}
           </button>

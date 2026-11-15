@@ -37,7 +37,9 @@ export function ConversationHeader({ conversation, onOpenInfo }: ConversationHea
 
   const subtitle = conversation.isSelf
     ? 'Private notes'
-    : conversation.isGroup
+    : conversation.group?.removed
+      ? 'Not a member'
+      : conversation.isGroup
       ? `${conversation.participants.length + 1} members`
       : conversation.usesLegacy && conversation.messages.at(-1)?.protocol === 'nip04'
         ? 'Legacy encryption (NIP-04)'
@@ -81,7 +83,7 @@ export function ConversationHeader({ conversation, onOpenInfo }: ConversationHea
           </span>
         </button>
 
-        {!conversation.isSelf && (
+        {!conversation.isSelf && !conversation.group?.removed && (
           <>
             <BuzzButton conversationId={conversation.id} variant="icon" className="sm:hidden" />
             <BuzzButton conversationId={conversation.id} variant="pill" className="hidden sm:inline-flex" />

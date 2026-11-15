@@ -39,3 +39,53 @@ A buzz is an ordinary NIP-17 **kind 14** chat message with a `t` tag of `buzz`:
   (unless the user opts in to buzzes from strangers).
 - **Rate limit:** the sender's client enforces an 8-second cooldown per conversation.
 - For conversations that fall back to NIP-04, the same `["t", "buzz"]` tag is placed on the kind `4` event.
+
+## Groups with their own npub
+
+nostr.buzz groups are NIP-17 chats addressed to a group key instead of a list of people.
+No new event kinds are used.
+
+| Key | Who has it | Used for |
+| --- | --- | --- |
+| identity key | admins | the group's permanent npub; signs the group state |
+| epoch key | all members | messages are gift-wrapped to its pubkey; rotated when someone is removed |
+
+### Group state
+
+A kind `30078` (NIP-78) event signed by the identity key:
+
+```jsonc
+{
+  "kind": 30078,
+  "pubkey": "<group identity pubkey>",
+  "tags": [["d", "nostr-buzz-group"], ["alt", "Encrypted nostr.buzz group info"]],
+  // NIP-44, conversation key between the identity key and the current epoch key
+  "content": "<encrypted {name, about?, picture?, members[], admins[], epoch, updatedAt}>"
+}
+```
+
+Clients must query it with `authors: [<group pubkey>]`. If the content can't be decrypted with any epoch key
+the client holds, the user was removed.
+
+### Messages
+
+Rumors (kind `14`, `15`, `7`, `5`) carry `["p", <group pubkey>]`. They are sealed by the sender and
+gift-wrapped once, to the current epoch pubkey (`["p", <epoch pubkey>]` on the kind `1059`).
+Members subscribe to `{"kinds": [1059], "#p": [<epoch pubkeys>]}` on the group relays.
+Messages that arrive through an epoch key after it was retired are ignored.
+
+### Invites
+
+Keys are delivered as a normal NIP-17 chat message (kind `14`) to each member:
+
+```jsonc
+["t", "buzz-group-invite"],
+["group", "<group pubkey>"],
+["group-name", "<name>"],
+["group-key", "<epoch secret, hex>"],
+["group-admin-key", "<identity secret, hex>"], // admins only
+["relay", "wss://..."]
+```
+
+Other clients show the invite text. Admins also send themselves an invite with the admin key as a backup,
+so groups come back on a new device from DM history.

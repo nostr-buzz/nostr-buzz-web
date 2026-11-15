@@ -1,4 +1,4 @@
-import { Bookmark, UserIcon } from 'lucide-react';
+import { Bookmark, UserIcon, Users } from 'lucide-react';
 import { Fragment } from 'react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -54,7 +54,25 @@ export function ConversationAvatar({ conversation, className }: { conversation: 
     );
   }
 
-  if (conversation.isGroup) {
+  if (conversation.group) {
+    const picture = sanitizeUrl(conversation.group.picture);
+    if (picture) {
+      return <img src={picture} alt="" className={cn('size-10 shrink-0 rounded-full object-cover', className)} />;
+    }
+    return (
+      <div
+        aria-hidden="true"
+        className={cn(
+          'flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-200 to-amber-400 text-stone-900',
+          className,
+        )}
+      >
+        <Users className="size-[45%]" />
+      </div>
+    );
+  }
+
+  if (conversation.isGroup && conversation.participants.length > 1) {
     const [first, second] = conversation.participants;
     return (
       <div aria-hidden="true" className={cn('relative size-10 shrink-0', className)}>

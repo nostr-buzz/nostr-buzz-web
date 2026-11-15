@@ -1,5 +1,7 @@
 import { nip19 } from 'nostr-tools';
 
+import { isGroupInvite } from '@/lib/groups/groups';
+
 import { DM_KIND, type Rumor } from './types';
 
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -84,6 +86,7 @@ export function getTagValue(message: Pick<Rumor, 'tags'>, name: string): string 
 /** A short, human preview of a message for chat lists and notifications. */
 export function messagePreview(message: Pick<Rumor, 'kind' | 'tags' | 'content'>): string {
   if (isBuzz(message)) return '🐝 BUZZ!!!';
+  if (isGroupInvite(message)) return '📨 Group invite';
   if (message.kind === DM_KIND.file) {
     const type = getTagValue(message, 'file-type') ?? '';
     if (type.startsWith('image/')) return '📷 Photo';

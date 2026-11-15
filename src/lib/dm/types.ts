@@ -1,3 +1,5 @@
+import type { GroupView } from '@/lib/groups/groups';
+
 /** Which DM scheme a message arrived through. */
 export type DMProtocol = 'nip17' | 'nip04';
 
@@ -24,6 +26,8 @@ export interface ChatMessage extends Rumor {
   conversationId: string;
   /** Delivery state for messages composed on this device. Never persisted. */
   status?: DeliveryStatus;
+  /** For nostr.buzz groups: the epoch pubkey the message was wrapped to. */
+  via?: string;
   /** Object URL for a file that is still uploading. Never persisted. */
   localPreviewUrl?: string;
   /** MIME type of a file that is still uploading. Never persisted. */
@@ -71,4 +75,6 @@ export interface Conversation {
    */
   isRequest: boolean;
   usesLegacy: boolean;
+  /** Set for nostr.buzz groups (groups with their own npub). */
+  group?: GroupView;
 }

@@ -122,7 +122,7 @@ export function ProfilePage({ pubkey }: { pubkey: string }) {
                     <BuzzButton
                       conversationId={conversationId}
                       variant="large"
-                      className="bg-stone-900 text-amber-300 shadow-stone-900/20 dark:bg-amber-300 dark:text-stone-950"
+                      className="bg-stone-900 text-amber-300 dark:bg-amber-300 dark:text-stone-950"
                       onBuzzed={() => navigate(conversationRoute(conversationId))}
                     />
                   )}

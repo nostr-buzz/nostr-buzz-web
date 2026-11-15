@@ -156,7 +156,7 @@ export function ChatSidebar() {
         type="button"
         onClick={() => setNewChatOpen(true)}
         aria-label="Start a new chat"
-        className="absolute right-5 bottom-[max(1.25rem,env(safe-area-inset-bottom))] flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-amber-500/30 transition-transform hover:scale-105 active:scale-95 focus-visible:ring-4 focus-visible:ring-ring/40 focus-visible:outline-none motion-reduce:transition-none"
+        className="absolute right-5 bottom-[max(1.25rem,env(safe-area-inset-bottom))] flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform hover:scale-105 active:scale-95 focus-visible:ring-4 focus-visible:ring-ring/40 focus-visible:outline-none motion-reduce:transition-none"
       >
         <MessageSquarePlus className="size-6" />
       </button>
