@@ -1,7 +1,7 @@
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { BuzzContext, type BuzzContextValue, type BuzzEffectOptions } from '@/contexts/BuzzContext';
+import { BUZZ_EVENT, BuzzContext, type BuzzContextValue, type BuzzEffectOptions } from '@/contexts/BuzzContext';
 import { useAuthor } from '@/hooks/useAuthor';
 import { useChatSettings } from '@/hooks/useChatSettings';
 import { conversationRoute } from '@/lib/dm/conversation';
@@ -44,6 +44,8 @@ export function BuzzProvider({ children }: { children: ReactNode }) {
     (options: BuzzEffectOptions) => {
       const current = settingsRef.current;
       if (current.buzzSound) playBuzzSound();
+      // Let any animated 3D bees on screen join in.
+      window.dispatchEvent(new Event(BUZZ_EVENT));
 
       if (options.outgoing) {
         shake(true);

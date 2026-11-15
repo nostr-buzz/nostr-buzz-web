@@ -1,14 +1,15 @@
 import { Lock } from 'lucide-react';
 
-import { BeeMark, Wordmark } from '@/components/brand/Brand';
+import { Bee3D } from '@/components/brand/Bee3D';
+import { Wordmark } from '@/components/brand/Brand';
 
 /** Right-hand pane on desktop when no chat is open. (Phones show the chat list instead.) */
 const Index = () => {
   return (
     <div className="chat-wallpaper flex flex-1 items-center justify-center p-8">
       <div className="max-w-sm text-center">
-        <BeeMark className="bee-float mx-auto size-28 drop-shadow-xl" />
-        <h1 className="mt-6 font-display text-4xl font-extrabold tracking-tight">
+        <Bee3D interactive label="The nostr.buzz bee" className="mx-auto size-64" />
+        <h1 className="mt-2 font-display text-4xl font-extrabold tracking-tight">
           Welcome to <Wordmark />
         </h1>
         <p className="mt-3 text-lg text-muted-foreground">

@@ -6,7 +6,8 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import AuthDialog from '@/components/auth/AuthDialog';
-import { BeeMark, Logo } from '@/components/brand/Brand';
+import { Bee3D } from '@/components/brand/Bee3D';
+import { Logo } from '@/components/brand/Brand';
 import { ChatListItem } from '@/components/chat/ChatListItem';
 import { InboxSetupBanner } from '@/components/chat/InboxSetupBanner';
 import { NewChatDialog } from '@/components/chat/NewChatDialog';
@@ -185,8 +186,8 @@ function ChatListSkeleton() {
 function EmptyChats({ onNewChat }: { onNewChat: () => void }) {
   return (
     <div className="mx-2 mt-6 rounded-2xl border border-dashed px-6 py-10 text-center">
-      <BeeMark className="bee-float mx-auto size-20" />
-      <p className="mt-4 font-display text-lg font-bold">No chats yet</p>
+      <Bee3D className="mx-auto size-36" />
+      <p className="mt-1 font-display text-lg font-bold">No chats yet</p>
       <p className="mx-auto mt-1 max-w-xs text-sm text-muted-foreground">
         Start a private conversation with anyone on Nostr — then give them a BUZZ to say hi.
       </p>

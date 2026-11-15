@@ -2,6 +2,7 @@ import { ImageIcon, KeyRound, Lock, Smartphone, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { LoginArea } from '@/components/auth/LoginArea';
+import { Bee3D } from '@/components/brand/Bee3D';
 import { BeeMark, Logo, Wordmark } from '@/components/brand/Brand';
 import { Button } from '@/components/ui/button';
 import { useBuzz } from '@/hooks/useBuzz';
@@ -115,8 +116,8 @@ export function Landing() {
         <section className="px-4 pb-24 md:px-8">
           <div className="relative isolate mx-auto max-w-4xl overflow-hidden rounded-3xl bg-stone-950 px-6 py-14 text-center text-stone-50 shadow-xl md:px-16">
             <div aria-hidden="true" className="chat-wallpaper absolute inset-0 -z-10 opacity-40 dark" />
-            <BeeMark className="bee-float mx-auto size-20" />
-            <h2 className="mt-4 font-display text-4xl font-extrabold tracking-tight md:text-5xl">Ready to buzz?</h2>
+            <Bee3D interactive className="mx-auto size-40" />
+            <h2 className="mt-2 font-display text-4xl font-extrabold tracking-tight md:text-5xl">Ready to buzz?</h2>
             <p className="mx-auto mt-4 max-w-lg text-lg text-stone-300">
               Create a key in seconds or log in with the one you already use on Nostr.
             </p>
@@ -139,8 +140,13 @@ export function Landing() {
 
 function PhoneMock() {
   return (
-    <div aria-hidden="true" className="relative mx-auto w-full max-w-[20rem]">
-      <div className="phone-buzz rounded-[2.75rem] border-[10px] border-stone-900 bg-stone-900 shadow-2xl shadow-amber-900/20 dark:border-stone-700">
+    <div className="relative mx-auto w-full max-w-[20rem] pt-24 sm:pt-28">
+      <Bee3D
+        interactive
+        label="The nostr.buzz bee"
+        className="absolute top-0 -left-14 z-10 size-48 sm:-left-36 sm:size-64 lg:-top-4 lg:-left-48 lg:size-72"
+      />
+      <div aria-hidden="true" className="phone-buzzrounded-[2.75rem] border-[10px] border-stone-900 bg-stone-900 shadow-2xl shadow-amber-900/20 dark:border-stone-700">
         <div className="overflow-hidden rounded-[2rem] bg-background">
           <div className="flex items-center gap-3 border-b bg-background px-4 py-3">
             <span className="flex size-9 items-center justify-center rounded-full bg-violet-600 font-semibold text-white">A</span>

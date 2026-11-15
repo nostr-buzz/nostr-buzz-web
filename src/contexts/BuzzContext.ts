@@ -1,5 +1,8 @@
 import { createContext } from 'react';
 
+/** Window event fired on every buzz, so decorative 3D bees can react. */
+export const BUZZ_EVENT = 'nostr-buzz:buzz';
+
 export interface BuzzEffectOptions {
   /** Who buzzed (incoming buzzes). */
   from?: string;

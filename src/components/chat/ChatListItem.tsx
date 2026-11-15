@@ -38,8 +38,8 @@ export function ChatListItem({ conversation, active }: { conversation: Conversat
           to={conversationRoute(conversation.id)}
           aria-current={active ? 'page' : undefined}
           className={cn(
-            'group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors outline-none select-none focus-visible:ring-2 focus-visible:ring-ring',
-            active ? 'bg-primary text-primary-foreground' : 'hover:bg-accent/70',
+            'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors outline-none select-none focus-visible:ring-2 focus-visible:ring-ring',
+            active ? 'bg-amber-100/70 dark:bg-amber-300/10' : 'hover:bg-accent/70',
           )}
         >
           <ConversationAvatar conversation={conversation} className="size-12" />
@@ -48,12 +48,12 @@ export function ChatListItem({ conversation, active }: { conversation: Conversat
               <ConversationTitle conversation={conversation} className="min-w-0 flex-1 truncate font-semibold" />
               {muted && <BellOff className="size-3.5 shrink-0 opacity-60" aria-label="Muted" />}
               {mine && last && !buzz && (
-                <DeliveryIcon status={last.status} className={active ? 'text-primary-foreground' : 'text-amber-600 dark:text-amber-400'} />
+                <DeliveryIcon status={last.status} className="text-amber-600 dark:text-amber-400" />
               )}
               {last && (
                 <time
                   dateTime={new Date(last.created_at * 1000).toISOString()}
-                  className={cn('shrink-0 text-xs', active ? 'text-primary-foreground/80' : 'text-muted-foreground')}
+                  className="shrink-0 text-xs text-muted-foreground"
                 >
                   {formatListTime(last.created_at)}
                 </time>
@@ -63,14 +63,13 @@ export function ChatListItem({ conversation, active }: { conversation: Conversat
               <p
                 dir="auto"
                 className={cn(
-                  'min-w-0 flex-1 truncate text-sm',
-                  active ? 'text-primary-foreground/85' : 'text-muted-foreground',
-                  buzz && !active && 'font-semibold text-amber-700 dark:text-amber-400',
+                  'min-w-0 flex-1 truncate text-sm text-muted-foreground',
+                  buzz && 'font-semibold text-amber-700 dark:text-amber-400',
                 )}
               >
-                {last && mine && <span className={active ? '' : 'text-foreground/80'}>You: </span>}
+                {last && mine && <span className="text-foreground/80">You: </span>}
                 {last && !mine && conversation.isGroup && (
-                  <span className={active ? '' : 'text-foreground/80'}>
+                  <span className="text-foreground/80">
                     <AuthorName pubkey={last.pubkey} />:{' '}
                   </span>
                 )}
@@ -80,11 +79,7 @@ export function ChatListItem({ conversation, active }: { conversation: Conversat
                 <span
                   className={cn(
                     'min-w-5 shrink-0 rounded-full px-1.5 text-center text-xs leading-5 font-bold',
-                    active
-                      ? 'bg-primary-foreground text-primary'
-                      : muted
-                        ? 'bg-muted-foreground/30 text-foreground'
-                        : 'bg-primary text-primary-foreground',
+                    muted ? 'bg-muted-foreground/30 text-foreground' : 'bg-primary text-primary-foreground',
                   )}
                   aria-label={`${unread} unread`}
                 >

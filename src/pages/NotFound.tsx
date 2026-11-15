@@ -2,7 +2,7 @@ import { useSeoMeta } from "@unhead/react";
 import { Link, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 
-import { BeeMark } from "@/components/brand/Brand";
+import { Bee3D } from "@/components/brand/Bee3D";
 import { Button } from "@/components/ui/button";
 
 const NotFound = () => {
@@ -23,8 +23,8 @@ const NotFound = () => {
   return (
     <div className="chat-wallpaper flex min-h-dvh items-center justify-center p-6">
       <div className="text-center">
-        <BeeMark className="bee-float mx-auto size-24" />
-        <h1 className="mt-4 font-display text-6xl font-extrabold tracking-tight">404</h1>
+        <Bee3D interactive className="mx-auto size-56" />
+        <h1 className="mt-2 font-display text-6xl font-extrabold tracking-tight">404</h1>
         <p className="mt-2 text-lg text-muted-foreground">This bee flew off. The page you're looking for doesn't exist.</p>
         <Button asChild className="mt-6 rounded-full px-6">
           <Link to="/">Back to chats</Link>

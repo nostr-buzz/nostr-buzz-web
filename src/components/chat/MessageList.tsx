@@ -1,7 +1,7 @@
 import { ArrowDown, Lock } from 'lucide-react';
 import { Fragment, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
-import { BeeMark } from '@/components/brand/Brand';
+import { Bee3D } from '@/components/brand/Bee3D';
 import { BuzzButton } from '@/components/chat/BuzzButton';
 import { MessageBubble } from '@/components/chat/MessageBubble';
 import { ConversationAvatar, ConversationTitle } from '@/components/chat/UserAvatar';
@@ -230,7 +230,7 @@ function EmptyConversation({ conversation }: { conversation: Conversation }) {
     <div className="flex flex-1 items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm rounded-3xl border bg-background/90 p-6 text-center shadow-sm backdrop-blur">
         {conversation.isSelf ? (
-          <BeeMark className="bee-float mx-auto size-20" />
+          <Bee3D className="mx-auto size-32" />
         ) : (
           <ConversationAvatar conversation={conversation} className="mx-auto size-20" />
         )}
