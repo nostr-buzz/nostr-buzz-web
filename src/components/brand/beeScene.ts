@@ -5,11 +5,11 @@ import { BUZZ_EVENT } from '@/contexts/BuzzContext';
 /**
  * The nostr.buzz bee, rebuilt in three.js from the brand logo's proportions
  * (side view: round striped body, head top-right with one white eye, curled
- * antenna, two wings top-left, chat-bubble stinger bottom-left) and rendered
+ * antennae, two wings top-left, chat-bubble stinger bottom-left) and rendered
  * like a glossy vinyl toy in a soft photo studio.
  *
  * Animations: fluttering wings, hover + sway, blinking eye, head that glances
- * around / follows the pointer, wobbling antenna and an excited "buzz" mode.
+ * around / follows the pointer, wobbling antennae and an excited "buzz" mode.
  */
 
 export interface BeeSceneOptions {
@@ -39,6 +39,8 @@ const LAYOUT = {
   eye: { spread: 42, lift: 0.36, size: new THREE.Vector3(0.1, 0.122, 0.04) },
   /** Resting head turn towards the viewer, so the near eye lands where it is in the logo. */
   headYaw: -0.42,
+  /** Antennae: distance from the head's centre plane at the base and at the curl. */
+  antenna: { base: 0.21, tip: 0.33 },
   stingerDirection: new THREE.Vector2(-0.58, -0.82),
   /** Stripes are slices perpendicular to this axis (tilted 32° towards the head, like the logo). */
   stripeAxis: new THREE.Vector3(0.53, 0.85, 0).normalize(),
@@ -160,7 +162,7 @@ export class BeeScene {
   private readonly hover = new THREE.Group();
   private readonly bee = new THREE.Group();
   private readonly head = new THREE.Group();
-  private readonly antenna = new THREE.Group();
+  private readonly antennae: THREE.Group[] = [];
   /** Near eye (always visible) and far eye (shows when the head turns towards the viewer). */
   private readonly eyes: THREE.Group[] = [];
   private readonly wings: Wing[] = [];
@@ -333,23 +335,29 @@ export class BeeScene {
       this.eyes.push(eye);
     }
 
-    // Antenna: one thick stalk leaning back from the top of the head, with a round tip.
-    const base = new THREE.Vector3(-0.18, 0.46, 0.05);
-    this.antenna.position.copy(base);
-    const curve = new THREE.CatmullRomCurve3(
-      [
-        new THREE.Vector3(-0.18, 0.42, 0.05),
-        new THREE.Vector3(-0.25, 0.62, 0.05),
-        new THREE.Vector3(-0.26, 0.8, 0.05),
-        new THREE.Vector3(-0.16, 0.92, 0.05),
-        new THREE.Vector3(-0.03, 0.9, 0.05),
-      ].map((point) => point.sub(base)),
-    );
-    const stalk = solid(new THREE.Mesh(new THREE.TubeGeometry(curve, 96, 0.096, 28), black));
-    const tip = solid(new THREE.Mesh(new THREE.SphereGeometry(0.108, 32, 24), black));
-    tip.position.copy(curve.getPoint(1));
-    this.antenna.add(stalk, tip);
-    this.head.add(this.antenna);
+    // Antennae: two thick curled stalks on top of the head, one either side of the centre
+    // line and splayed a little outwards. In the logo pose the far one hides behind the near one.
+    for (const side of [1, -1]) {
+      const z = (spread: number) => side * spread;
+      const base = new THREE.Vector3(-0.18, 0.46, z(LAYOUT.antenna.base));
+      const curve = new THREE.CatmullRomCurve3(
+        [
+          new THREE.Vector3(-0.18, 0.42, z(LAYOUT.antenna.base)),
+          new THREE.Vector3(-0.25, 0.62, z(LAYOUT.antenna.base + 0.03)),
+          new THREE.Vector3(-0.26, 0.8, z(LAYOUT.antenna.tip - 0.02)),
+          new THREE.Vector3(-0.16, 0.92, z(LAYOUT.antenna.tip)),
+          new THREE.Vector3(-0.03, 0.9, z(LAYOUT.antenna.tip)),
+        ].map((point) => point.sub(base)),
+      );
+      const antenna = new THREE.Group();
+      antenna.position.copy(base);
+      const stalk = solid(new THREE.Mesh(new THREE.TubeGeometry(curve, 96, 0.088, 28), black));
+      const tip = solid(new THREE.Mesh(new THREE.SphereGeometry(0.1, 32, 24), black));
+      tip.position.copy(curve.getPoint(1));
+      antenna.add(stalk, tip);
+      this.head.add(antenna);
+      this.antennae.push(antenna);
+    }
 
     // Two wings behind the head: a large one pointing up-left and a smaller one pointing left.
     const wingMaterial = new THREE.MeshPhysicalMaterial({
@@ -487,8 +495,10 @@ export class BeeScene {
         wing.twist.rotation.y = beat * 0.55;
       }
 
-      // Antenna wobble lags behind the hover.
-      this.antenna.rotation.z = Math.sin(t * 2.4 - 0.8) * 0.09 + excitement * Math.sin(t * 42) * 0.12;
+      // Antennae wobble behind the hover, each a little out of step with the other.
+      this.antennae.forEach((antenna, i) => {
+        antenna.rotation.z = Math.sin(t * 2.4 - 0.8 - i * 0.6) * 0.09 + excitement * Math.sin(t * 42 + i * 1.3) * 0.12;
+      });
 
       // Look at the pointer while it moves, otherwise glance around now and then —
       // including turning to face the viewer, which shows both eyes.
