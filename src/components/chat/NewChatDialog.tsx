@@ -239,9 +239,7 @@ function NewChatPanel({ onDone }: { onDone: () => void }) {
           <DialogTitle className="font-display text-xl">{mode === 'group' ? 'New group' : 'New chat'}</DialogTitle>
         </div>
         <DialogDescription>
-          {mode === 'group'
-            ? `Pick 2–${MAX_GROUP_PARTICIPANTS - 1} people. Everyone gets their own encrypted copy.`
-            : 'Search by name, npub, or NIP-05 address.'}
+          {mode === 'group' ? `Pick 2 to ${MAX_GROUP_PARTICIPANTS - 1} people.` : 'Name, npub or NIP-05.'}
         </DialogDescription>
         <div className="relative mt-3">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -327,9 +325,7 @@ function NewChatPanel({ onDone }: { onDone: () => void }) {
 
         {results.length === 0 && !loadingContacts && !searching && (
           <p className="px-6 py-10 text-center text-sm text-muted-foreground">
-            {term
-              ? 'Nobody found. Paste their npub or NIP-05 address to start a chat.'
-              : 'Follow people on Nostr to see them here, or paste an npub above.'}
+            {term ? 'No one found. Try an npub.' : 'Paste an npub to start.'}
           </p>
         )}
       </div>

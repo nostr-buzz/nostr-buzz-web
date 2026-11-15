@@ -89,7 +89,7 @@ export function ChatSidebar() {
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search chats and messages"
+            placeholder="Search"
             aria-label="Search chats and messages"
             dir="auto"
             className="h-10 rounded-full border-transparent bg-muted pr-9 pl-9 shadow-none focus-visible:bg-background"
@@ -136,8 +136,7 @@ export function ChatSidebar() {
           <ul className="space-y-0.5">
             {activeTab === 'requests' && (
               <li className="px-3 pt-1 pb-2 text-xs text-muted-foreground">
-                Messages from people you don't follow. Reply to move them to your chats. Their buzzes won't shake your
-                screen.
+                People you don't follow. Reply to accept.
               </li>
             )}
             {visible.map((conversation) => (
@@ -147,7 +146,7 @@ export function ChatSidebar() {
             ))}
           </ul>
         ) : query ? (
-          <p className="px-4 py-10 text-center text-sm text-muted-foreground">No chats match “{query}”.</p>
+          <p className="px-4 py-10 text-center text-sm text-muted-foreground">No results.</p>
         ) : (
           <EmptyChats onNewChat={() => setNewChatOpen(true)} />
         )}
@@ -189,7 +188,7 @@ function EmptyChats({ onNewChat }: { onNewChat: () => void }) {
       <Bee3D className="mx-auto size-36" />
       <p className="mt-1 font-display text-lg font-bold">No chats yet</p>
       <p className="mx-auto mt-1 max-w-xs text-sm text-muted-foreground">
-        Start a private conversation with anyone on Nostr — then give them a BUZZ to say hi.
+        Start a chat and send a BUZZ.
       </p>
       <Button className="mt-5 rounded-full" onClick={onNewChat}>
         <SquarePen /> New chat
@@ -270,8 +269,7 @@ function MainMenu() {
           <AlertDialogHeader>
             <AlertDialogTitle>Log out of nostr.buzz?</AlertDialogTitle>
             <AlertDialogDescription>
-              If you logged in with a secret key (nsec), make sure it's backed up — you'll need it to get back into
-              your chats.
+              Back up your secret key (nsec) first.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -1,7 +1,7 @@
 {
   "name": "nostr.buzz",
   "short_name": "nostr.buzz",
-  "description": "Private, end-to-end encrypted chats on Nostr — with a BUZZ.",
+  "description": "Private chats on Nostr with a BUZZ.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

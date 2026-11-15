@@ -190,18 +190,18 @@ function BuzzSection() {
         <BeeMark className="size-12 shrink-0" />
         <p className="min-w-0 flex-1 text-sm">
           <span className="block font-semibold">Test your buzz</span>
-          <span className="text-muted-foreground">See and hear exactly what happens when someone buzzes you.</span>
+          <span className="text-muted-foreground">Try it on yourself.</span>
         </p>
         <Button className="rounded-full" onClick={() => triggerBuzz({})}>
           Buzz me
         </Button>
       </div>
-      <SettingSwitch label="Buzz sound" description="Play the classic buzz sound." checked={buzzSound} onCheckedChange={setBuzzSound} />
-      <SettingSwitch label="Shake the screen" description="The whole app shakes when you're buzzed." checked={buzzShake} onCheckedChange={setBuzzShake} />
-      <SettingSwitch label="Vibrate" description="On phones that support it." checked={vibrate} onCheckedChange={setVibrate} />
+      <SettingSwitch label="Buzz sound" checked={buzzSound} onCheckedChange={setBuzzSound} />
+      <SettingSwitch label="Shake the screen" checked={buzzShake} onCheckedChange={setBuzzShake} />
+      <SettingSwitch label="Vibrate" description="On supported phones" checked={vibrate} onCheckedChange={setVibrate} />
       <div className="flex items-center justify-between gap-4 px-4 py-3.5">
         <div className="min-w-0">
-          <SettingInline label="Message sound" description="A soft pop for new messages in other chats." />
+          <SettingInline label="Message sound" description="For new messages" />
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={playMessageSound}>
@@ -244,17 +244,16 @@ function NotificationsSection() {
   };
 
   return (
-    <Section title="Notifications" description="Shown while nostr.buzz is open in a background tab.">
+    <Section title="Notifications" description="When the tab is in the background.">
       <SettingSwitch
         label="Desktop notifications"
-        description={supported ? 'Get notified about new messages and buzzes.' : 'Not supported in this browser.'}
+        description={supported ? 'Messages and buzzes' : 'Not supported here'}
         checked={notifications && supported}
         onCheckedChange={(value) => void toggle(value)}
         disabled={!supported}
       />
       <SettingSwitch
         label="Show message preview"
-        description="Include the message text in notifications."
         checked={previews}
         onCheckedChange={setPreviews}
         disabled={!notifications}
@@ -270,16 +269,16 @@ function PrivacySection() {
 
   return (
     <Section title="Chats & privacy">
-      <SettingSwitch label="Enter to send" description="Use Shift + Enter for a new line (keyboard only)." checked={enterToSend} onCheckedChange={setEnterToSend} />
+      <SettingSwitch label="Enter to send" description="Shift + Enter for a new line" checked={enterToSend} onCheckedChange={setEnterToSend} />
       <SettingSwitch
         label="Buzzes from strangers"
-        description="Let people you don't follow shake your screen."
+        description="From people you don't follow"
         checked={strangers}
         onCheckedChange={setStrangers}
       />
       <SettingSwitch
         label="Legacy direct messages"
-        description="Also load older NIP-04 messages, and reply with NIP-04 to people who haven't upgraded."
+        description="Older NIP-04 messages"
         checked={legacy}
         onCheckedChange={setLegacy}
       />
@@ -391,7 +390,7 @@ function InboxRelaysSection() {
   return (
     <Section
       title="Private message inbox"
-      description="Relays where others deliver your encrypted messages (NIP-17, kind 10050). Keep it to 1–3 relays."
+      description="Where you receive messages. Use 1 to 3 relays."
     >
       {info.isLoading ? (
         <div className="flex items-center gap-2 px-4 py-4 text-sm text-muted-foreground">
@@ -401,7 +400,7 @@ function InboxRelaysSection() {
         <>
           {current.length === 0 && draft === null && (
             <p className="border-b bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:bg-amber-400/10 dark:text-amber-100">
-              You haven't published an inbox yet, so other apps may not know where to send your messages.
+              No inbox published yet.
             </p>
           )}
           <RelayEditor relays={relays} onChange={setDraft} max={MAX_INBOX_RELAYS} />
@@ -452,7 +451,7 @@ function NetworkRelaysSection() {
   };
 
   return (
-    <Section title="Network relays" description="Where your profile and public data live (NIP-65).">
+    <Section title="Network relays" description="For your profile and public data.">
       <RelayEditor
         relays={uniqueRelays(relays.map((relay) => relay.url))}
         onChange={setUrls}
@@ -504,13 +503,13 @@ function StorageSection() {
   return (
     <Section title="Account & storage">
       <div className="flex items-center justify-between gap-4 border-b px-4 py-3.5">
-        <SettingInline label="Clear message cache" description="Remove decrypted messages saved on this device and reload them." />
+        <SettingInline label="Clear message cache" description="Reload messages from relays" />
         <Button variant="outline" onClick={() => setConfirm(true)}>
           <Trash2 /> Clear
         </Button>
       </div>
       <div className="flex items-center justify-between gap-4 px-4 py-3.5">
-        <SettingInline label="Log out" description="Make sure your secret key is backed up first." />
+        <SettingInline label="Log out" description="Back up your key first" />
         <Button variant="destructive" onClick={() => setConfirmLogout(true)}>
           <LogOut /> Log out
         </Button>
@@ -521,8 +520,7 @@ function StorageSection() {
           <AlertDialogHeader>
             <AlertDialogTitle>Clear the local cache?</AlertDialogTitle>
             <AlertDialogDescription>
-              Your messages stay on relays. nostr.buzz will download and decrypt them again, which may ask your signer
-              for permission.
+              Messages will reload from relays.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -537,8 +535,7 @@ function StorageSection() {
           <AlertDialogHeader>
             <AlertDialogTitle>Log out of nostr.buzz?</AlertDialogTitle>
             <AlertDialogDescription>
-              If you logged in with a secret key (nsec), make sure it's backed up — you'll need it to get back into
-              your chats.
+              Back up your secret key (nsec) first.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -567,7 +564,7 @@ function AboutSection() {
         <div>
           <Wordmark className="text-xl" />
           <p className="text-sm text-muted-foreground">
-            Private messaging on Nostr with NIP-17 gift wraps, NIP-44 encryption and encrypted Blossom file uploads.
+            Private chats on Nostr.
           </p>
         </div>
       </div>

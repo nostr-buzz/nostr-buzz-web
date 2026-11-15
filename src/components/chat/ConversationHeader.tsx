@@ -36,9 +36,9 @@ export function ConversationHeader({ conversation, onOpenInfo }: ConversationHea
   const noInbox = !!other && relayInfo.isSuccess && relayInfo.data.inbox.length === 0 && !conversation.usesLegacy;
 
   const subtitle = conversation.isSelf
-    ? 'Notes only you can read'
+    ? 'Private notes'
     : conversation.isGroup
-      ? `${conversation.participants.length + 1} members · encrypted group`
+      ? `${conversation.participants.length + 1} members`
       : conversation.usesLegacy && conversation.messages.at(-1)?.protocol === 'nip04'
         ? 'Legacy encryption (NIP-04)'
         : author.data?.metadata?.nip05 || 'End-to-end encrypted';
@@ -123,7 +123,7 @@ export function ConversationHeader({ conversation, onOpenInfo }: ConversationHea
         >
           <AlertTriangle className="mt-0.5 size-4 shrink-0" />
           <p className="line-clamp-2">
-            <AuthorName pubkey={other} className="font-semibold" /> has no DM inbox yet — messages may arrive late.
+            <AuthorName pubkey={other} className="font-semibold" /> has no DM inbox. Messages may be delayed.
           </p>
         </div>
       )}

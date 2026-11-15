@@ -239,12 +239,12 @@ function EmptyConversation({ conversation }: { conversation: Conversation }) {
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
           {conversation.isSelf
-            ? 'Your private notepad. Save messages, links and files — encrypted so only you can read them.'
-            : 'No messages yet. Say hi 👋 — or skip the small talk and send a BUZZ!'}
+            ? 'Private notes only you can read.'
+            : 'Say hi 👋 or send a BUZZ!'}
         </p>
         {!conversation.isSelf && <BuzzButton conversationId={conversation.id} variant="large" className="mt-5 w-full" />}
         <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-          <Lock className="size-3" /> End-to-end encrypted with NIP-17
+          <Lock className="size-3" /> End-to-end encrypted
         </p>
       </div>
     </div>

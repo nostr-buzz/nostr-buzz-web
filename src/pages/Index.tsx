@@ -12,11 +12,9 @@ const Index = () => {
         <h1 className="mt-2 font-display text-4xl font-extrabold tracking-tight">
           Welcome to <Wordmark />
         </h1>
-        <p className="mt-3 text-lg text-muted-foreground">
-          Pick a chat on the left, or start a new one. Tap the bee to send a BUZZ that shakes their screen.
-        </p>
+        <p className="mt-3 text-lg text-muted-foreground">Pick a chat or start a new one.</p>
         <p className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-background/80 px-3 py-1 text-sm text-muted-foreground shadow-sm">
-          <Lock className="size-3.5" /> Messages are end-to-end encrypted
+          <Lock className="size-3.5" /> End-to-end encrypted
         </p>
       </div>
     </div>

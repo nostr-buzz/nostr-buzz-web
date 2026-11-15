@@ -189,7 +189,7 @@ export function Composer({ conversation, replyTo, editing, onCancelReply, onCanc
               onPaste={onPaste}
               dir="auto"
               disabled={!canEncrypt}
-              placeholder={canEncrypt ? 'Message' : 'Your login method cannot encrypt messages'}
+              placeholder={canEncrypt ? 'Message' : 'Encryption not supported'}
               aria-label="Message"
               className="max-h-[200px] w-full resize-none bg-transparent text-base leading-6 outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
             />

@@ -128,7 +128,7 @@ export function ProfilePage({ pubkey }: { pubkey: string }) {
                   )}
                 </>
               ) : (
-                <p className="text-muted-foreground">Join nostr.buzz to message {name} privately — or send a BUZZ.</p>
+                <p className="text-muted-foreground">Join to message {name}.</p>
               )}
               <Button variant="outline" className="h-12 rounded-xl" onClick={() => void copy()}>
                 <Copy /> Copy npub

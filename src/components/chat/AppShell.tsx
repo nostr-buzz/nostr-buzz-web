@@ -17,8 +17,8 @@ export function AppShell() {
   const location = useLocation();
 
   useSeoMeta({
-    title: totalUnread > 0 ? `(${totalUnread}) nostr.buzz` : 'nostr.buzz — private chats with a BUZZ',
-    description: 'End-to-end encrypted messaging on Nostr. BUZZ your friends to shake their screen.',
+    title: totalUnread > 0 ? `(${totalUnread}) nostr.buzz` : 'nostr.buzz',
+    description: 'Private chats on Nostr with a BUZZ.',
   });
 
   if (!user) return <Landing />;

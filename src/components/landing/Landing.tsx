@@ -8,36 +8,12 @@ import { Button } from '@/components/ui/button';
 import { useBuzz } from '@/hooks/useBuzz';
 
 const FEATURES: { icon: ReactNode; title: string; body: string }[] = [
-  {
-    icon: <BeeMark className="size-7" />,
-    title: 'Send a BUZZ',
-    body: "Friend not answering? Shake their whole screen with the classic buzz sound — just like the good old days.",
-  },
-  {
-    icon: <Lock className="size-6" />,
-    title: 'Truly private',
-    body: 'NIP-17 gift-wrapped messages hide what you say, who you talk to, and when — even from relays.',
-  },
-  {
-    icon: <Users className="size-6" />,
-    title: 'Group chats',
-    body: 'Encrypted groups for up to 10 people. No admins, no central server, no one reading along.',
-  },
-  {
-    icon: <ImageIcon className="size-6" />,
-    title: 'Encrypted files',
-    body: 'Photos, videos and documents are encrypted on your device before they are uploaded.',
-  },
-  {
-    icon: <KeyRound className="size-6" />,
-    title: 'Your key, your identity',
-    body: 'No phone number, no email. One Nostr key works across every Nostr app you love.',
-  },
-  {
-    icon: <Smartphone className="size-6" />,
-    title: 'Made for phones',
-    body: 'Fast and fluid on any screen. Add nostr.buzz to your home screen and use it like a native app.',
-  },
+  { icon: <BeeMark className="size-7" />, title: 'Send a BUZZ', body: 'Shake their screen with the classic sound.' },
+  { icon: <Lock className="size-6" />, title: 'Truly private', body: 'Gift-wrapped messages hide everything.' },
+  { icon: <Users className="size-6" />, title: 'Group chats', body: 'Encrypted groups of up to 10.' },
+  { icon: <ImageIcon className="size-6" />, title: 'Encrypted files', body: 'Encrypted before upload.' },
+  { icon: <KeyRound className="size-6" />, title: 'Your key', body: 'No phone number. No email.' },
+  { icon: <Smartphone className="size-6" />, title: 'Made for phones', body: 'Install it like an app.' },
 ];
 
 export function Landing() {
@@ -63,7 +39,7 @@ export function Landing() {
           <div className="mx-auto grid max-w-6xl items-center gap-14 px-4 pt-10 pb-20 md:grid-cols-[1.1fr_1fr] md:px-8 md:pt-16 md:pb-28">
             <div>
               <p className="inline-flex items-center gap-2 rounded-full border bg-background/80 px-3 py-1 text-sm font-medium shadow-sm backdrop-blur">
-                <Lock className="size-3.5 text-amber-600 dark:text-amber-400" /> End-to-end encrypted on Nostr
+                <Lock className="size-3.5 text-amber-600 dark:text-amber-400" /> Encrypted on Nostr
               </p>
               <h1 className="mt-6 font-display text-5xl leading-[1.04] font-extrabold tracking-tight text-balance sm:text-6xl lg:text-7xl">
                 Private chats with a{' '}
@@ -73,8 +49,7 @@ export function Landing() {
                 </span>
               </h1>
               <p className="mt-6 max-w-xl text-lg text-muted-foreground md:text-xl">
-                nostr.buzz is a fast, beautiful messenger built on Nostr. No phone number, no central server — and
-                when they don't answer, you can shake their whole screen.
+                Fast, private chats on Nostr. No phone number. No servers.
               </p>
               <div className="mt-9 flex flex-wrap items-center gap-3">
                 <LoginArea className="[&_button]:h-12 [&_button]:px-8 [&_button]:text-base" />
@@ -86,7 +61,7 @@ export function Landing() {
                   <BeeMark className="size-6" /> Feel a buzz
                 </Button>
               </div>
-              <p className="mt-4 text-sm text-muted-foreground">Free and open. Works with any Nostr key or signer extension.</p>
+              <p className="mt-4 text-sm text-muted-foreground">Free. Works with any Nostr key.</p>
             </div>
 
             <PhoneMock />
@@ -118,9 +93,7 @@ export function Landing() {
             <div aria-hidden="true" className="chat-wallpaper absolute inset-0 -z-10 opacity-40 dark" />
             <Bee3D interactive className="mx-auto size-40" />
             <h2 className="mt-2 font-display text-4xl font-extrabold tracking-tight md:text-5xl">Ready to buzz?</h2>
-            <p className="mx-auto mt-4 max-w-lg text-lg text-stone-300">
-              Create a key in seconds or log in with the one you already use on Nostr.
-            </p>
+            <p className="mx-auto mt-4 max-w-lg text-lg text-stone-300">Create a key or use your own.</p>
             <div className="mt-8 flex justify-center">
               <LoginArea className="[&_button]:h-12 [&_button]:px-10 [&_button]:text-base" />
             </div>
@@ -131,7 +104,7 @@ export function Landing() {
       <footer className="border-t">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-6 text-sm text-muted-foreground sm:flex-row md:px-8">
           <Wordmark className="text-base text-foreground" />
-          <p>Built on Nostr · NIP-17 private messages · Open source</p>
+          <p>Built on Nostr</p>
         </div>
       </footer>
     </div>

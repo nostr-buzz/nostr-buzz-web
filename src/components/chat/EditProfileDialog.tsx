@@ -95,7 +95,7 @@ function ProfileForm({ onDone }: { onDone: () => void }) {
     <>
       <DialogHeader>
         <DialogTitle className="font-display text-xl">Edit profile</DialogTitle>
-        <DialogDescription>Your profile is public and shared across every Nostr app.</DialogDescription>
+        <DialogDescription>Your profile is public.</DialogDescription>
       </DialogHeader>
 
       <div className="flex items-center gap-4">

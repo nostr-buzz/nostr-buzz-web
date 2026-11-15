@@ -19,7 +19,7 @@ export function InboxSetupBanner() {
 
   const enable = () => {
     publish.mutate(DEFAULT_INBOX_RELAYS, {
-      onSuccess: () => toast({ title: 'Inbox is on 🐝', description: 'People can now message and buzz you.' }),
+      onSuccess: () => toast({ title: 'Inbox is on 🐝' }),
       onError: (error) => toast({ title: 'Could not publish inbox', description: error.message, variant: 'destructive' }),
     });
   };
@@ -30,9 +30,7 @@ export function InboxSetupBanner() {
         <BeeMark className="size-9 shrink-0" />
         <div className="min-w-0">
           <p className="text-sm font-semibold">Turn on your inbox</p>
-          <p className="text-xs text-muted-foreground">
-            Publish your private-message relays so anyone on Nostr can reach you and send you buzzes.
-          </p>
+          <p className="text-xs text-muted-foreground">So others can message you.</p>
         </div>
       </div>
       <div className="mt-3 flex gap-2">

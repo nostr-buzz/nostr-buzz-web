@@ -1,25 +1,24 @@
 <div align="center">
   <img src="public/bee.png" alt="nostr.buzz bee" width="120" />
   <h1>nostr.buzz</h1>
-  <p><strong>Private chats on Nostr — with a BUZZ! 🐝</strong></p>
+  <p><strong>Private chats on Nostr with a BUZZ! 🐝</strong></p>
   <p><a href="https://nostr.buzz">nostr.buzz</a></p>
 </div>
 
-nostr.buzz is a fast, mobile-friendly messenger built on the [Nostr](https://nostr.com) protocol.
-Chats are end-to-end encrypted with NIP-17, and when your friend doesn't answer you can **BUZZ** them:
-their whole app shakes, plays the buzz sound and vibrates — just like the classic messengers.
+A fast, mobile-friendly [Nostr](https://nostr.com) messenger. Chats are end-to-end encrypted (NIP-17).
+Send a **BUZZ** to shake your friend's screen with sound and vibration.
 
 ## Features
 
-- 🐝 **BUZZ** — shake your friend's screen with sound + vibration (8-second cooldown, strangers can't buzz you by default)
-- 🔒 **Private DMs** — NIP-17 gift-wrapped messages with NIP-44 encryption; metadata stays hidden
-- 👥 **Group chats** — encrypted rooms of up to 10 people with an optional group name
-- 📎 **Encrypted files** — photos, videos and files are AES-GCM encrypted on-device before upload (Blossom)
-- 💬 **Telegram-style chat** — replies, reactions, edit, delete for everyone, emoji picker, drafts, pinned & muted chats, unread badges, Saved messages, message requests
-- 🔔 **Notifications** — sounds and desktop notifications for new messages and buzzes
-- 🌍 **RTL friendly** — Persian/Arabic messages render right-to-left with the Vazirmatn font
+- 🐝 **BUZZ**: shake your friend's screen with sound + vibration (8-second cooldown, strangers can't buzz you by default)
+- 🔒 **Private DMs**: NIP-17 gift-wrapped messages with NIP-44 encryption; metadata stays hidden
+- 👥 **Group chats**: encrypted rooms of up to 10 people with an optional group name
+- 📎 **Encrypted files**: photos, videos and files are AES-GCM encrypted on-device before upload (Blossom)
+- 💬 **Telegram-style chat**: replies, reactions, edit, delete for everyone, emoji picker, drafts, pinned & muted chats, unread badges, Saved messages, message requests
+- 🔔 **Notifications**: sounds and desktop notifications for new messages and buzzes
+- 🌍 **RTL friendly**: Persian/Arabic messages render right-to-left with the Vazirmatn font
 - 🌗 **Light & dark** themes, installable as a PWA, works great from 360px phones to desktops
-- ↩️ **Legacy support** — reads NIP-04 DMs and replies with NIP-04 to people who haven't upgraded
+- ↩️ **Legacy support**: reads NIP-04 DMs and replies with NIP-04 to people who haven't upgraded
 
 Protocol details (including the buzz convention) are documented in [NIP.md](NIP.md).
 

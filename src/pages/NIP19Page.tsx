@@ -44,10 +44,8 @@ function ExternalContent({ identifier }: { identifier: string }) {
     <div className="chat-wallpaper flex min-h-dvh items-center justify-center p-6">
       <div className="w-full max-w-md rounded-3xl border bg-background p-8 text-center shadow-lg">
         <BeeMark className="mx-auto size-16" />
-        <h1 className="mt-4 font-display text-2xl font-bold">This is a public Nostr post</h1>
-        <p className="mt-2 text-muted-foreground">
-          nostr.buzz is built for private chats. Open this post in a Nostr viewer instead.
-        </p>
+        <h1 className="mt-4 font-display text-2xl font-bold">Public Nostr post</h1>
+        <p className="mt-2 text-muted-foreground">Open it in a Nostr viewer.</p>
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Button asChild className="rounded-full">
             <a href={`https://njump.me/${encodeURIComponent(identifier)}`} target="_blank" rel="noopener noreferrer">

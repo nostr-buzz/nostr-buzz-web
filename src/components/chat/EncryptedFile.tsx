@@ -67,7 +67,7 @@ export function EncryptedFile({ message }: { message: ChatMessage }) {
   const isAudio = mimeType.startsWith('audio/');
 
   if (!remoteUrl && !message.localPreviewUrl) {
-    return <FileNotice icon={<AlertTriangle className="size-4" />} text="This attachment has an invalid link." />;
+    return <FileNotice icon={<AlertTriangle className="size-4" />} text="Invalid file link." />;
   }
   if (!supported) {
     return <FileNotice icon={<AlertTriangle className="size-4" />} text={`Unsupported encryption (${algorithm}).`} />;
@@ -78,7 +78,7 @@ export function EncryptedFile({ message }: { message: ChatMessage }) {
       return (
         <div className="flex items-center gap-2 rounded-lg bg-black/5 p-3 text-sm dark:bg-white/5">
           <AlertTriangle className="size-4 shrink-0 text-destructive" />
-          <span className="flex-1">Couldn't load this file.</span>
+          <span className="flex-1">Couldn't load file.</span>
           <Button size="xs" variant="outline" onClick={() => void query.refetch()}>
             Retry
           </Button>

@@ -95,7 +95,7 @@ export function ConversationView({ conversationId }: { conversationId: string })
         <div className="pointer-events-none absolute inset-3 z-20 flex flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-primary bg-background/85 backdrop-blur-sm">
           <ImageUp className="size-10 text-amber-600 dark:text-amber-400" />
           <p className="font-display text-lg font-bold">Drop to send</p>
-          <p className="text-sm text-muted-foreground">Files are encrypted on your device before upload</p>
+          <p className="text-sm text-muted-foreground">Encrypted before upload</p>
         </div>
       )}
     </div>

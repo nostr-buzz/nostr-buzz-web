@@ -25,7 +25,7 @@ const NotFound = () => {
       <div className="text-center">
         <Bee3D interactive className="mx-auto size-56" />
         <h1 className="mt-2 font-display text-6xl font-extrabold tracking-tight">404</h1>
-        <p className="mt-2 text-lg text-muted-foreground">This bee flew off. The page you're looking for doesn't exist.</p>
+        <p className="mt-2 text-lg text-muted-foreground">Page not found.</p>
         <Button asChild className="mt-6 rounded-full px-6">
           <Link to="/">Back to chats</Link>
         </Button>

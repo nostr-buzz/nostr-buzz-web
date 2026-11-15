@@ -165,10 +165,7 @@ export function MessageBubble(props: MessageBubbleProps) {
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete for everyone?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This asks every participant's app to remove the message. Apps that don't support deletion may still show
-            it.
-          </AlertDialogDescription>
+          <AlertDialogDescription>Some apps may still show it.</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>

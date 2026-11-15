@@ -18,9 +18,7 @@ export default function ChatPage() {
         <div className="max-w-sm rounded-3xl border border-dashed bg-background/90 p-8 text-center">
           <MessageCircleX className="mx-auto size-10 text-muted-foreground" />
           <h1 className="mt-3 font-display text-xl font-bold">Chat not found</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            This link isn't a valid Nostr user, or the group has more than {MAX_GROUP_PARTICIPANTS} people.
-          </p>
+          <p className="mt-2 text-sm text-muted-foreground">Invalid link (max {MAX_GROUP_PARTICIPANTS} people).</p>
           <Button asChild className="mt-5 rounded-full">
             <Link to="/">Back to chats</Link>
           </Button>

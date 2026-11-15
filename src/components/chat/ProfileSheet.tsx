@@ -139,7 +139,7 @@ function GroupInfo({ conversation, onNavigate }: { conversation: Conversation; o
         <SheetTitle className="mt-2 font-display text-2xl">
           <ConversationTitle conversation={conversation} />
         </SheetTitle>
-        <SheetDescription>{members.length} members · end-to-end encrypted</SheetDescription>
+        <SheetDescription>{members.length} members</SheetDescription>
         <BuzzButton conversationId={conversation.id} variant="large" className="mt-3 w-full" />
       </SheetHeader>
       <div className="space-y-6 px-6 py-6">
@@ -164,10 +164,7 @@ function GroupInfo({ conversation, onNavigate }: { conversation: Conversation; o
           </ul>
         </section>
         <ChatToggles conversation={conversation} />
-        <p className="text-xs text-muted-foreground">
-          Groups on Nostr have no admins: each message is encrypted separately for every member. Changing the
-          member list starts a new group.
-        </p>
+        <p className="text-xs text-muted-foreground">Changing members starts a new group.</p>
       </div>
     </>
   );

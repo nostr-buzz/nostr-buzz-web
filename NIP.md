@@ -34,7 +34,7 @@ A buzz is an ordinary NIP-17 **kind 14** chat message with a `t` tag of `buzz`:
 ```
 
 - **Graceful degradation:** clients that don't know about buzzes simply show `BUZZ!!! 🐝` as text.
-- **Receiving:** nostr.buzz shakes the app, plays the buzz sound and vibrates — only for buzzes that arrive live
+- **Receiving:** nostr.buzz shakes the app, plays the buzz sound and vibrates, only for buzzes that arrive live
   (rumor `created_at` within ~2 minutes), never for history, and only from people you follow or have replied to
   (unless the user opts in to buzzes from strangers).
 - **Rate limit:** the sender's client enforces an 8-second cooldown per conversation.

@@ -59,7 +59,7 @@ export function BuzzButton({ conversationId, variant = 'pill', className, onBuzz
     </svg>
   );
 
-  const label = coolingDown ? 'Buzz cooling down' : 'Send a BUZZ — shakes their screen';
+  const label = coolingDown ? 'Wait a moment' : 'Send a BUZZ';
 
   if (variant === 'large') {
     return (
@@ -103,7 +103,7 @@ export function BuzzButton({ conversationId, variant = 'pill', className, onBuzz
   return (
     <Tooltip>
       <TooltipTrigger asChild>{button}</TooltipTrigger>
-      <TooltipContent>{canEncrypt ? label : 'Your signer cannot encrypt messages'}</TooltipContent>
+      <TooltipContent>{canEncrypt ? label : 'Encryption not supported'}</TooltipContent>
     </Tooltip>
   );
 }
