@@ -83,7 +83,9 @@ export function MessageBubble(props: MessageBubbleProps) {
   const isLocal = message.id.startsWith('local-');
   const canReact = isNip17 && !isLocal && message.status !== 'failed';
   const canEdit = mine && isNip17 && message.kind === DM_KIND.chat && !isBuzz(message) && message.status !== 'sending';
-  const canDelete = mine && isNip17 && message.status !== 'sending';
+  // Group admins can delete anyone's message.
+  const canModerate = !!conversation.group?.isAdmin && !conversation.group.removed;
+  const canDelete = (mine || canModerate) && isNip17 && message.status !== 'sending';
 
   const react = (emoji: string) => {
     toggleReaction(message, emoji).catch((error: unknown) =>

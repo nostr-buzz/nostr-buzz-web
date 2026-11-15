@@ -241,7 +241,15 @@ function buildConversation(
       authors.add(message.pubkey);
     }
   }
-  const isDeleted = (message: ChatMessage) => deletions.get(message.id)?.has(message.pubkey) ?? false;
+  // In nostr.buzz groups, admins can also delete other people's messages.
+  const admins = new Set(group?.view.admins ?? []);
+  const isDeleted = (message: ChatMessage) => {
+    const deleters = deletions.get(message.id);
+    if (!deleters) return false;
+    if (deleters.has(message.pubkey)) return true;
+    for (const pubkey of deleters) if (admins.has(pubkey)) return true;
+    return false;
+  };
 
   const messages: ChatMessage[] = [];
   const deletedSlots = new Set<string>();
@@ -563,6 +571,14 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
     groupStateAt.current.set(event.pubkey, event.created_at);
     const result = decryptGroupState(event, keys);
     setGroupStates((previous) => new Map(previous).set(event.pubkey, result));
+    // Remember the latest name so the chat list shows it right away next time.
+    if (result !== 'removed') {
+      setKeyring((current) =>
+        current[event.pubkey] && current[event.pubkey].name !== result.name
+          ? { ...current, [event.pubkey]: { ...current[event.pubkey], name: result.name } }
+          : current,
+      );
+    }
   }, []);
 
   const rememberInvites = useCallback((messages: ChatMessage[]) => {
@@ -1129,7 +1145,9 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
 
   const deleteMessage = useCallback(
     async (target: ChatMessage) => {
-      if (target.pubkey !== me || target.protocol !== 'nip17') return;
+      const group = conversationMap.get(target.conversationId)?.group;
+      const canModerate = !!group?.isAdmin && !group.removed;
+      if ((target.pubkey !== me && !canModerate) || target.protocol !== 'nip17') return;
       if (target.id.startsWith('local-')) {
         store.remove(target.id);
         return;
@@ -1140,7 +1158,7 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
       ]);
       if (!ok) throw new Error('Delete could not be delivered.');
     },
-    [me, store, sendRumor],
+    [me, conversationMap, store, sendRumor],
   );
 
   const editMessage = useCallback(

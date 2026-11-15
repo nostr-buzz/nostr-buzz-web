@@ -69,6 +69,7 @@ the client holds, the user was removed.
 
 - `admins`: members allowed to edit. New admins receive the identity key in an invite. A client only treats
   a key holder as admin while they are listed here.
+- Kind `5` deletions from a listed admin remove any message in the group, not only the admin's own.
 - `muted`: `{ <pubkey>: <unix seconds> }`. Clients hide messages from a muted member sent at or after that
   time, and disable sending for them.
 
