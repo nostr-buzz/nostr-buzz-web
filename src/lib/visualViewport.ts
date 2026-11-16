@@ -45,6 +45,10 @@ export function trackVisualViewport(): () => void {
   const viewport = window.visualViewport;
   root.setAttribute('data-app-shell', '');
 
+  // Installed app (home screen): no browser toolbar, so the shell can use the full screen.
+  const standalone =
+    window.matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true;
+
   // Tallest height seen per width, so the keyboard is detected even when the layout viewport shrinks too.
   const tallest = new Map<number, number>();
   const update = () => {
@@ -53,9 +57,17 @@ export function trackVisualViewport(): () => void {
     const height = viewport.height;
     const max = Math.max(tallest.get(width) ?? 0, height);
     tallest.set(width, max);
+    const keyboard = max - height > 150;
+    root.toggleAttribute('data-keyboard', keyboard);
+    // In the installed app, with the keyboard closed, the shell fills the full screen (100dvh).
+    // iOS reports a shorter visual viewport there, which left an empty band under the composer.
+    if (standalone && !keyboard) {
+      root.style.removeProperty('--vv-height');
+      root.style.removeProperty('--vv-top');
+      return;
+    }
     root.style.setProperty('--vv-height', `${height}px`);
     root.style.setProperty('--vv-top', `${viewport.offsetTop}px`);
-    root.toggleAttribute('data-keyboard', max - height > 150);
   };
 
   // The page never scrolls: the shell is fixed. Undo anything iOS does on its own,
