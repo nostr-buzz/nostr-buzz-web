@@ -1,0 +1,53 @@
+# coturn settings for nostr.buzz calls. Replace PUBLIC_IP and SECRET.
+# The same SECRET goes in the push server's TURN_SECRET, which hands out
+# credentials that expire after a day.
+
+listening-port=3478
+listening-ip=PUBLIC_IP
+relay-ip=PUBLIC_IP
+# One UDP port per relayed call leg.
+min-port=49160
+max-port=49360
+
+realm=nostr.buzz
+use-auth-secret
+static-auth-secret=SECRET
+stale-nonce=600
+fingerprint
+
+# Media is already encrypted end to end (DTLS-SRTP); no TLS listener is needed.
+no-tls
+no-dtls
+no-cli
+
+# Limits, so the relay cannot be used to flood anyone or eat the server's bandwidth.
+user-quota=12
+total-quota=300
+# Bytes per second per session (about 4 Mbit/s).
+max-bps=500000
+no-multicast-peers
+no-rfc5780
+no-stun-backward-compatibility
+response-origin-only-with-rfc5780
+no-software-attribute
+
+# Relay UDP only, and never towards this machine or private networks: the relay
+# must not become a way into services that are not exposed to the internet.
+no-tcp-relay
+denied-peer-ip=0.0.0.0-0.255.255.255
+denied-peer-ip=10.0.0.0-10.255.255.255
+denied-peer-ip=100.64.0.0-100.127.255.255
+denied-peer-ip=127.0.0.0-127.255.255.255
+denied-peer-ip=169.254.0.0-169.254.255.255
+denied-peer-ip=172.16.0.0-172.31.255.255
+denied-peer-ip=192.0.0.0-192.0.0.255
+denied-peer-ip=192.168.0.0-192.168.255.255
+denied-peer-ip=198.18.0.0-198.19.255.255
+denied-peer-ip=224.0.0.0-255.255.255.255
+denied-peer-ip=PUBLIC_IP-PUBLIC_IP
+denied-peer-ip=::1
+denied-peer-ip=fc00::-fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+denied-peer-ip=fe80::-febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+
+log-file=stdout
+simple-log

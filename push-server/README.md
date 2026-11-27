@@ -66,6 +66,27 @@ Actions → Variables). The deploy workflow passes it to the build.
 
 Without it the app still shows notifications while it is open in the background, but not when closed.
 
+## TURN relay for calls
+
+Calls connect directly between two devices when they can. On networks where that is not possible
+(many mobile carriers), they need a TURN relay. [`turn/`](turn/) has a coturn setup:
+
+```bash
+cd push-server/turn
+cp turnserver.conf.example turnserver.conf   # set PUBLIC_IP and a long random SECRET
+docker compose up -d
+```
+
+Then give the push server the same secret and the relay's address, and restart it:
+
+```bash
+TURN_SECRET=<the same secret>
+TURN_URLS=turn:push.example.com:3478?transport=udp,turn:push.example.com:3478?transport=tcp
+```
+
+Open UDP and TCP port 3478 and UDP ports 49160 to 49360. The relay forwards encrypted media and
+cannot read it. The example config refuses to relay to private addresses or to the server itself.
+
 ## API
 
 All bodies are JSON. `token` is a random 64-hex secret made by the device.

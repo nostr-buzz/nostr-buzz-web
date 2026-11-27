@@ -1,0 +1,27 @@
+# TURN relay for nostr.buzz calls (coturn). Used only when two devices cannot reach
+# each other directly; it forwards encrypted media and cannot read it.
+#
+#   cp turnserver.conf.example turnserver.conf   # then fill in the IP and the secret
+#   docker compose up -d
+#
+# Host networking: TURN hands out one UDP port per call from a range, which Docker's
+# port publishing handles poorly.
+name: nostr-buzz-turn
+services:
+  turn:
+    image: coturn/coturn:4.6-alpine
+    restart: unless-stopped
+    network_mode: host
+    command: ["-c", "/etc/coturn/turnserver.conf"]
+    volumes:
+      - type: bind
+        source: ./turnserver.conf
+        target: /etc/coturn/turnserver.conf
+        read_only: true
+    # The turnserver binary carries the net_bind_service file capability, so it cannot
+    # start under no-new-privileges. Everything else is dropped.
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
