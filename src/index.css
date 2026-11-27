@@ -315,15 +315,6 @@
   height: var(--vv-height, 100dvh);
 }
 
-/*
- * Installed app, keyboard closed: always reach the bottom edge of the screen, even on
- * systems that report a dynamic viewport shorter than the screen.
- */
-@media (display-mode: standalone) {
-  :root:not([data-keyboard]) .app-viewport {
-    min-height: 100lvh;
-  }
-}
 
 /* While the messenger is open the page itself never scrolls; only its panes do. */
 :root[data-app-shell],
