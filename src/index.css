@@ -497,9 +497,8 @@
   }
 }
 
-/* Side panels (chat info) run the full height of the screen: keep their content clear of the status bar and home indicator. */
+/* Side panels (chat info) run the full height of the screen: keep their content clear of the home indicator. */
 [data-slot="sheet-content"] {
-  padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 

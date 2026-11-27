@@ -131,7 +131,7 @@ function PersonInfo({ pubkey, conversation }: { pubkey: string; conversation: Co
         <SheetTitle>{name}</SheetTitle>
         <SheetDescription>Profile and chat settings</SheetDescription>
       </SheetHeader>
-      <div className="relative h-36 shrink-0 bg-gradient-to-br from-amber-200 via-amber-400 to-amber-600">
+      <div className="relative h-[calc(9rem+env(safe-area-inset-top))] shrink-0 bg-gradient-to-br from-amber-200 via-amber-400 to-amber-600">
         {banner && <img src={banner} alt="" className="size-full object-cover" />}
       </div>
       <div className="-mt-12 px-6 pb-8">
@@ -185,7 +185,7 @@ function GroupInfo({ conversation, onNavigate }: { conversation: Conversation; o
 
   return (
     <>
-      <SheetHeader className="items-center border-b px-6 pt-10 pb-6 text-center">
+      <SheetHeader className="items-center border-b px-6 pt-[calc(2.5rem+env(safe-area-inset-top))] pb-6 text-center">
         <ConversationAvatar conversation={conversation} className="size-20" />
         <SheetTitle className="mt-2 font-display text-2xl">
           <ConversationTitle conversation={conversation} />
@@ -257,7 +257,7 @@ function NostrGroupInfo({ conversation, group, onClose }: { conversation: Conver
 
   return (
     <>
-      <SheetHeader className="items-center border-b px-6 pt-10 pb-6 text-center">
+      <SheetHeader className="items-center border-b px-6 pt-[calc(2.5rem+env(safe-area-inset-top))] pb-6 text-center">
         <ConversationAvatar conversation={conversation} className="size-24" />
         <SheetTitle className="mt-2 font-display text-2xl break-words" dir="auto">
           {group.name}
