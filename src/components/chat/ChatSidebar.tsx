@@ -1,6 +1,6 @@
 import type { NostrMetadata } from '@nostrify/nostrify';
 import { useQueryClient } from '@tanstack/react-query';
-import { Bookmark, LogOut, MessageSquarePlus, Moon, Search, Settings, SquarePen, UserIcon, UserPlus, X } from 'lucide-react';
+import { Bookmark, LogOut, MessageSquarePlus, Moon, ScanLine, Search, Settings, SquarePen, UserIcon, UserPlus, X } from 'lucide-react';
 import { nip19 } from 'nostr-tools';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -12,6 +12,7 @@ import { ChatListItem } from '@/components/chat/ChatListItem';
 import { InboxSetupBanner } from '@/components/chat/InboxSetupBanner';
 import { NewChatDialog } from '@/components/chat/NewChatDialog';
 import { NotificationsBanner } from '@/components/chat/NotificationsBanner';
+import { QrScannerDialog } from '@/components/chat/QrScannerDialog';
 import { UserAvatar } from '@/components/chat/UserAvatar';
 import {
   AlertDialog,
@@ -52,6 +53,7 @@ export function ChatSidebar() {
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState<Tab>('chats');
   const [newChatOpen, setNewChatOpen] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
   const activeTab: Tab = requestCount === 0 ? 'chats' : tab;
 
   const visible = useMemo(() => {
@@ -78,6 +80,9 @@ export function ChatSidebar() {
         <Link to="/" className="mr-auto rounded-lg px-1 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
           <Logo markClassName="size-7" />
         </Link>
+        <Button variant="ghost" size="icon" className="rounded-full" aria-label="Scan QR code" onClick={() => setScannerOpen(true)}>
+          <ScanLine className="size-5" />
+        </Button>
         <MainMenu />
       </header>
 
@@ -160,7 +165,8 @@ export function ChatSidebar() {
         <MessageSquarePlus className="size-6" />
       </button>
 
-      <NewChatDialog open={newChatOpen} onOpenChange={setNewChatOpen} />
+      <NewChatDialog open={newChatOpen} onOpenChange={setNewChatOpen} onScan={() => setScannerOpen(true)} />
+      <QrScannerDialog open={scannerOpen} onOpenChange={setScannerOpen} />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { NIP05, type NostrEvent, type NostrMetadata, NSchema as n } from '@nostrify/nostrify';
 import { useNostr } from '@nostrify/react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Bookmark, Check, Loader2, Search, Users, X } from 'lucide-react';
+import { ArrowLeft, Bookmark, Check, Loader2, ScanLine, Search, Users, X } from 'lucide-react';
 import { nip19 } from 'nostr-tools';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -152,19 +152,21 @@ interface NewChatDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   pick?: PickOptions;
+  /** Shows a "Scan QR code" shortcut that calls this (after the dialog closes). */
+  onScan?: () => void;
 }
 
-export function NewChatDialog({ open, onOpenChange, pick }: NewChatDialogProps) {
+export function NewChatDialog({ open, onOpenChange, pick, onScan }: NewChatDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-[min(42rem,calc(100dvh-2rem))] flex-col gap-0 overflow-hidden p-0 sm:max-w-md">
-        {open && <NewChatPanel onDone={() => onOpenChange(false)} pick={pick} />}
+        {open && <NewChatPanel onDone={() => onOpenChange(false)} pick={pick} onScan={onScan} />}
       </DialogContent>
     </Dialog>
   );
 }
 
-function NewChatPanel({ onDone, pick }: { onDone: () => void; pick?: PickOptions }) {
+function NewChatPanel({ onDone, pick, onScan }: { onDone: () => void; pick?: PickOptions; onScan?: () => void }) {
   const { user } = useCurrentUser();
   const { conversations, createGroup: createNostrGroup } = useDM();
   const { toast } = useToast();
@@ -312,6 +314,16 @@ function NewChatPanel({ onDone, pick }: { onDone: () => void; pick?: PickOptions
         {mode === 'direct' && !term && (
           <div className="mb-1 space-y-0.5">
             <ActionRow icon={<Users className="size-5" />} label="New group" onClick={() => setMode('group')} />
+            {onScan && (
+              <ActionRow
+                icon={<ScanLine className="size-5" />}
+                label="Scan QR code"
+                onClick={() => {
+                  onDone();
+                  onScan();
+                }}
+              />
+            )}
             <ActionRow
               icon={<Bookmark className="size-5" />}
               label="Saved messages"
