@@ -1,3 +1,4 @@
+import { execSync } from "node:child_process";
 import path from "node:path";
 
 import react from "@vitejs/plugin-react";
@@ -6,6 +7,33 @@ import { build, type Plugin } from "vite";
 import { defineConfig } from "vitest/config";
 
 const root = import.meta.dirname;
+
+/** Identifies this build: clients compare it with /version.json to learn about new deploys. */
+function buildInfo() {
+  let commit = (process.env.GITHUB_SHA ?? "").slice(0, 7);
+  if (!commit) {
+    try {
+      commit = execSync("git rev-parse --short=7 HEAD", { cwd: root, stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
+    } catch {
+      commit = "local";
+    }
+  }
+  const builtAt = new Date().toISOString();
+  return { version: `${commit}-${Date.now().toString(36)}`, commit, builtAt };
+}
+
+const info = buildInfo();
+
+/** Writes /version.json next to the app. */
+function versionFile(): Plugin {
+  return {
+    name: "nostr-buzz-version",
+    apply: "build",
+    generateBundle() {
+      this.emitFile({ type: "asset", fileName: "version.json", source: JSON.stringify(info) });
+    },
+  };
+}
 
 /**
  * Builds src/sw.ts into a single classic script at /sw.js (no shared chunks, no hash),
@@ -63,10 +91,15 @@ export default defineConfig(() => ({
     host: "::",
     port: 8080,
   },
+  define: {
+    __APP_VERSION__: JSON.stringify(info.version),
+    __APP_BUILT_AT__: JSON.stringify(info.builtAt),
+  },
   plugins: [
     react(),
     tailwindcss(),
     serviceWorker(),
+    versionFile(),
   ],
   test: {
     globals: true,

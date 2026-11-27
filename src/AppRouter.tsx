@@ -4,6 +4,7 @@ import { ScrollToTop } from "./components/ScrollToTop";
 import { BuzzProvider } from "./components/buzz/BuzzProvider";
 import { AppShell } from "./components/chat/AppShell";
 import { DMProvider } from "./components/dm/DMProvider";
+import { UpdateManager } from "./components/UpdateManager";
 import ChatPage from "./pages/ChatPage";
 import Index from "./pages/Index";
 import JoinPage from "./pages/JoinPage";
@@ -18,6 +19,8 @@ export function AppRouter() {
       {/* Buzz + DM providers live inside the router so they can navigate on tap. */}
       <BuzzProvider>
         <DMProvider>
+          {/* Keeps open tabs and installed apps on the latest deployed version. */}
+          <UpdateManager />
           <Routes>
             {/* Messenger layout: chat list + active pane (landing page when logged out) */}
             <Route element={<AppShell />}>

@@ -11,12 +11,15 @@ import '@fontsource/poppins/700.css';
 import '@fontsource/poppins/800.css';
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { recoverFromMissingChunks } from '@/lib/appUpdate';
 import { registerServiceWorker } from '@/lib/push/client';
 import App from './App.tsx';
 import './index.css';
 
 // Notifications (and push with the app closed) run through the service worker.
 registerServiceWorker();
+// If a deploy removed a file this copy still needs, move to the new version.
+recoverFromMissingChunks();
 
 createRoot(document.getElementById("root")!).render(
   <ErrorBoundary>

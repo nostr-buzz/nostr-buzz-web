@@ -16,6 +16,7 @@ Send a **BUZZ** to shake your friend's screen with sound and vibration.
 - 📎 **Encrypted files**: photos, videos and files are AES-GCM encrypted on-device before upload (Blossom)
 - 💬 **Telegram-style chat**: replies, reactions, edit, delete for everyone, emoji picker, drafts, pinned & muted chats, unread badges, Saved messages, message requests
 - 🔔 **Push notifications**: messages and buzzes reach you even with the app closed, decrypted on your device
+- 🔄 **Updates itself**: open tabs and installed apps move to each new release on their own, without losing drafts
 - 📷 **Scan to chat**: scan someone's QR code with the in-app camera (or from a photo), and show your own
 - 📱 **Feels native on phones**: swipe a chat to pin, mute or mark it read, swipe a message to reply, app icon badge
 - 🌍 **RTL friendly**: Persian/Arabic messages render right-to-left with the Vazirmatn font

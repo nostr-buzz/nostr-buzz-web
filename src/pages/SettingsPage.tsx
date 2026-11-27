@@ -32,6 +32,7 @@ import { useNostrPublish } from '@/hooks/useNostrPublish';
 import { usePushStatus } from '@/hooks/usePushSync';
 import { useTheme } from '@/hooks/useTheme';
 import { useToast } from '@/hooks/useToast';
+import { APP_BUILT_AT, APP_VERSION, applyUpdate, checkForUpdate } from '@/lib/appUpdate';
 import { nowSeconds } from '@/lib/dm/nip17';
 import { DEFAULT_INBOX_RELAYS, MAX_INBOX_RELAYS, uniqueRelays } from '@/lib/dm/relays';
 import { displayName, shortNpub } from '@/lib/format';
@@ -633,9 +634,21 @@ function StorageSection() {
 }
 
 function AboutSection() {
+  const { toast } = useToast();
+  const [checking, setChecking] = useState(false);
+  const built = new Date(APP_BUILT_AT);
+
+  const check = async () => {
+    setChecking(true);
+    const available = await checkForUpdate();
+    setChecking(false);
+    if (available) applyUpdate();
+    else toast({ title: "You're up to date" });
+  };
+
   return (
     <Section title="About">
-      <div className="flex items-center gap-4 px-4 py-5">
+      <div className="flex items-center gap-4 border-b px-4 py-5">
         <BeeMark className="size-14" />
         <div>
           <Wordmark className="text-xl" />
@@ -643,6 +656,17 @@ function AboutSection() {
             Private chats on Nostr.
           </p>
         </div>
+      </div>
+      <div className="flex items-center justify-between gap-4 px-4 py-3.5">
+        <div className="min-w-0">
+          <SettingInline
+            label="Version"
+            description={`${APP_VERSION.split('-')[0]}${Number.isNaN(built.getTime()) ? '' : ` · ${built.toLocaleDateString()}`}. Updates install on their own.`}
+          />
+        </div>
+        <Button variant="outline" size="sm" className="shrink-0 rounded-full" onClick={() => void check()} disabled={checking}>
+          {checking ? <Loader2 className="animate-spin" /> : null} Check now
+        </Button>
       </div>
     </Section>
   );

@@ -72,6 +72,13 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+// Always ask the network for the app's HTML, so a reload after a deploy gets the new
+// version instead of a copy the browser cached a few minutes ago.
+self.addEventListener('fetch', (event) => {
+  if (event.request.mode !== 'navigate') return;
+  event.respondWith(fetch(event.request, { cache: 'no-cache' }).catch(() => fetch(event.request)));
+});
+
 self.addEventListener('push', (event) => {
   event.waitUntil(
     onPush(event).catch(async (error: unknown) => {
