@@ -75,13 +75,10 @@ export function ChatSidebar() {
   return (
     <div className="relative flex h-full min-h-0 flex-col">
       <header className="flex items-center gap-2 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2">
-        <MainMenu />
-        <Link to="/" className="mr-auto rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
+        <Link to="/" className="mr-auto rounded-lg px-1 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
           <Logo markClassName="size-7" />
         </Link>
-        <Button variant="ghost" size="icon" className="rounded-full" aria-label="New chat" onClick={() => setNewChatOpen(true)}>
-          <SquarePen className="size-5" />
-        </Button>
+        <MainMenu />
       </header>
 
       <div className="px-3 pb-2">
@@ -223,7 +220,7 @@ function MainMenu() {
             <UserAvatar pubkey={user.pubkey} className="size-10" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-64 p-1.5">
+        <DropdownMenuContent align="end" className="w-64 p-1.5">
           <DropdownMenuLabel className="flex items-center gap-3 py-2">
             <UserAvatar pubkey={user.pubkey} className="size-10" />
             <span className="min-w-0">
