@@ -336,6 +336,34 @@
   --safe-bottom: 0px;
 }
 
+/*
+ * Installed on an iPhone whose drawing area stops short of the screen (see visualViewport.ts):
+ * the home indicator is already outside our area, so no extra room is needed for it.
+ */
+:root[data-short-viewport] {
+  --safe-bottom: 0px;
+}
+
+/*
+ * Optional "Fill the whole screen": make the document as tall as the real screen and lay
+ * the app out in it (instead of in the short fixed viewport), so the strip gets painted.
+ */
+:root[data-short-viewport][data-fill-screen]:not([data-keyboard]) {
+  min-height: calc(100% + var(--viewport-missing, 0px));
+  overflow: visible;
+  --safe-bottom: max(0px, calc(env(safe-area-inset-bottom, 0px) - 22px));
+}
+
+:root[data-short-viewport][data-fill-screen]:not([data-keyboard]) body {
+  min-height: calc(100dvh + var(--viewport-missing, 0px));
+  overflow: visible;
+}
+
+:root[data-short-viewport][data-fill-screen]:not([data-keyboard]) .app-viewport {
+  position: absolute;
+  height: calc(100dvh + var(--viewport-missing, 0px));
+}
+
 /* ------------------------------------------------------------------ */
 /* Native feel on phones                                               */
 /* ------------------------------------------------------------------ */

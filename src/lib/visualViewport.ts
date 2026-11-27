@@ -59,6 +59,14 @@ export function trackVisualViewport(): () => void {
     tallest.set(width, max);
     const keyboard = max - height > 150;
     root.toggleAttribute('data-keyboard', keyboard);
+    // Some iOS versions give an installed app a drawing area shorter than the screen:
+    // content starts under the status bar, but the height is not extended to match, so a
+    // strip at the bottom (where the home indicator is) cannot be painted at all.
+    if (standalone && !keyboard && window.matchMedia('(orientation: portrait)').matches) {
+      const missing = Math.round(window.screen.height - window.innerHeight);
+      root.toggleAttribute('data-short-viewport', missing > 24);
+      root.style.setProperty('--viewport-missing', `${Math.max(0, missing)}px`);
+    }
     // In the installed app, with the keyboard closed, the shell fills the full screen (100dvh).
     // iOS reports a shorter visual viewport there, which left an empty band under the composer.
     if (standalone && !keyboard) {
@@ -156,6 +164,8 @@ export function trackVisualViewport(): () => void {
     root.style.removeProperty('--vv-height');
     root.style.removeProperty('--vv-top');
     root.removeAttribute('data-keyboard');
+    root.removeAttribute('data-short-viewport');
+    root.style.removeProperty('--viewport-missing');
     root.removeAttribute('data-app-shell');
   };
 }

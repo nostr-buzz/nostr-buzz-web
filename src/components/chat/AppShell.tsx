@@ -4,6 +4,7 @@ import { Outlet, useLocation, useNavigationType } from 'react-router-dom';
 
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
 import { Landing } from '@/components/landing/Landing';
+import { useChatSettings } from '@/hooks/useChatSettings';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useDM } from '@/hooks/useDM';
 import { cn } from '@/lib/utils';
@@ -16,6 +17,7 @@ import { trackVisualViewport } from '@/lib/visualViewport';
 export function AppShell() {
   const { user } = useCurrentUser();
   const { totalUnread } = useDM();
+  const { settings } = useChatSettings();
   const location = useLocation();
   const navigationType = useNavigationType();
 
@@ -26,6 +28,12 @@ export function AppShell() {
 
   // Keep the composer right on top of the mobile keyboard.
   useEffect(() => (user ? trackVisualViewport() : undefined), [user]);
+
+  // Opt-in layout for iPhones that leave an unpainted strip at the bottom.
+  useEffect(() => {
+    document.documentElement.toggleAttribute('data-fill-screen', settings.fillScreen);
+    return () => document.documentElement.removeAttribute('data-fill-screen');
+  }, [settings.fillScreen]);
 
   if (!user) return <Landing />;
 

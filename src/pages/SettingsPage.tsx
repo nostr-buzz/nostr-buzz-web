@@ -153,8 +153,24 @@ function ProfileCard() {
   );
 }
 
+/** Numbers that explain how the app fits this screen (useful when reporting a layout problem). */
+function screenInfo(): { short: boolean; text: string } {
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:fixed;visibility:hidden;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)';
+  document.body.appendChild(probe);
+  const style = getComputedStyle(probe);
+  const insets = `${Math.round(parseFloat(style.paddingTop))}/${Math.round(parseFloat(style.paddingBottom))}`;
+  probe.remove();
+  return {
+    short: document.documentElement.hasAttribute('data-short-viewport'),
+    text: `Screen ${window.screen.width}×${window.screen.height}, app area ${window.innerWidth}×${window.innerHeight}, insets ${insets}`,
+  };
+}
+
 function AppearanceSection() {
   const { theme, setTheme } = useTheme();
+  const [fillScreen, setFillScreen] = useSetting('fillScreen');
+  const [screen] = useState(screenInfo);
   return (
     <Section title="Appearance">
       <div className="flex flex-col gap-3 px-4 py-4">
@@ -178,6 +194,16 @@ function AppearanceSection() {
           </ToggleGroupItem>
         </ToggleGroup>
       </div>
+      {(screen.short || fillScreen) && (
+        <div className="border-t">
+          <SettingSwitch
+            label="Fill the whole screen"
+            description="Removes the empty strip at the bottom. Turn it off if the message box gets hidden."
+            checked={fillScreen}
+            onCheckedChange={setFillScreen}
+          />
+        </div>
+      )}
     </Section>
   );
 }
@@ -668,7 +694,7 @@ function AboutSection() {
         <div className="min-w-0">
           <SettingInline
             label="Version"
-            description={`${APP_VERSION.split('-')[0]}${Number.isNaN(built.getTime()) ? '' : ` · ${built.toLocaleDateString()}`}. Updates install on their own.`}
+            description={`${APP_VERSION.split('-')[0]}${Number.isNaN(built.getTime()) ? '' : ` · ${built.toLocaleDateString()}`}. Updates install on their own. ${screenInfo().text}.`}
           />
         </div>
         <Button variant="outline" size="sm" className="shrink-0 rounded-full" onClick={() => void check()} disabled={checking}>

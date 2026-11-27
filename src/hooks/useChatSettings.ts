@@ -16,6 +16,7 @@ export const DEFAULT_CHAT_SETTINGS: ChatSettings = {
   readReceipts: true,
   legacyDMs: true,
   buzzFromStrangers: false,
+  fillScreen: false,
   enterToSend: true,
 };
 
