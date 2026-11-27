@@ -6,7 +6,10 @@ import { useAuthor } from '@/hooks/useAuthor';
 import { useChatSettings } from '@/hooks/useChatSettings';
 import { conversationRoute } from '@/lib/dm/conversation';
 import { displayName } from '@/lib/format';
-import { BUZZ_VIBRATION, playBuzzSound, primeAudio, vibrate } from '@/lib/sounds';
+import { hapticBuzz } from '@/lib/haptics';
+import { BUZZ_VIBRATION, playBuzzSound, primeAudio } from '@/lib/sounds';
+
+const OUTGOING_VIBRATION = [90, 50, 90, 50, 160];
 
 interface Toast extends BuzzEffectOptions {
   key: number;
@@ -48,11 +51,13 @@ export function BuzzProvider({ children }: { children: ReactNode }) {
       window.dispatchEvent(new Event(BUZZ_EVENT));
 
       if (options.outgoing) {
+        // A shorter buzz in the sender's hand too.
+        if (current.vibrate) hapticBuzz(OUTGOING_VIBRATION);
         shake(true);
         return;
       }
 
-      if (current.vibrate) vibrate(BUZZ_VIBRATION);
+      if (current.vibrate) hapticBuzz(BUZZ_VIBRATION);
       if (document.visibilityState === 'hidden') {
         pendingRef.current = { options, at: Date.now() };
       } else {
