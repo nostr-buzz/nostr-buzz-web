@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuthor } from '@/hooks/useAuthor';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useDM } from '@/hooks/useDM';
 import { useDiscoveryRelays } from '@/hooks/useDMRelays';
@@ -411,8 +412,11 @@ function PersonRow({
   selected: boolean;
   onClick: () => void;
 }) {
-  const name = displayName(candidate.pubkey, candidate.metadata);
-  const subtitle = candidate.metadata?.nip05 || shortNpub(candidate.pubkey);
+  // Recent chats and pasted npubs come without a profile: look it up.
+  const author = useAuthor(candidate.metadata ? undefined : candidate.pubkey);
+  const metadata = candidate.metadata ?? author.data?.metadata;
+  const name = displayName(candidate.pubkey, metadata);
+  const subtitle = metadata?.nip05 || shortNpub(candidate.pubkey);
   return (
     <button
       type="button"

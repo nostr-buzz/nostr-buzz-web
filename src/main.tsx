@@ -12,6 +12,7 @@ import '@fontsource/poppins/800.css';
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { recoverFromMissingChunks } from '@/lib/appUpdate';
+import { watchInstallPrompt } from '@/lib/install';
 import { registerServiceWorker } from '@/lib/push/client';
 import App from './App.tsx';
 import './index.css';
@@ -20,6 +21,8 @@ import './index.css';
 registerServiceWorker();
 // If a deploy removed a file this copy still needs, move to the new version.
 recoverFromMissingChunks();
+// Lets the menu offer "Install app" where the browser supports it.
+watchInstallPrompt();
 
 createRoot(document.getElementById("root")!).render(
   <ErrorBoundary>

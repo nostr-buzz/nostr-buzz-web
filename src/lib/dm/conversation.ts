@@ -68,7 +68,9 @@ export function conversationIdFromRoute(param: string | undefined, me: string): 
 }
 
 export function isBuzz(message: Pick<Rumor, 'kind' | 'tags'>): boolean {
-  return message.kind === DM_KIND.chat && message.tags.some(([name, value]) => name === 't' && value === BUZZ_TAG);
+  // Legacy NIP-04 chats carry the same tag on the kind 4 event (see NIP.md).
+  if (message.kind !== DM_KIND.chat && message.kind !== DM_KIND.legacy) return false;
+  return message.tags.some(([name, value]) => name === 't' && value === BUZZ_TAG);
 }
 
 /** The id of the message this one replies to (first `e` tag), if any. */

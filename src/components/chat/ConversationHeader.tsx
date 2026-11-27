@@ -17,6 +17,7 @@ import { useDM } from '@/hooks/useDM';
 import { useDMRelayInfo } from '@/hooks/useDMRelays';
 import { useToast } from '@/hooks/useToast';
 import type { Conversation } from '@/lib/dm/types';
+import { useOnline } from '@/lib/install';
 
 interface ConversationHeaderProps {
   conversation: Conversation;
@@ -35,7 +36,10 @@ export function ConversationHeader({ conversation, onOpenInfo }: ConversationHea
 
   const noInbox = !!other && relayInfo.isSuccess && relayInfo.data.inbox.length === 0 && !conversation.usesLegacy;
 
-  const subtitle = conversation.isSelf
+  const online = useOnline();
+  const subtitle = !online
+    ? 'Waiting for network…'
+    : conversation.isSelf
     ? 'Private notes'
     : conversation.group?.removed
       ? 'Not a member'

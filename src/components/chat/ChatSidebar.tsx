@@ -1,8 +1,8 @@
 import type { NostrMetadata } from '@nostrify/nostrify';
 import { useQueryClient } from '@tanstack/react-query';
-import { Bookmark, LogOut, MessageSquarePlus, Moon, ScanLine, Search, Settings, SquarePen, UserIcon, UserPlus, X } from 'lucide-react';
+import { Bookmark, LogOut, MessageSquarePlus, Moon, Download, ScanLine, Search, Settings, SquarePen, UserIcon, UserPlus, WifiOff, X } from 'lucide-react';
 import { nip19 } from 'nostr-tools';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import AuthDialog from '@/components/auth/AuthDialog';
@@ -43,6 +43,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { conversationRoute } from '@/lib/dm/conversation';
 import type { Conversation } from '@/lib/dm/types';
 import { displayName, shortNpub } from '@/lib/format';
+import { promptInstall, useCanInstall, useOnline } from '@/lib/install';
 import { cn } from '@/lib/utils';
 
 type Tab = 'chats' | 'requests';
@@ -52,8 +53,15 @@ export function ChatSidebar() {
   const queryClient = useQueryClient();
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState<Tab>('chats');
-  const [newChatOpen, setNewChatOpen] = useState(false);
-  const [scannerOpen, setScannerOpen] = useState(false);
+  // App icon shortcuts open straight into "New chat" (/?new) or the scanner (/?scan).
+  const [newChatOpen, setNewChatOpen] = useState(() => new URLSearchParams(window.location.search).has('new'));
+  const [scannerOpen, setScannerOpen] = useState(() => new URLSearchParams(window.location.search).has('scan'));
+  const navigate = useNavigate();
+  const online = useOnline();
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('new') || params.has('scan')) navigate('/', { replace: true });
+  }, [navigate]);
   const activeTab: Tab = requestCount === 0 ? 'chats' : tab;
 
   const visible = useMemo(() => {
@@ -130,8 +138,17 @@ export function ChatSidebar() {
         </div>
       )}
 
-      <InboxSetupBanner />
-      <NotificationsBanner />
+      {!online && (
+        <p role="status" className="mx-3 mb-2 flex items-center gap-2 rounded-xl bg-muted px-3 py-2 text-sm text-muted-foreground">
+          <WifiOff className="size-4 shrink-0" /> No connection. Waiting for network…
+        </p>
+      )}
+
+      {/* One prompt at a time: the next shows once the first is handled. */}
+      <div className="[&>*:not(:first-child)]:hidden">
+        <InboxSetupBanner />
+        <NotificationsBanner />
+      </div>
 
       <nav aria-label="Conversations" className="min-h-0 flex-1 overflow-y-auto px-2 pb-28 scrollbar-thin">
         {loading ? (
@@ -207,6 +224,7 @@ function MainMenu() {
   const { otherUsers, setLogin } = useLoggedInAccounts();
   const { logout } = useLoginActions();
   const { setTheme } = useTheme();
+  const canInstall = useCanInstall();
   const navigate = useNavigate();
   const [authOpen, setAuthOpen] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
@@ -251,6 +269,11 @@ function MainMenu() {
           >
             <Moon /> Toggle dark mode
           </DropdownMenuItem>
+          {canInstall && (
+            <DropdownMenuItem onSelect={() => void promptInstall()}>
+              <Download /> Install app
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           {otherUsers.map((account) => (
             <DropdownMenuItem key={account.id} onSelect={() => setLogin(account.id)}>
