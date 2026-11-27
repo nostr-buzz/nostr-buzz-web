@@ -345,7 +345,7 @@
 }
 
 /*
- * Optional "Fill the whole screen": make the document as tall as the real screen and lay
+ * "Fill the whole screen" (on by default): make the document as tall as the real screen and lay
  * the app out in it (instead of in the short fixed viewport), so the strip gets painted.
  */
 :root[data-short-viewport][data-fill-screen]:not([data-keyboard]) {

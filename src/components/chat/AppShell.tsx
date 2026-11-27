@@ -29,11 +29,11 @@ export function AppShell() {
   // Keep the composer right on top of the mobile keyboard.
   useEffect(() => (user ? trackVisualViewport() : undefined), [user]);
 
-  // Opt-in layout for iPhones that leave an unpainted strip at the bottom.
+  // Layout for iPhones that leave an unpainted strip at the bottom (can be turned off in settings).
   useEffect(() => {
-    document.documentElement.toggleAttribute('data-fill-screen', settings.fillScreen);
+    document.documentElement.toggleAttribute('data-fill-screen', settings.fullScreen);
     return () => document.documentElement.removeAttribute('data-fill-screen');
-  }, [settings.fillScreen]);
+  }, [settings.fullScreen]);
 
   if (!user) return <Landing />;
 

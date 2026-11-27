@@ -47,7 +47,7 @@ export interface ChatSettings {
   /** Let people you don't follow (message requests) shake your app. */
   buzzFromStrangers: boolean;
   /** Installed iPhone app: stretch the layout over the strip iOS leaves at the bottom. */
-  fillScreen: boolean;
+  fullScreen: boolean;
   /** Enter sends, Shift+Enter adds a new line (desktop). */
   enterToSend: boolean;
 }

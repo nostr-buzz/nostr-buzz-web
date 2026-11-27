@@ -169,7 +169,7 @@ function screenInfo(): { short: boolean; text: string } {
 
 function AppearanceSection() {
   const { theme, setTheme } = useTheme();
-  const [fillScreen, setFillScreen] = useSetting('fillScreen');
+  const [fullScreen, setFullScreen] = useSetting('fullScreen');
   const [screen] = useState(screenInfo);
   return (
     <Section title="Appearance">
@@ -194,13 +194,13 @@ function AppearanceSection() {
           </ToggleGroupItem>
         </ToggleGroup>
       </div>
-      {(screen.short || fillScreen) && (
+      {screen.short && (
         <div className="border-t">
           <SettingSwitch
             label="Fill the whole screen"
             description="Removes the empty strip at the bottom. Turn it off if the message box gets hidden."
-            checked={fillScreen}
-            onCheckedChange={setFillScreen}
+            checked={fullScreen}
+            onCheckedChange={setFullScreen}
           />
         </div>
       )}
