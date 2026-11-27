@@ -277,6 +277,15 @@ export async function ignoreOwnWraps(ids: string[]): Promise<void> {
   await api('/ignore', { token: getToken(), ids }, 1500).catch(() => undefined);
 }
 
+/**
+ * Ask the push server not to forward these events to anyone. Used for housekeeping
+ * messages (read receipts) that should never show up as a notification.
+ */
+export async function quietWraps(ids: string[]): Promise<void> {
+  if (!PUSH_SERVER || ids.length === 0) return;
+  await api('/quiet', { ids }, 1500).catch(() => undefined);
+}
+
 export async function sendTestPush(): Promise<void> {
   if (delivery === 'push') {
     await api('/test', { token: getToken() });

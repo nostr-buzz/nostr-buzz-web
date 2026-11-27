@@ -85,12 +85,14 @@ import {
   saveKeyring,
   signGroupState,
 } from '@/lib/groups/groups';
-import { closeNotifications, getDelivery, ignoreOwnWraps, showLocalNotification } from '@/lib/push/client';
+import { closeNotifications, getDelivery, ignoreOwnWraps, quietWraps, showLocalNotification } from '@/lib/push/client';
 import { playMessageSound } from '@/lib/sounds';
 
 const TWO_DAYS = 2 * 24 * 60 * 60;
 const BUZZ_COOLDOWN_MS = 8000;
-const NIP17_KINDS: ReadonlySet<number> = new Set([DM_KIND.chat, DM_KIND.file, DM_KIND.reaction, DM_KIND.deletion, DM_KIND.call]);
+/** Receipts are only sent for messages this recent, so an old inbox doesn't send a flood. */
+const RECEIPT_WINDOW = 3 * 24 * 60 * 60;
+const NIP17_KINDS: ReadonlySet<number> = new Set([DM_KIND.chat, DM_KIND.file, DM_KIND.reaction, DM_KIND.deletion, DM_KIND.call, DM_KIND.read]);
 
 /* -------------------------------------------------------------------------- */
 /*                               Message store                                */
@@ -163,6 +165,8 @@ interface DMPrefs {
   pinned: string[];
   /** When this account was first opened on this device; older messages count as read. */
   firstSeen: number;
+  /** conversationId -> newest message time a read receipt was sent for. */
+  receipts?: Record<string, number>;
 }
 
 const prefsSchema = z.object({
@@ -170,6 +174,7 @@ const prefsSchema = z.object({
   muted: z.array(z.string()),
   pinned: z.array(z.string()),
   firstSeen: z.number(),
+  receipts: z.record(z.string(), z.number()).optional(),
 });
 
 const prefsKey = (pubkey: string) => `nostr-buzz:dm-prefs:${pubkey}`;
@@ -223,6 +228,7 @@ function emptyConversation(id: string, me: string): Conversation {
     unreadCount: 0,
     isRequest: false,
     usesLegacy: false,
+    peerReadUntil: 0,
   };
 }
 
@@ -310,6 +316,17 @@ function buildConversation(
   }
   const iParticipated = list.some((message) => message.pubkey === me);
 
+  // Read receipts from the other person in a one-to-one chat.
+  let peerReadUntil = 0;
+  if (!group && participants.length === 1 && !isSelf) {
+    for (const message of list) {
+      if (message.kind !== DM_KIND.read || message.pubkey === me) continue;
+      const until = Number(message.tags.find(([name]) => name === 'until')?.[1]);
+      // A receipt can't cover messages sent after it was written.
+      if (Number.isFinite(until)) peerReadUntil = Math.max(peerReadUntil, Math.min(until, message.created_at + 60));
+    }
+  }
+
   return {
     id,
     participants,
@@ -324,6 +341,7 @@ function buildConversation(
     subject,
     isRequest: group ? false : !isSelf && !iParticipated && !participants.some((p) => follows.has(p)),
     usesLegacy: list.some((message) => message.protocol === 'nip04'),
+    peerReadUntil,
     group: group?.view,
   };
 }
@@ -1515,6 +1533,61 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
   }, []);
 
   /* ---------------------------------- prefs ---------------------------------- */
+
+  /** Tell the other person in a one-to-one chat how far we have read. Not stored locally. */
+  const sendReadReceipt = useCallback(
+    async (peer: string, until: number): Promise<boolean> => {
+      if (!user || !me) return false;
+      const signer = user.signer;
+      if (!signer.nip44) return false;
+      try {
+        const rumor = createRumor({
+          pubkey: me,
+          kind: DM_KIND.read,
+          content: '',
+          tags: [
+            ['p', peer],
+            ['until', String(until)],
+            ['alt', 'Read receipt'],
+          ],
+        });
+        const wrap = wrapSeal(await sealRumor(signer, rumor, peer), peer);
+        knownIds.current.add(wrap.id);
+        // A receipt is not news: it must not wake the other person's phone.
+        await quietWraps([wrap.id]);
+        await nostr.event(wrap, { relays: await relaysFor(peer), signal: AbortSignal.timeout(10_000) });
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [user, me, relaysFor, nostr],
+  );
+
+  // Send a receipt whenever the user has read newer messages in a chat with someone they know.
+  const receiptsInFlight = useRef(new Map<string, number>());
+  useEffect(() => {
+    if (!me || !settings.readReceipts) return;
+    const recent = nowSeconds() - RECEIPT_WINDOW;
+    for (const conversation of conversations) {
+      if (conversation.isGroup || conversation.isSelf || conversation.isRequest) continue;
+      const readAt = prefs.read[conversation.id];
+      if (!readAt) continue;
+      const lastRead = conversation.messages.findLast(
+        (message) => message.pubkey !== me && message.protocol === 'nip17' && message.created_at <= readAt,
+      );
+      if (!lastRead || lastRead.created_at < recent) continue;
+      const already = Math.max(prefs.receipts?.[conversation.id] ?? 0, receiptsInFlight.current.get(conversation.id) ?? 0);
+      if (lastRead.created_at <= already) continue;
+      const until = lastRead.created_at;
+      const id = conversation.id;
+      receiptsInFlight.current.set(id, until);
+      void sendReadReceipt(id, until).then((sent) => {
+        if (sent) setPrefs((current) => ({ ...current, receipts: { ...current.receipts, [id]: until } }));
+        else receiptsInFlight.current.delete(id);
+      });
+    }
+  }, [me, conversations, prefs.read, prefs.receipts, settings.readReceipts, sendReadReceipt]);
 
   const markRead = useCallback((conversationId: string) => {
     const now = nowSeconds();

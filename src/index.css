@@ -461,11 +461,18 @@
 
   /* Keyboard open: the sheet fills the area above it. */
   :root[data-keyboard] [data-slot="dialog-content"] {
-    top: calc(var(--vv-top, 0px) + 0.5rem);
+    /* Start below the status bar or notch, never under it. */
+    top: calc(var(--vv-top, 0px) + max(0.5rem, env(safe-area-inset-top, 0px)));
     bottom: auto;
-    max-height: calc(var(--vv-height, 100dvh) - 0.5rem);
+    max-height: calc(var(--vv-height, 100dvh) - max(0.5rem, env(safe-area-inset-top, 0px)));
     border-bottom-width: 0;
   }
+}
+
+/* Side panels (chat info) run the full height of the screen: keep their content clear of the status bar and home indicator. */
+[data-slot="sheet-content"] {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* QR scanner: a line sweeping through the viewfinder */

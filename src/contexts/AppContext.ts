@@ -40,6 +40,8 @@ export interface ChatSettings {
   notificationSound: boolean;
   /** Include message text in desktop notifications. */
   notificationPreviews: boolean;
+  /** Let people see when their messages were read (two ticks). */
+  readReceipts: boolean;
   /** Also load legacy NIP-04 (kind 4) direct messages. */
   legacyDMs: boolean;
   /** Let people you don't follow (message requests) shake your app. */

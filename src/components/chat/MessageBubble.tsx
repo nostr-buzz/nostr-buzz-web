@@ -97,6 +97,7 @@ export function MessageBubble(props: MessageBubbleProps) {
   const groupId = conversation.group?.id;
   const canPin = canModerate && isNip17 && !isLocal && !message.status;
   const canReply = !isLocal && message.status !== 'failed';
+  const read = mine && message.created_at <= conversation.peerReadUntil;
 
   // Swipe left to reply (touch). The row follows the finger, then springs back.
   const rowRef = useRef<HTMLDivElement>(null);
@@ -328,7 +329,7 @@ export function MessageBubble(props: MessageBubbleProps) {
                 )}
               </span>
               <time className="shrink-0 text-xs font-normal whitespace-nowrap opacity-75">{formatMessageTime(message.created_at)}</time>
-              {mine && <DeliveryIcon status={message.status} className="opacity-75" />}
+              {mine && <DeliveryIcon status={message.status} read={read} className="opacity-75" />}
             </div>
           </ContextMenuTrigger>
           <ContextMenuContent className="w-56">{menu(CONTEXT_KIT)}</ContextMenuContent>
@@ -354,7 +355,7 @@ export function MessageBubble(props: MessageBubbleProps) {
       {isPinned && <Pin className="size-3" aria-label="Pinned" />}
       {edited && <span>edited</span>}
       <time dateTime={new Date(message.created_at * 1000).toISOString()}>{formatMessageTime(message.created_at)}</time>
-      {mine && <DeliveryIcon status={message.status} className="size-3.5" />}
+      {mine && <DeliveryIcon status={message.status} read={read} className="size-3.5" />}
       {message.protocol === 'nip04' && <span title="Legacy NIP-04 encryption">· v1</span>}
     </span>
   );
@@ -431,7 +432,7 @@ export function MessageBubble(props: MessageBubbleProps) {
                   <span className="pointer-events-none absolute right-1.5 bottom-1.5 flex items-center gap-1 rounded-full bg-black/55 px-2 py-1 text-[11px] leading-none whitespace-nowrap text-white backdrop-blur-sm select-none">
                     {isPinned && <Pin className="size-3" aria-label="Pinned" />}
                     <time dateTime={new Date(message.created_at * 1000).toISOString()}>{formatMessageTime(message.created_at)}</time>
-                    {mine && <DeliveryIcon status={message.status} className="size-3.5" />}
+                    {mine && <DeliveryIcon status={message.status} read={read} className="size-3.5" />}
                   </span>
                 </div>
               ) : message.kind === DM_KIND.file ? (

@@ -2,7 +2,8 @@
 
 nostr.buzz is a standard [NIP-17](https://github.com/nostr-protocol/nips/blob/master/17.md)
 private messenger, with a small, backwards-compatible convention for the *BUZZ* feature and two custom
-rumor kinds for calls (`1447`, `24837`), which only ever appear inside gift wraps.
+rumor kinds for calls (`1447`, `24837`) and one for read receipts (`9491`), which only ever appear inside
+gift wraps.
 
 ## Messaging
 
@@ -23,6 +24,29 @@ No new event kinds. An optional push server (see [`push-server/`](push-server/RE
 kind `1059` (and kind `4`) events `p`-tagged to a device's pubkeys and forwards each event unchanged
 inside a Web Push message. The service worker unwraps it locally, so the server never sees keys,
 senders or text. For logins without a local key (NIP-07, NIP-46) the notification only says "New message".
+
+## Read receipts
+
+A read receipt is a custom rumor kind `9491`, sealed and gift-wrapped (kind `1059`) to the other person
+in a one-to-one chat:
+
+```jsonc
+{
+  "kind": 9491,
+  "pubkey": "<reader>",
+  "created_at": 1731650300,
+  "tags": [
+    ["p", "<the other person>"],
+    ["until", "1731650000"],            // read everything up to this rumor created_at
+    ["alt", "Read receipt"]
+  ],
+  "content": ""
+}
+```
+
+- The sender's messages with `created_at <= until` are shown with two ticks.
+- Sent only for chats with people the user knows, never in groups, and only if the user allows it.
+- Not copied to the sender's own inbox. Clients that don't know the kind ignore it.
 
 ## Voice and video calls
 

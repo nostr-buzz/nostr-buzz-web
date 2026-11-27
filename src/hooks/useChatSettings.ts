@@ -13,6 +13,7 @@ export const DEFAULT_CHAT_SETTINGS: ChatSettings = {
   pushNotifications: true,
   notificationSound: true,
   notificationPreviews: true,
+  readReceipts: true,
   legacyDMs: true,
   buzzFromStrangers: false,
   enterToSend: true,

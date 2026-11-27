@@ -19,9 +19,11 @@ import { formatListTime } from '@/lib/format';
 import { hapticTick } from '@/lib/haptics';
 import { cn } from '@/lib/utils';
 
-export function DeliveryIcon({ status, className }: { status?: DeliveryStatus; className?: string }) {
+/** One tick: sent. Two blue ticks: the other person has read it. */
+export function DeliveryIcon({ status, read, className }: { status?: DeliveryStatus; read?: boolean; className?: string }) {
   if (status === 'sending') return <Clock className={cn('size-3.5', className)} aria-label="Sending" />;
   if (status === 'failed') return <AlertCircle className={cn('size-3.5 text-destructive', className)} aria-label="Not delivered" />;
+  if (read) return <CheckCheck className={cn('size-3.5', className, 'text-sky-500 opacity-100 dark:text-sky-400')} aria-label="Read" />;
   return <Check className={cn('size-3.5', className)} aria-label="Sent" />;
 }
 
@@ -204,7 +206,7 @@ export function ChatListItem({ conversation, active }: { conversation: Conversat
                   <ConversationTitle conversation={conversation} className="min-w-0 flex-1 truncate font-semibold" />
                   {muted && <BellOff className="size-3.5 shrink-0 opacity-60" aria-label="Muted" />}
                   {mine && last && !buzz && (
-                    <DeliveryIcon status={last.status} className="text-amber-600 dark:text-amber-400" />
+                    <DeliveryIcon status={last.status} read={last.created_at <= conversation.peerReadUntil} className="text-amber-600 dark:text-amber-400" />
                   )}
                   {last && (
                     <time

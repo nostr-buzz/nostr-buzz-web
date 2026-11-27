@@ -99,6 +99,7 @@ All bodies are JSON. `token` is a random 64-hex secret made by the device.
 | `POST /subscribe` | `{ token, owner, subscription, watch[], relays[], legacy }` | Register or update a device |
 | `POST /unsubscribe` | `{ token }` | Remove a device |
 | `POST /ignore` | `{ token, ids[] }` | Skip these event ids for the owner's devices (own messages) |
+| `POST /quiet` | `{ ids[] }` | Never forward these event ids (read receipts) |
 | `POST /test` | `{ token }` | Send a test notification |
 
 ## Limits

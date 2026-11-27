@@ -122,6 +122,8 @@ let watchers = new Map();
 let legacyWatchers = new Map();
 /** event id -> first seen (ms). */
 const seen = new Map();
+/** Marks an event that should not be forwarded to any device. */
+const EVERYONE = '*';
 /** event id -> { owner, at }: wraps a user published themselves; their devices skip them. */
 const ignored = new Map();
 /** url -> RelayConnection */
@@ -241,6 +243,7 @@ class RelayConnection {
       for (const token of (event.kind === 4 ? legacyWatchers : watchers).get(p) ?? []) tokens.add(token);
     }
     const skipOwner = ignored.get(event.id)?.owner;
+    if (skipOwner === EVERYONE) return;
     for (const token of tokens) {
       const sub = subs.get(token);
       if (!sub || sub.owner === skipOwner) continue;
@@ -506,6 +509,14 @@ const routes = {
     const ids = (Array.isArray(body.ids) ? body.ids : []).filter((id) => HEX64.test(id)).slice(0, 20);
     const at = Date.now();
     for (const id of ids) ignored.set(id, { owner: sub.owner, at });
+    return { ok: true };
+  },
+
+  /** "Never forward these events": housekeeping messages such as read receipts. */
+  'POST /quiet': (body) => {
+    const ids = (Array.isArray(body.ids) ? body.ids : []).filter((id) => HEX64.test(id)).slice(0, 20);
+    const at = Date.now();
+    for (const id of ids) ignored.set(id, { owner: EVERYONE, at });
     return { ok: true };
   },
 

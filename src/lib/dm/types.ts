@@ -43,6 +43,8 @@ export const DM_KIND = {
   file: 15,
   /** A voice or video call offer (see lib/calls/protocol.ts). */
   call: 1447,
+  /** Read receipt: "I have read this chat up to the time in the `until` tag". */
+  read: 9491,
 } as const;
 
 /** Kinds that render as a bubble in the timeline. */
@@ -77,6 +79,8 @@ export interface Conversation {
    */
   isRequest: boolean;
   usesLegacy: boolean;
+  /** Unix seconds up to which the other person has read this chat (one-to-one chats; 0 if unknown). */
+  peerReadUntil: number;
   /** Set for nostr.buzz groups (groups with their own npub). */
   group?: GroupView;
 }

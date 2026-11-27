@@ -343,10 +343,17 @@ function PrivacySection() {
   const [enterToSend, setEnterToSend] = useSetting('enterToSend');
   const [strangers, setStrangers] = useSetting('buzzFromStrangers');
   const [legacy, setLegacy] = useSetting('legacyDMs');
+  const [receipts, setReceipts] = useSetting('readReceipts');
 
   return (
     <Section title="Chats & privacy">
       <SettingSwitch label="Enter to send" description="Shift + Enter for a new line" checked={enterToSend} onCheckedChange={setEnterToSend} />
+      <SettingSwitch
+        label="Read receipts"
+        description="Show others two ticks when you read their messages"
+        checked={receipts}
+        onCheckedChange={setReceipts}
+      />
       <SettingSwitch
         label="Buzzes from strangers"
         description="From people you don't follow"
