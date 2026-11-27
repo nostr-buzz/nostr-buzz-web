@@ -17,7 +17,7 @@ import {
   MAX_GROUP_PARTICIPANTS,
   messagePreview,
 } from '@/lib/dm/conversation';
-import { CALL_OFFER_KIND, isVideoCall, RING_SECONDS } from '@/lib/calls/protocol';
+import { CALL_OFFER_KIND, CALL_SIGNAL_KIND, isVideoCall, parseCallOffer, parseCallSignal, RING_SECONDS } from '@/lib/calls/protocol';
 import { unwrapGiftWrap } from '@/lib/dm/nip17';
 import { DM_KIND, type Rumor } from '@/lib/dm/types';
 import { shortNpub } from '@/lib/format';
@@ -34,6 +34,7 @@ const HEX64 = /^[0-9a-f]{64}$/;
 /** Pushes can be delayed while a phone sleeps; older messages are not news any more. */
 const MAX_AGE_SECONDS = 30 * 60;
 const BUZZ_VIBRATION = [120, 60, 120, 60, 120, 60, 300];
+const CALL_VIBRATION = [500, 250, 500, 250, 500, 250, 500, 250, 500];
 const QUIET_TAG = 'nostr-buzz-quiet';
 
 /** Notification options browsers support but TypeScript's DOM lib doesn't list. */
@@ -46,6 +47,8 @@ interface RichNotificationOptions extends NotificationOptions {
 interface NotificationData {
   url: string;
   lines: string[];
+  /** Set on "incoming call" notifications, so a later hang-up can find them. */
+  callId?: string;
 }
 
 /** What to show for one push. `undefined` means "nothing". */
@@ -59,6 +62,10 @@ interface Alert {
   at?: number;
   /** Play the system sound. */
   sound?: boolean;
+  /** An incoming call: stays on screen until answered or dismissed. */
+  callId?: string;
+  /** Replace what is shown without alerting again (a call that was not answered). */
+  quietUpdate?: boolean;
 }
 
 /**
@@ -236,9 +243,29 @@ async function buildAlert(event: NostrEvent, state: PushState): Promise<Alert | 
   if (!state.secret) return genericAlert();
 
   const rumor = await unwrapGiftWrap(new NSecSigner(fromHex(state.secret)), event);
+  if (rumor.kind === CALL_SIGNAL_KIND) return missedCallAlert(rumor, state);
   const participants = getParticipants(rumor);
   if (!participants.includes(state.me) || participants.length > MAX_GROUP_PARTICIPANTS + 1) return undefined;
   return rumorAlert(rumor, conversationIdFromParticipants(participants, state.me), state, false);
+}
+
+/** The caller gave up: turn their "incoming call" notification into "missed call". */
+async function missedCallAlert(rumor: Rumor, state: PushState): Promise<Alert | undefined> {
+  const signal = parseCallSignal(rumor);
+  if (!signal || signal.type !== 'hangup' || signal.from === state.me) return undefined;
+  const shown = await self.registration.getNotifications({ tag: signal.from });
+  const ringing = shown.find((item) => (item.data as NotificationData | undefined)?.callId === signal.callId);
+  if (!ringing) return undefined;
+  return {
+    tag: signal.from,
+    title: nameOf(state, signal.from),
+    line: 'Missed call',
+    url: conversationRoute(signal.from),
+    icon: pictureOf(state, signal.from),
+    buzz: true,
+    quietUpdate: true,
+    at: rumor.created_at,
+  };
 }
 
 function genericAlert(): Alert {
@@ -286,6 +313,7 @@ function rumorAlert(rumor: Rumor, conversationId: string, state: PushState, buzz
       url,
       icon,
       buzz: ringing,
+      callId: ringing ? parseCallOffer(rumor)?.callId : undefined,
       at: rumor.created_at,
     };
   }
@@ -325,14 +353,16 @@ async function showAlert(alert: Alert): Promise<void> {
     icon: alert.icon ?? ICON,
     badge: BADGE,
     tag: alert.tag,
-    renotify: true,
-    silent: !alert.sound,
+    renotify: !alert.quietUpdate,
+    silent: alert.quietUpdate || !alert.sound,
+    requireInteraction: !!alert.callId,
     timestamp: (alert.at ?? nowSeconds()) * 1000,
-    data: { url: alert.url, lines } satisfies NotificationData,
-    ...(alert.buzz && alert.sound ? { vibrate: BUZZ_VIBRATION } : {}),
+    data: { url: alert.url, lines, callId: alert.callId } satisfies NotificationData,
+    ...(alert.buzz && alert.sound && !alert.quietUpdate ? { vibrate: alert.callId ? CALL_VIBRATION : BUZZ_VIBRATION } : {}),
   };
   await self.registration.showNotification(alert.title, options);
 
+  if (alert.quietUpdate) return;
   const badge = ((await pushGet('badge')) ?? 0) + 1;
   await pushSet('badge', badge);
   await setBadge(badge);

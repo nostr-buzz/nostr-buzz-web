@@ -70,8 +70,11 @@ export interface DMContextValue {
   joinGroup(invite: GroupInvite): Promise<string>;
   /** Ring someone: sends the call offer as a private message. Resolves to false if it could not be delivered. */
   sendCallOffer(pubkey: string, callId: string, video: boolean, sdp: string): Promise<boolean>;
-  /** Send a real-time call signal (not stored). `copySelf` also tells the user's other devices. */
-  sendCallSignal(to: string, callId: string, type: CallSignalType, sdp?: string, copySelf?: boolean): Promise<boolean>;
+  /**
+   * Send a real-time call signal. `copySelf` also tells the user's other devices;
+   * `store` adds a stored copy that reaches a closed app through push.
+   */
+  sendCallSignal(to: string, callId: string, type: CallSignalType, sdp?: string, opts?: { copySelf?: boolean; store?: boolean }): Promise<boolean>;
   /** Admins only: pin or unpin a message for everyone. */
   setGroupPinned(groupId: string, messageId: string, pinned: boolean): Promise<void>;
 }

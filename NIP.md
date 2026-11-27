@@ -56,16 +56,21 @@ gift-wrapped like any other private message. Two custom rumor kinds are used:
   "tags": [
     ["p", "<the other side>"],
     ["call-id", "<uuid>"],
-    ["type", "answer"],                // "answer" | "reject" | "hangup" | "busy"
+    ["type", "answer"],                // "ringing" | "answer" | "reject" | "hangup" | "busy" | "restart" | "restart-answer"
     ["alt", "Call signal"]
   ],
-  "content": "<SDP answer for type answer, otherwise empty>"
+  "content": "<SDP for answer, restart and restart-answer, otherwise empty>"
 }
 ```
 
 - Each side sends its complete session description once (no trickle ICE), so a call takes three messages.
 - A call rings for 60 seconds from the offer's `created_at`. Older offers are shown as call records only.
+- `ringing` tells the caller that the other device is ringing.
 - `answer` and `reject` are also wrapped to the sender, so their other devices stop ringing.
+- A caller who gives up before an answer also sends `hangup` in a stored kind `1059` wrap, so a closed
+  app can turn its "incoming call" notification into "missed call".
+- If the media path drops, the caller sends `restart` with a fresh SDP offer (ICE restart) and the callee
+  replies with `restart-answer`. Clients keep trying for 30 seconds before ending the call.
 - Clients only ring for people the user follows or has chatted with. Offers in groups are ignored.
 - Clients that don't know these kinds ignore them: nothing is shown as text.
 - Media flows directly between the two devices (DTLS-SRTP), or through a TURN relay when a direct

@@ -1,4 +1,4 @@
-import { Mic, MicOff, Phone, PhoneOff, SwitchCamera, Video, VideoOff } from 'lucide-react';
+import { ChevronDown, Mic, MicOff, Phone, PhoneOff, SwitchCamera, Video, VideoOff } from 'lucide-react';
 import { type ReactNode, useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 
 import { UserAvatar } from '@/components/chat/UserAvatar';
@@ -16,6 +16,10 @@ import { cn } from '@/lib/utils';
 const STUN_SERVERS: RTCIceServer[] = [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun.cloudflare.com:3478'] }];
 /** Don't wait longer than this for network candidates before sending the offer or answer. */
 const ICE_WAIT_MS = 3000;
+/** How long a dropped call keeps trying to reconnect. */
+const RECONNECT_MS = 30_000;
+/** How long setting up the media path may take after the call was accepted. */
+const CONNECT_MS = 30_000;
 
 interface Session {
   callId: string;
@@ -95,12 +99,20 @@ export function CallProvider({ children }: { children: ReactNode }) {
   const [muted, setMuted] = useState(false);
   const [cameraOff, setCameraOff] = useState(false);
   const [facing, setFacing] = useState<'user' | 'environment'>('user');
+  /** The other device confirmed it is ringing. */
+  const [ringing, setRinging] = useState(false);
+  /** The media path dropped and is being re-established. */
+  const [reconnecting, setReconnecting] = useState(false);
+  /** Shrunk to a bar so the user can keep using the app. */
+  const [minimized, setMinimized] = useState(false);
 
   /** The call the async setup steps belong to; a different id means "this call is over". */
   const activeId = useRef<string | undefined>(undefined);
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const timers = useRef<{ ring?: number; close?: number; lost?: number }>({});
+  const timers = useRef<{ ring?: number; close?: number; lost?: number; restart?: number }>({});
+  /** Asks the caller's side to renegotiate the connection (set while a call is up). */
+  const restartRef = useRef<(() => void) | undefined>(undefined);
 
   const supported = typeof RTCPeerConnection !== 'undefined' && typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia;
 
@@ -108,6 +120,9 @@ export function CallProvider({ children }: { children: ReactNode }) {
     activeId.current = undefined;
     window.clearTimeout(timers.current.ring);
     window.clearTimeout(timers.current.lost);
+    timers.current.lost = undefined;
+    window.clearInterval(timers.current.restart);
+    restartRef.current = undefined;
     pcRef.current?.close();
     pcRef.current = null;
     for (const track of streamRef.current?.getTracks() ?? []) track.stop();
@@ -120,6 +135,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
   const finish = useCallback(
     (reason: string) => {
       release();
+      setReconnecting(false);
       setSession((current) => (current ? { ...current, ended: reason } : current));
       setPhase('ended');
       window.clearTimeout(timers.current.close);
@@ -129,6 +145,8 @@ export function CallProvider({ children }: { children: ReactNode }) {
         setMuted(false);
         setCameraOff(false);
         setFacing('user');
+        setRinging(false);
+        setMinimized(false);
       }, 1600);
     },
     [release],
@@ -156,18 +174,28 @@ export function CallProvider({ children }: { children: ReactNode }) {
       pc.addEventListener('track', (event) => {
         if (activeId.current === callId) setRemoteStream(event.streams[0] ?? new MediaStream([event.track]));
       });
+      let everConnected = false;
       pc.addEventListener('connectionstatechange', () => {
         if (activeId.current !== callId) return;
-        window.clearTimeout(timers.current.lost);
-        if (pc.connectionState === 'connected') {
+        const state = pc.connectionState;
+        if (state === 'connected') {
+          everConnected = true;
           window.clearTimeout(timers.current.ring);
+          window.clearTimeout(timers.current.lost);
+          window.clearInterval(timers.current.restart);
+          timers.current.lost = undefined;
+          setReconnecting(false);
           setSession((current) => (current && !current.connectedAt ? { ...current, connectedAt: Date.now() } : current));
           setPhase('active');
-        } else if (pc.connectionState === 'failed') {
+        } else if (state === 'failed' && !everConnected) {
           finish('Connection failed');
-        } else if (pc.connectionState === 'disconnected') {
-          // Brief drops recover on their own; give up after a while.
-          timers.current.lost = window.setTimeout(() => finish('Connection lost'), 10_000);
+        } else if ((state === 'disconnected' || state === 'failed') && everConnected && !timers.current.lost) {
+          // The network changed or dropped: keep the call and rebuild the media path.
+          setReconnecting(true);
+          timers.current.lost = window.setTimeout(() => finish('Connection lost'), RECONNECT_MS);
+          window.clearInterval(timers.current.restart);
+          restartRef.current?.();
+          timers.current.restart = window.setInterval(() => restartRef.current?.(), 7000);
         }
       });
       return pc;
@@ -185,6 +213,8 @@ export function CallProvider({ children }: { children: ReactNode }) {
       setPhase('outgoing');
       setCameraOff(false);
       setMuted(false);
+      setRinging(false);
+      setMinimized(false);
 
       void (async () => {
         try {
@@ -199,8 +229,22 @@ export function CallProvider({ children }: { children: ReactNode }) {
             finish('Could not reach them');
             return;
           }
+          // Only the caller renegotiates, so the two sides never offer at the same time.
+          restartRef.current = () => {
+            void (async () => {
+              try {
+                if (activeId.current !== callId || pcRef.current !== pc) return;
+                if (pc.signalingState !== 'stable') await pc.setLocalDescription({ type: 'rollback' });
+                await pc.setLocalDescription(await pc.createOffer({ iceRestart: true }));
+                await iceGathered(pc);
+                if (activeId.current === callId) void sendCallSignal(pubkey, callId, 'restart', pc.localDescription?.sdp ?? '');
+              } catch {
+                // Still offline: the next attempt may get through.
+              }
+            })();
+          };
           timers.current.ring = window.setTimeout(() => {
-            void sendCallSignal(pubkey, callId, 'hangup');
+            void sendCallSignal(pubkey, callId, 'hangup', '', { store: true });
             finish('No answer');
           }, RING_SECONDS * 1000);
         } catch (error) {
@@ -216,6 +260,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
     const { callId, peer, video, offerSdp } = session;
     window.clearTimeout(timers.current.ring);
     setPhase('connecting');
+    timers.current.ring = window.setTimeout(() => finish('Could not connect'), CONNECT_MS);
     void (async () => {
       try {
         const pc = await openPeer(callId, video);
@@ -225,7 +270,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
         await iceGathered(pc);
         if (activeId.current !== callId) return;
         // The copy to ourselves stops the ringing on our other devices.
-        const sent = await sendCallSignal(peer, callId, 'answer', pc.localDescription?.sdp ?? '', true);
+        const sent = await sendCallSignal(peer, callId, 'answer', pc.localDescription?.sdp ?? '', { copySelf: true });
         if (activeId.current === callId && !sent) finish('Could not connect');
       } catch (error) {
         if (activeId.current === callId) {
@@ -238,14 +283,15 @@ export function CallProvider({ children }: { children: ReactNode }) {
 
   const decline = () => {
     if (!session) return;
-    void sendCallSignal(session.peer, session.callId, 'reject', '', true);
+    void sendCallSignal(session.peer, session.callId, 'reject', '', { copySelf: true });
     finish('Declined');
   };
 
   const hangUp = () => {
     if (!session || phase === 'ended' || phase === 'idle') return;
-    void sendCallSignal(session.peer, session.callId, 'hangup');
-    finish('Call ended');
+    // Giving up before an answer is also stored, so a closed app shows "missed call".
+    void sendCallSignal(session.peer, session.callId, 'hangup', '', { store: phase === 'outgoing' });
+    finish(phase === 'outgoing' ? 'Cancelled' : 'Call ended');
   };
 
   const onOffer = useEffectEvent((offer: CallOffer) => {
@@ -262,6 +308,9 @@ export function CallProvider({ children }: { children: ReactNode }) {
     setPhase('incoming');
     setCameraOff(false);
     setMuted(false);
+    setRinging(false);
+    setMinimized(false);
+    void sendCallSignal(offer.from, offer.callId, 'ringing');
     timers.current.ring = window.setTimeout(() => finish('Missed call'), remaining);
   });
 
@@ -275,12 +324,33 @@ export function CallProvider({ children }: { children: ReactNode }) {
       return;
     }
     if (signal.from !== session.peer) return;
-    if (signal.type === 'answer') {
-      const pc = pcRef.current;
+    const pc = pcRef.current;
+    if (signal.type === 'ringing') {
+      if (phase === 'outgoing') setRinging(true);
+    } else if (signal.type === 'answer') {
       if (phase !== 'outgoing' || !pc || !signal.sdp) return;
       window.clearTimeout(timers.current.ring);
       setPhase('connecting');
+      timers.current.ring = window.setTimeout(() => finish('Could not connect'), CONNECT_MS);
       pc.setRemoteDescription({ type: 'answer', sdp: signal.sdp }).catch(() => finish('Could not connect'));
+    } else if (signal.type === 'restart') {
+      // The caller rebuilt its side after a network change: answer with ours.
+      if (!pc || !signal.sdp || !session.incoming) return;
+      const { peer, callId } = session;
+      const offerSdp = signal.sdp;
+      void (async () => {
+        try {
+          await pc.setRemoteDescription({ type: 'offer', sdp: offerSdp });
+          await pc.setLocalDescription(await pc.createAnswer());
+          await iceGathered(pc);
+          if (activeId.current === callId) void sendCallSignal(peer, callId, 'restart-answer', pc.localDescription?.sdp ?? '');
+        } catch {
+          // The caller retries with a new offer.
+        }
+      })();
+    } else if (signal.type === 'restart-answer') {
+      if (!pc || !signal.sdp || session.incoming || pc.signalingState !== 'have-local-offer') return;
+      pc.setRemoteDescription({ type: 'answer', sdp: signal.sdp }).catch(() => undefined);
     } else if (signal.type === 'reject') {
       finish('Declined');
     } else if (signal.type === 'busy') {
@@ -298,6 +368,13 @@ export function CallProvider({ children }: { children: ReactNode }) {
       }),
     [],
   );
+
+  // Back online: don't wait for the next retry.
+  useEffect(() => {
+    const retry = () => restartRef.current?.();
+    window.addEventListener('online', retry);
+    return () => window.removeEventListener('online', retry);
+  }, []);
 
   // Ring while waiting for someone to pick up.
   useEffect(() => {
@@ -372,6 +449,10 @@ export function CallProvider({ children }: { children: ReactNode }) {
           muted={muted}
           cameraOff={cameraOff}
           mirrored={facing === 'user'}
+          ringing={ringing}
+          reconnecting={reconnecting}
+          minimized={minimized}
+          onMinimize={setMinimized}
           onAccept={accept}
           onDecline={decline}
           onHangUp={hangUp}
@@ -394,6 +475,10 @@ interface CallScreenProps {
   muted: boolean;
   cameraOff: boolean;
   mirrored: boolean;
+  ringing: boolean;
+  reconnecting: boolean;
+  minimized: boolean;
+  onMinimize: (minimized: boolean) => void;
   onAccept: () => void;
   onDecline: () => void;
   onHangUp: () => void;
@@ -403,7 +488,7 @@ interface CallScreenProps {
 }
 
 function CallScreen(props: CallScreenProps) {
-  const { session, phase, localStream, remoteStream, muted, cameraOff, mirrored } = props;
+  const { session, phase, localStream, remoteStream, muted, cameraOff, mirrored, ringing, reconnecting, minimized } = props;
   const author = useAuthor(session.peer);
   const name = displayName(session.peer, author.data?.metadata);
   const remoteRef = useRef<HTMLVideoElement>(null);
@@ -448,32 +533,69 @@ function CallScreen(props: CallScreenProps) {
       : phase === 'incoming'
         ? `Incoming ${kind} call`
         : phase === 'outgoing'
-          ? 'Calling…'
+          ? ringing
+            ? 'Ringing…'
+            : 'Calling…'
           : phase === 'connecting'
             ? 'Connecting…'
-            : formatDuration(now - (session.connectedAt ?? now));
+            : reconnecting
+              ? 'Reconnecting…'
+              : formatDuration(now - (session.connectedAt ?? now));
 
   const showRemoteVideo = session.video && phase === 'active' && !!remoteStream;
   const showLocalVideo = session.video && !!localStream && !cameraOff && phase !== 'ended';
 
+  // Shrinking the call only makes sense once it is under way; a ringing phone stays full screen.
+  const canMinimize = phase === 'outgoing' || phase === 'connecting' || phase === 'active';
+  const collapsed = minimized && canMinimize;
+
   return (
     <div
       role="dialog"
-      aria-modal="true"
+      aria-modal={!collapsed}
       aria-label={`${kind === 'video' ? 'Video' : 'Voice'} call with ${name}`}
-      className="fixed inset-0 z-[95] flex flex-col overflow-hidden bg-stone-950 text-white animate-in fade-in duration-200 motion-reduce:animate-none"
+      className={cn(
+        'fixed z-[95] overflow-hidden text-white',
+        collapsed
+          ? 'inset-x-0 top-0 bg-emerald-700 pt-[env(safe-area-inset-top)] shadow-lg'
+          : 'inset-0 flex flex-col bg-stone-950 animate-in fade-in duration-200 motion-reduce:animate-none',
+      )}
     >
+      {collapsed && (
+        <button
+          type="button"
+          onClick={() => props.onMinimize(false)}
+          className="flex w-full items-center justify-center gap-2 px-4 py-2 text-sm font-semibold focus-visible:bg-emerald-600 focus-visible:outline-none"
+        >
+          {session.video ? <Video className="size-4" /> : <Phone className="size-4" />}
+          <span className="max-w-[45%] truncate" dir="auto">
+            {name}
+          </span>
+          <span className="tabular-nums opacity-90">{status}</span>
+          <span className="opacity-90">· Tap to return</span>
+        </button>
+      )}
+      {canMinimize && !collapsed && (
+        <button
+          type="button"
+          aria-label="Minimize call"
+          onClick={() => props.onMinimize(true)}
+          className="absolute top-[max(0.75rem,env(safe-area-inset-top))] left-3 z-20 flex size-11 items-center justify-center rounded-full bg-white/15 backdrop-blur-md hover:bg-white/25 focus-visible:ring-4 focus-visible:ring-white/50 focus-visible:outline-none"
+        >
+          <ChevronDown className="size-6" />
+        </button>
+      )}
       {/* The remote stream always plays here: it carries the sound of voice calls too. */}
       <video
         ref={remoteRef}
         autoPlay
         playsInline
         aria-label={`${name}'s video`}
-        className={cn('absolute inset-0 size-full object-cover', !showRemoteVideo && 'invisible')}
+        className={cn('absolute inset-0 size-full object-cover', (!showRemoteVideo || collapsed) && 'invisible')}
       />
-      {!showRemoteVideo && <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-amber-500/25 via-stone-950 to-stone-950" />}
+      {!showRemoteVideo && !collapsed && <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-amber-500/25 via-stone-950 to-stone-950" />}
 
-      {showLocalVideo && (
+      {showLocalVideo && !collapsed && (
         <video
           ref={localRef}
           autoPlay
@@ -492,8 +614,9 @@ function CallScreen(props: CallScreenProps) {
           'relative z-[5] flex flex-1 flex-col px-6',
           // Over live video the name moves to the top left, clear of the self view.
           showRemoteVideo
-            ? 'items-start pt-[max(1.25rem,env(safe-area-inset-top))] pr-36 text-left sm:pr-44'
+            ? 'items-start pt-[max(1.25rem,env(safe-area-inset-top))] pr-36 pl-16 text-left sm:pr-44'
             : 'items-center pt-[max(4rem,calc(env(safe-area-inset-top)+3rem))] text-center',
+          collapsed && 'hidden',
         )}
       >
         {!showRemoteVideo && <UserAvatar pubkey={session.peer} className={cn('size-32 text-5xl ring-4 ring-white/10', (phase === 'incoming' || phase === 'outgoing') && 'animate-pulse motion-reduce:animate-none')} />}
@@ -505,7 +628,7 @@ function CallScreen(props: CallScreenProps) {
         </p>
       </div>
 
-      <div className="relative z-[5] flex items-center justify-center gap-5 px-6 pt-6 pb-[max(2.5rem,calc(env(safe-area-inset-bottom)+1.5rem))]">
+      <div className={cn('relative z-[5] flex items-center justify-center gap-5 px-6 pt-6 pb-[max(2.5rem,calc(env(safe-area-inset-bottom)+1.5rem))]', collapsed && 'hidden')}>
         {phase === 'incoming' ? (
           <>
             <RoundButton label="Decline" tone="danger" large onClick={props.onDecline}>

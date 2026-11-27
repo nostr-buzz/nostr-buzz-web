@@ -6,8 +6,10 @@
  *
  * - the offer (kind 1447) goes in a normal gift wrap (kind 1059): it is stored, so it can
  *   wake a closed app through push and stays in the chat as a call record;
- * - the answer / reject / hang-up / busy signals (kind 24837) go in ephemeral gift wraps
- *   (kind 21059): they only matter to apps that are open right now.
+ * - the signals that follow (kind 24837: ringing, answer, reject, hang-up, busy, reconnect)
+ *   go in ephemeral gift wraps (kind 21059): they only matter to apps that are open right now.
+ *   A caller who gives up also sends the hang-up in a stored wrap, so a closed app's
+ *   "incoming call" notification can turn into "missed call".
  *
  * Each side sends its complete connection description once (no trickle ICE), so a call
  * needs three messages in total and works with signers that ask before every operation.
@@ -24,8 +26,14 @@ export const RING_SECONDS = 60;
 const CALL_ID = /^[A-Za-z0-9-]{8,64}$/;
 const MAX_SDP = 30_000;
 
-export type CallSignalType = 'answer' | 'reject' | 'hangup' | 'busy';
-const SIGNAL_TYPES: readonly string[] = ['answer', 'reject', 'hangup', 'busy'];
+/**
+ * - `ringing`: the callee's device is ringing
+ * - `answer` / `reject` / `busy`: the callee's decision
+ * - `hangup`: either side ended (or the caller gave up)
+ * - `restart` / `restart-answer`: a fresh connection description after the network changed
+ */
+export type CallSignalType = 'ringing' | 'answer' | 'reject' | 'hangup' | 'busy' | 'restart' | 'restart-answer';
+const SIGNAL_TYPES: readonly string[] = ['ringing', 'answer', 'reject', 'hangup', 'busy', 'restart', 'restart-answer'];
 
 export interface CallOffer {
   callId: string;
@@ -40,7 +48,7 @@ export interface CallSignal {
   callId: string;
   from: string;
   type: CallSignalType;
-  /** Present on `answer`. */
+  /** Present on `answer`, `restart` and `restart-answer`. */
   sdp?: string;
 }
 

@@ -1075,18 +1075,23 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
   );
 
   const sendCallSignal = useCallback(
-    async (to: string, callId: string, type: CallSignalType, sdp = '', copySelf = false): Promise<boolean> => {
+    async (to: string, callId: string, type: CallSignalType, sdp = '', opts: { copySelf?: boolean; store?: boolean } = {}): Promise<boolean> => {
       if (!user || !me) return false;
       const signer = user.signer;
       if (!signer.nip44) return false;
       const rumor = createRumor({ pubkey: me, kind: CALL_SIGNAL_KIND, content: sdp, tags: callSignalTags(to, callId, type) });
-      const recipients = copySelf && to !== me ? [to, me] : [to];
+      const recipients = opts.copySelf && to !== me ? [to, me] : [to];
       const results = await Promise.allSettled(
         recipients.map(async (recipient) => {
           const wrap = wrapSeal(await sealRumor(signer, rumor, recipient), recipient, EPHEMERAL_WRAP_KIND);
           // This device already knows what it sent.
           knownIds.current.add(wrap.id);
-          await nostr.event(wrap, { relays: await relaysFor(recipient), signal: AbortSignal.timeout(10_000) });
+          const relays = await relaysFor(recipient);
+          const sends = [nostr.event(wrap, { relays, signal: AbortSignal.timeout(10_000) })];
+          if (opts.store && recipient === to) {
+            sends.push(nostr.event(wrapSeal(await sealRumor(signer, rumor, recipient), recipient), { relays, signal: AbortSignal.timeout(10_000) }));
+          }
+          await Promise.any(sends);
         }),
       );
       return results[0].status === 'fulfilled';
