@@ -8,6 +8,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import AuthDialog from '@/components/auth/AuthDialog';
 import { Bee3D } from '@/components/brand/Bee3D';
 import { Logo } from '@/components/brand/Brand';
+import { InstallHelpDialog } from '@/components/InstallHelpDialog';
 import { CallsList } from '@/components/chat/CallsList';
 import { ChatListItem } from '@/components/chat/ChatListItem';
 import { InboxSetupBanner } from '@/components/chat/InboxSetupBanner';
@@ -46,6 +47,7 @@ import { conversationRoute } from '@/lib/dm/conversation';
 import { type Conversation, DM_KIND } from '@/lib/dm/types';
 import { displayName, shortNpub } from '@/lib/format';
 import { promptInstall, useCanInstall, useOnline } from '@/lib/install';
+import { isStandalone } from '@/lib/push/client';
 import { cn } from '@/lib/utils';
 
 type Tab = 'chats' | 'calls' | 'requests';
@@ -232,6 +234,8 @@ function MainMenu() {
   const { logout } = useLoginActions();
   const { setTheme } = useTheme();
   const canInstall = useCanInstall();
+  const [installed] = useState(isStandalone);
+  const [installHelp, setInstallHelp] = useState(false);
   const navigate = useNavigate();
   const [authOpen, setAuthOpen] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
@@ -276,8 +280,8 @@ function MainMenu() {
           >
             <Moon /> Toggle dark mode
           </DropdownMenuItem>
-          {canInstall && (
-            <DropdownMenuItem onSelect={() => void promptInstall()}>
+          {!installed && (
+            <DropdownMenuItem onSelect={() => (canInstall ? void promptInstall() : setInstallHelp(true))}>
               <Download /> Install app
             </DropdownMenuItem>
           )}
@@ -298,6 +302,7 @@ function MainMenu() {
       </DropdownMenu>
 
       <AuthDialog isOpen={authOpen} onClose={() => setAuthOpen(false)} />
+      <InstallHelpDialog open={installHelp} onOpenChange={setInstallHelp} />
 
       <AlertDialog open={confirmLogout} onOpenChange={setConfirmLogout}>
         <AlertDialogContent>

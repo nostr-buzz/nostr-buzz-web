@@ -1,10 +1,19 @@
-import { Lock } from 'lucide-react';
+import { Download, Lock } from 'lucide-react';
+import { useState } from 'react';
 
 import { LoginArea } from '@/components/auth/LoginArea';
 import { Bee3D } from '@/components/brand/Bee3D';
+import { InstallHelpDialog } from '@/components/InstallHelpDialog';
+import { Button } from '@/components/ui/button';
+import { promptInstall, useCanInstall } from '@/lib/install';
+import { isStandalone } from '@/lib/push/client';
 
 /** The page people see before they join: one screen, one message, one button. */
 export function Landing() {
+  const canInstall = useCanInstall();
+  const [installed] = useState(isStandalone);
+  const [installHelp, setInstallHelp] = useState(false);
+
   return (
     <div className="flex min-h-dvh flex-col bg-background">
       <main className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center px-6 pt-[max(2.5rem,env(safe-area-inset-top))] pb-10 text-center">
@@ -17,10 +26,22 @@ export function Landing() {
 
         <LoginArea className="mt-9 [&_button]:h-13 [&_button]:px-10 [&_button]:text-lg" />
 
+        {!installed && (
+          <Button
+            variant="ghost"
+            className="mt-3 h-11 rounded-full px-5 text-base text-muted-foreground"
+            onClick={() => (canInstall ? void promptInstall() : setInstallHelp(true))}
+          >
+            <Download /> Install the app
+          </Button>
+        )}
+
         <p className="mt-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
           <Lock className="size-3.5" /> End-to-end encrypted on Nostr
         </p>
       </main>
+
+      <InstallHelpDialog open={installHelp} onOpenChange={setInstallHelp} />
 
       <footer className="pb-[max(1.25rem,env(safe-area-inset-bottom))] text-center text-sm text-muted-foreground">
         Free and open source
