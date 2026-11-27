@@ -163,7 +163,7 @@ function screenInfo(): { short: boolean; text: string } {
   probe.remove();
   return {
     short: document.documentElement.hasAttribute('data-short-viewport'),
-    text: `Screen ${window.screen.width}×${window.screen.height}, app area ${window.innerWidth}×${window.innerHeight}, insets ${insets}`,
+    text: `Screen ${window.screen.width}×${window.screen.height} · app area ${window.innerWidth}×${window.innerHeight} · insets ${insets}`,
   };
 }
 
@@ -233,12 +233,13 @@ function BuzzSection() {
   );
 }
 
+/** Title with its description underneath, taking the room left of a row's button. */
 function SettingInline({ label, description }: { label: string; description: string }) {
   return (
-    <>
+    <div className="min-w-0 flex-1">
       <span className="block font-medium">{label}</span>
       <span className="mt-0.5 block text-sm text-muted-foreground">{description}</span>
-    </>
+    </div>
   );
 }
 
@@ -354,9 +355,7 @@ function NotificationsSection() {
         </ToggleGroup>
       </div>
       <div className="flex items-center justify-between gap-4 px-4 py-3.5">
-        <div className="min-w-0">
-          <SettingInline label="Test" description="Send yourself a notification" />
-        </div>
+        <SettingInline label="Test" description="Send yourself a notification" />
         <Button variant="outline" size="sm" className="rounded-full" onClick={() => void test()} disabled={!on || testing}>
           {testing ? <Loader2 className="animate-spin" /> : null} Send test
         </Button>
@@ -614,13 +613,13 @@ function StorageSection() {
     <Section title="Account & storage">
       <div className="flex items-center justify-between gap-4 border-b px-4 py-3.5">
         <SettingInline label="Clear message cache" description="Reload messages from relays" />
-        <Button variant="outline" onClick={() => setConfirm(true)}>
+        <Button variant="outline" className="shrink-0" onClick={() => setConfirm(true)}>
           <Trash2 /> Clear
         </Button>
       </div>
       <div className="flex items-center justify-between gap-4 px-4 py-3.5">
         <SettingInline label="Log out" description="Back up your key first" />
-        <Button variant="destructive" onClick={() => setConfirmLogout(true)}>
+        <Button variant="destructive" className="shrink-0" onClick={() => setConfirmLogout(true)}>
           <LogOut /> Log out
         </Button>
       </div>
@@ -670,6 +669,7 @@ function AboutSection() {
   const { toast } = useToast();
   const [checking, setChecking] = useState(false);
   const built = new Date(APP_BUILT_AT);
+  const [display] = useState(screenInfo);
 
   const check = async () => {
     setChecking(true);
@@ -691,16 +691,15 @@ function AboutSection() {
         </div>
       </div>
       <div className="flex items-center justify-between gap-4 px-4 py-3.5">
-        <div className="min-w-0">
-          <SettingInline
-            label="Version"
-            description={`${APP_VERSION.split('-')[0]}${Number.isNaN(built.getTime()) ? '' : ` · ${built.toLocaleDateString()}`}. Updates install on their own. ${screenInfo().text}.`}
-          />
-        </div>
+        <SettingInline
+          label="Version"
+          description={`${APP_VERSION.split('-')[0]}${Number.isNaN(built.getTime()) ? '' : ` · ${built.toLocaleDateString()}`}`}
+        />
         <Button variant="outline" size="sm" className="shrink-0 rounded-full" onClick={() => void check()} disabled={checking}>
           {checking ? <Loader2 className="animate-spin" /> : null} Check now
         </Button>
       </div>
+      <p className="border-t px-4 py-2.5 text-xs text-muted-foreground">{display.text}</p>
     </Section>
   );
 }
