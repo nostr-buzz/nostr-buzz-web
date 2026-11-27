@@ -74,7 +74,7 @@ import {
   saveKeyring,
   signGroupState,
 } from '@/lib/groups/groups';
-import { closeNotifications, ignoreOwnWraps, showLocalNotification } from '@/lib/push/client';
+import { closeNotifications, getDelivery, ignoreOwnWraps, showLocalNotification } from '@/lib/push/client';
 import { playMessageSound } from '@/lib/sounds';
 
 const TWO_DAYS = 2 * 24 * 60 * 60;
@@ -614,26 +614,29 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
     const author = queryClient.getQueryData<{ metadata?: NostrMetadata }>(['nostr', 'author', message.pubkey]);
     const name = displayName(message.pubkey, author?.metadata);
     const route = conversationRoute(message.conversationId);
+    // A visible tab behind another window or app is not being looked at.
+    const attending = document.visibilityState === 'visible' && document.hasFocus();
 
     if (isBuzz(message)) {
       if (seenBuzzes.current.has(message.id)) return;
       seenBuzzes.current.add(message.id);
       if (!isKnown && !settings.buzzFromStrangers) return;
       triggerBuzz({ from: message.pubkey, conversationId: message.conversationId });
-      if (document.visibilityState === 'hidden' && settings.notifications) {
-        void showLocalNotification(`🐝 ${name}`, 'BUZZ!!!', message.conversationId, route);
+      if (!attending && settings.notifications) {
+        void showLocalNotification(`🐝 ${name}`, 'BUZZ!!!', message.conversationId, route, !settings.notificationSound);
       }
       return;
     }
 
     if (!VISIBLE_KINDS.has(message.kind) || !isKnown || isGroupJoin(message)) return;
-    const visible = document.visibilityState === 'visible';
-    if (visible && activeConversationId === message.conversationId) return;
-    if (settings.messageSound) playMessageSound();
-    if (!visible && settings.notifications) {
+    if (attending && activeConversationId === message.conversationId) return;
+    // Away from the app the notification makes the sound; inside it, the in-app tone does.
+    if (!attending && settings.notifications) {
       const body = settings.notificationPreviews ? messagePreview(message) : 'New message';
-      void showLocalNotification(name, body, message.conversationId, route);
+      void showLocalNotification(name, body, message.conversationId, route, !settings.notificationSound);
+      if (getDelivery() !== 'off') return;
     }
+    if (settings.messageSound) playMessageSound(settings.messageTone);
   });
 
   /* ------------------------ load history + live updates --------------------- */

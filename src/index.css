@@ -387,6 +387,15 @@
   }
 }
 
+/*
+ * With the on-screen keyboard open, keep dialogs inside the part of the screen that is
+ * still visible, so their lists can be reached and scrolled (iOS does not shrink 100dvh).
+ */
+:root[data-keyboard] [data-slot="dialog-content"] {
+  top: calc(var(--vv-top, 0px) + var(--vv-height, 100dvh) / 2);
+  max-height: calc(var(--vv-height, 100dvh) - 1rem);
+}
+
 /* QR scanner: a line sweeping through the viewfinder */
 @keyframes qr-scan {
   0% { top: 8%; opacity: 0; }

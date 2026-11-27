@@ -17,18 +17,27 @@ export interface BlossomServerMetadata {
   updatedAt: number;
 }
 
+/** Sounds for a new message while the app is open. */
+export type MessageTone = 'pop' | 'chime' | 'ding' | 'drop';
+
 /** nostr.buzz chat preferences (sounds, notifications, privacy). */
 export interface ChatSettings {
-  /** Play a soft sound for incoming messages. */
+  /** Play a soft sound for incoming messages while the app is open. */
   messageSound: boolean;
+  /** Which sound `messageSound` plays. */
+  messageTone: MessageTone;
   /** Play the buzz sound when buzzed (and when buzzing). */
   buzzSound: boolean;
   /** Shake the app when buzzed. */
   buzzShake: boolean;
   /** Vibrate on supported phones when buzzed. */
   vibrate: boolean;
-  /** Show desktop notifications while the tab is in the background. */
+  /** Show notifications for messages and buzzes. */
   notifications: boolean;
+  /** Also deliver them through the push server, so they arrive with the app closed. */
+  pushNotifications: boolean;
+  /** Let notifications play the system sound (off = silent notifications). */
+  notificationSound: boolean;
   /** Include message text in desktop notifications. */
   notificationPreviews: boolean;
   /** Also load legacy NIP-04 (kind 4) direct messages. */

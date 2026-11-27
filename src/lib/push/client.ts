@@ -154,6 +154,8 @@ function sameKey(a: ArrayBuffer | null | undefined, b: Uint8Array): boolean {
 export interface PushTarget {
   /** The user's "Notifications" setting. */
   enabled: boolean;
+  /** Deliver through the push server (off = only while the app is open). */
+  push: boolean;
   owner: string;
   /** Pubkeys to hear about: the user plus their group keys. */
   watch: string[];
@@ -178,6 +180,11 @@ async function applyPush(target: PushTarget | undefined): Promise<void> {
   if (!target?.enabled || notificationPermission() !== 'granted') {
     await removePush();
     setDelivery('off');
+    return;
+  }
+  if (!target.push) {
+    await removePush();
+    setDelivery('local');
     return;
   }
   if (!PUSH_SERVER || !pushSupported()) {
@@ -283,9 +290,9 @@ export function writePushState(state: PushState | undefined): Promise<void> {
  * Show a notification from the page. Skipped when the push server delivers them,
  * so the same message never alerts twice.
  */
-export async function showLocalNotification(title: string, body: string, tag: string, url: string): Promise<void> {
+export async function showLocalNotification(title: string, body: string, tag: string, url: string, silent = false): Promise<void> {
   if (delivery === 'push' || notificationPermission() !== 'granted') return;
-  const options = { body, tag, icon: ICON, data: { url, lines: [body] } };
+  const options = { body, tag, icon: ICON, silent, data: { url, lines: [body] } };
   try {
     // Mobile browsers only allow notifications from a service worker.
     const registration = await getRegistration();

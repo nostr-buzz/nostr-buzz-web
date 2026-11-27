@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import type { ChatSettings, Theme } from '@/contexts/AppContext';
+import type { ChatSettings, MessageTone, Theme } from '@/contexts/AppContext';
 import { useAppContext } from '@/hooks/useAppContext';
 import { useBuzz } from '@/hooks/useBuzz';
 import { useChatSettings } from '@/hooks/useChatSettings';
@@ -37,7 +37,8 @@ import { DEFAULT_INBOX_RELAYS, MAX_INBOX_RELAYS, uniqueRelays } from '@/lib/dm/r
 import { displayName, shortNpub } from '@/lib/format';
 import { normalizeRelayUrl } from '@/lib/sanitize';
 import { requestNotificationPermission, sendTestPush } from '@/lib/push/client';
-import { playMessageSound } from '@/lib/sounds';
+import { MESSAGE_TONE_NAMES, playMessageSound } from '@/lib/sounds';
+import { cn } from '@/lib/utils';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -184,10 +185,9 @@ function BuzzSection() {
   const [buzzSound, setBuzzSound] = useSetting('buzzSound');
   const [buzzShake, setBuzzShake] = useSetting('buzzShake');
   const [vibrate, setVibrate] = useSetting('vibrate');
-  const [messageSound, setMessageSound] = useSetting('messageSound');
 
   return (
-    <Section title="Buzz & sounds">
+    <Section title="Buzz">
       <div className="flex items-center gap-4 border-b bg-amber-50 px-4 py-4 dark:bg-amber-400/10">
         <BeeMark className="size-12 shrink-0" />
         <p className="min-w-0 flex-1 text-sm">
@@ -201,17 +201,6 @@ function BuzzSection() {
       <SettingSwitch label="Buzz sound" checked={buzzSound} onCheckedChange={setBuzzSound} />
       <SettingSwitch label="Shake the screen" checked={buzzShake} onCheckedChange={setBuzzShake} />
       <SettingSwitch label="Vibrate" description="On supported phones" checked={vibrate} onCheckedChange={setVibrate} />
-      <div className="flex items-center justify-between gap-4 px-4 py-3.5">
-        <div className="min-w-0">
-          <SettingInline label="Message sound" description="For new messages" />
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={playMessageSound}>
-            Preview
-          </Button>
-          <Switch checked={messageSound} onCheckedChange={setMessageSound} aria-label="Message sound" />
-        </div>
-      </div>
     </Section>
   );
 }
@@ -229,6 +218,10 @@ function NotificationsSection() {
   const { toast } = useToast();
   const [notifications, setNotifications] = useSetting('notifications');
   const [previews, setPreviews] = useSetting('notificationPreviews');
+  const [pushEnabled, setPushEnabled] = useSetting('pushNotifications');
+  const [systemSound, setSystemSound] = useSetting('notificationSound');
+  const [messageSound, setMessageSound] = useSetting('messageSound');
+  const [tone, setTone] = useSetting('messageTone');
   const { user } = useCurrentUser();
   const push = usePushStatus();
   const [testing, setTesting] = useState(false);
@@ -262,13 +255,17 @@ function NotificationsSection() {
       ? 'Not supported in this browser.'
       : push.permission === 'denied'
         ? 'Blocked. Allow notifications in your browser settings.'
-        : !on
-          ? 'Messages and buzzes'
-          : push.delivery === 'push'
-            ? 'On, even when the app is closed'
-            : push.delivery === 'error'
-              ? 'On while the app is open. Push server unreachable.'
-              : 'On while the app is open';
+        : 'Messages and buzzes';
+
+  const pushStatus = !push.serverConfigured
+    ? 'Not available in this build'
+    : !on || !pushEnabled
+      ? 'Get messages when nostr.buzz is closed'
+      : push.delivery === 'push'
+        ? 'On. This device is registered.'
+        : push.delivery === 'error'
+          ? 'Push server unreachable. Trying again later.'
+          : 'Connecting…';
 
   return (
     <Section title="Notifications">
@@ -280,14 +277,57 @@ function NotificationsSection() {
         disabled={!push.supported || push.permission === 'denied'}
       />
       <SettingSwitch
+        label="Push when the app is closed"
+        description={pushStatus}
+        checked={on && pushEnabled && push.serverConfigured}
+        onCheckedChange={setPushEnabled}
+        disabled={!on || !push.serverConfigured}
+      />
+      <SettingSwitch
         label="Show message preview"
         description={user?.method === 'nsec' ? 'Name and text in the notification' : 'This login keeps closed-app alerts generic'}
         checked={previews}
         onCheckedChange={setPreviews}
         disabled={!on}
       />
+      <SettingSwitch
+        label="Notification sound"
+        description="Your device's sound. Off shows them silently."
+        checked={systemSound}
+        onCheckedChange={setSystemSound}
+        disabled={!on}
+      />
+      <SettingSwitch
+        label="In-app sound"
+        description="For new messages while nostr.buzz is open"
+        checked={messageSound}
+        onCheckedChange={setMessageSound}
+      />
+      <div className="flex flex-col gap-3 border-b px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between">
+        <span className={cn('font-medium', !messageSound && 'text-muted-foreground')}>Tone</span>
+        <ToggleGroup
+          type="single"
+          value={tone}
+          onValueChange={(value) => {
+            if (!value) return;
+            setTone(value as MessageTone);
+            playMessageSound(value as MessageTone);
+          }}
+          variant="outline"
+          aria-label="In-app sound tone"
+          disabled={!messageSound}
+        >
+          {MESSAGE_TONE_NAMES.map((name) => (
+            <ToggleGroupItem key={name} value={name} className="px-3 capitalize">
+              {name}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      </div>
       <div className="flex items-center justify-between gap-4 px-4 py-3.5">
-        <SettingInline label="Test" description="Send yourself a notification" />
+        <div className="min-w-0">
+          <SettingInline label="Test" description="Send yourself a notification" />
+        </div>
         <Button variant="outline" size="sm" className="rounded-full" onClick={() => void test()} disabled={!on || testing}>
           {testing ? <Loader2 className="animate-spin" /> : null} Send test
         </Button>

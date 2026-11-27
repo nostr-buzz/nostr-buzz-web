@@ -116,6 +116,7 @@ export function usePushSync({ me, conversations, follows, muted, groups, relays,
         secret,
         enabled: settings.notifications,
         previews: settings.notificationPreviews,
+        sound: settings.notificationSound,
         buzzFromStrangers: settings.buzzFromStrangers,
         muted,
         known: [...known],
@@ -125,7 +126,7 @@ export function usePushSync({ me, conversations, follows, muted, groups, relays,
       });
     }, 800);
     return () => clearTimeout(timer);
-  }, [me, secret, conversations, follows, muted, groups, settings.notifications, settings.notificationPreviews, settings.buzzFromStrangers, queryClient]);
+  }, [me, secret, conversations, follows, muted, groups, settings.notifications, settings.notificationPreviews, settings.notificationSound, settings.buzzFromStrangers, queryClient]);
 
   // What the push server should watch: the user, plus the live key of every unmuted group.
   const target = useMemo(() => {
@@ -139,12 +140,13 @@ export function usePushSync({ me, conversations, follows, muted, groups, relays,
     }
     return JSON.stringify({
       enabled: settings.notifications,
+      push: settings.pushNotifications,
       owner: me,
       watch,
       relays: [...new Set([...relays, ...groupRelays])].slice(0, MAX_PUSH_RELAYS),
       legacy: settings.legacyDMs,
     });
-  }, [me, groups, muted, relays, settings.notifications, settings.legacyDMs]);
+  }, [me, groups, muted, relays, settings.notifications, settings.pushNotifications, settings.legacyDMs]);
 
   useEffect(() => {
     const timer = setTimeout(() => void syncPush(target ? JSON.parse(target) : undefined), target ? 1500 : 0);

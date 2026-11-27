@@ -5,10 +5,13 @@ import { useAppContext } from '@/hooks/useAppContext';
 
 export const DEFAULT_CHAT_SETTINGS: ChatSettings = {
   messageSound: true,
+  messageTone: 'pop',
   buzzSound: true,
   buzzShake: true,
   vibrate: true,
   notifications: false,
+  pushNotifications: true,
+  notificationSound: true,
   notificationPreviews: true,
   legacyDMs: true,
   buzzFromStrangers: false,

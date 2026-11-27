@@ -54,6 +54,8 @@ interface Alert {
   icon?: string;
   buzz?: boolean;
   at?: number;
+  /** Play the system sound. */
+  sound?: boolean;
 }
 
 /**
@@ -101,16 +103,17 @@ async function onPush(event: PushEvent): Promise<void> {
   const state = await pushGet('state');
   if (!state?.enabled) return quiet();
 
-  // An open, visible window already shows the message and plays its sound.
+  // A window the user is looking at already shows the message and plays its sound.
+  // A visible tab is not enough: on a desktop it stays "visible" behind other apps.
   const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-  if (windows.some((client) => client.visibilityState === 'visible')) return quiet();
+  if (windows.some((client) => client.visibilityState === 'visible' && client.focused)) return quiet();
 
   const nostrEvent = payload.t === 'e' ? parseEvent(payload.e) : payload.t === 'r' ? await fetchEvent(payload.id, payload.r) : undefined;
   if (!nostrEvent || !verifyEvent(nostrEvent)) return quiet();
 
   const alert = await buildAlert(nostrEvent, state);
   if (!alert) return quiet();
-  await showAlert(alert);
+  await showAlert({ ...alert, sound: state.sound !== false });
 }
 
 /* --------------------------------- decoding -------------------------------- */
@@ -296,9 +299,10 @@ async function showAlert(alert: Alert): Promise<void> {
     icon: alert.icon ?? ICON,
     tag: alert.tag,
     renotify: true,
+    silent: !alert.sound,
     timestamp: (alert.at ?? nowSeconds()) * 1000,
     data: { url: alert.url, lines } satisfies NotificationData,
-    ...(alert.buzz ? { vibrate: BUZZ_VIBRATION } : {}),
+    ...(alert.buzz && alert.sound ? { vibrate: BUZZ_VIBRATION } : {}),
   };
   await self.registration.showNotification(alert.title, options);
 
@@ -335,7 +339,7 @@ self.addEventListener('notificationclick', (event) => {
   event.waitUntil(
     (async () => {
       const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-      const client = windows.find((item) => item.visibilityState === 'visible') ?? windows[0];
+      const client = windows.find((item) => item.focused) ?? windows.find((item) => item.visibilityState === 'visible') ?? windows[0];
       if (client) {
         client.postMessage({ type: 'navigate', url } satisfies WorkerMessage);
         await client.focus().catch(() => undefined);

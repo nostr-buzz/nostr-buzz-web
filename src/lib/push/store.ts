@@ -18,6 +18,8 @@ export interface PushState {
   enabled: boolean;
   /** Show message text in notifications. */
   previews: boolean;
+  /** Notifications may play the system sound. */
+  sound: boolean;
   buzzFromStrangers: boolean;
   /** Muted conversation ids. */
   muted: string[];
