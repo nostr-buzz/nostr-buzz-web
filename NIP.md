@@ -1,7 +1,8 @@
 # nostr.buzz protocol notes
 
-nostr.buzz does **not** define any new event kinds. It is a standard [NIP-17](https://github.com/nostr-protocol/nips/blob/master/17.md)
-private messenger, with one small, backwards-compatible convention for the *BUZZ* feature.
+nostr.buzz is a standard [NIP-17](https://github.com/nostr-protocol/nips/blob/master/17.md)
+private messenger, with a small, backwards-compatible convention for the *BUZZ* feature and two custom
+rumor kinds for calls (`1447`, `24837`), which only ever appear inside gift wraps.
 
 ## Messaging
 
@@ -22,6 +23,53 @@ No new event kinds. An optional push server (see [`push-server/`](push-server/RE
 kind `1059` (and kind `4`) events `p`-tagged to a device's pubkeys and forwards each event unchanged
 inside a Web Push message. The service worker unwraps it locally, so the server never sees keys,
 senders or text. For logins without a local key (NIP-07, NIP-46) the notification only says "New message".
+
+## Voice and video calls
+
+One-to-one calls are WebRTC connections. Only the setup travels over Nostr, sealed (kind `13`) and
+gift-wrapped like any other private message. Two custom rumor kinds are used:
+
+| Kind | Wrapped in | Purpose |
+| --- | --- | --- |
+| `1447` call offer | kind `1059` gift wrap | Starts a call. Stored, so it can wake a closed app through push and stays in the chat as a call record. |
+| `24837` call signal | kind `21059` ephemeral gift wrap (NIP-59) | Answer, reject, hang up or busy. Only matters to apps that are open. |
+
+```jsonc
+// Call offer
+{
+  "kind": 1447,
+  "pubkey": "<caller>",
+  "created_at": 1731650000,
+  "tags": [
+    ["p", "<callee>"],
+    ["call-id", "<uuid>"],
+    ["call-type", "audio"],            // or "video"
+    ["alt", "Voice call"]
+  ],
+  "content": "<SDP offer, with ICE candidates included>"
+}
+
+// Call signal
+{
+  "kind": 24837,
+  "pubkey": "<sender>",
+  "tags": [
+    ["p", "<the other side>"],
+    ["call-id", "<uuid>"],
+    ["type", "answer"],                // "answer" | "reject" | "hangup" | "busy"
+    ["alt", "Call signal"]
+  ],
+  "content": "<SDP answer for type answer, otherwise empty>"
+}
+```
+
+- Each side sends its complete session description once (no trickle ICE), so a call takes three messages.
+- A call rings for 60 seconds from the offer's `created_at`. Older offers are shown as call records only.
+- `answer` and `reject` are also wrapped to the sender, so their other devices stop ringing.
+- Clients only ring for people the user follows or has chatted with. Offers in groups are ignored.
+- Clients that don't know these kinds ignore them: nothing is shown as text.
+- Media flows directly between the two devices (DTLS-SRTP), or through a TURN relay when a direct
+  path is not possible. A relay only forwards encrypted packets.
 
 ## BUZZ
 

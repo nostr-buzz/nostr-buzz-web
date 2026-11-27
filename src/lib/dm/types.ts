@@ -41,10 +41,12 @@ export const DM_KIND = {
   reaction: 7,
   chat: 14,
   file: 15,
+  /** A voice or video call offer (see lib/calls/protocol.ts). */
+  call: 1447,
 } as const;
 
 /** Kinds that render as a bubble in the timeline. */
-export const VISIBLE_KINDS: ReadonlySet<number> = new Set([DM_KIND.legacy, DM_KIND.chat, DM_KIND.file]);
+export const VISIBLE_KINDS: ReadonlySet<number> = new Set([DM_KIND.legacy, DM_KIND.chat, DM_KIND.file, DM_KIND.call]);
 
 export interface ReactionGroup {
   emoji: string;

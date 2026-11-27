@@ -41,7 +41,7 @@ import { useLoggedInAccounts } from '@/hooks/useLoggedInAccounts';
 import { useLoginActions } from '@/hooks/useLoginActions';
 import { useTheme } from '@/hooks/useTheme';
 import { conversationRoute } from '@/lib/dm/conversation';
-import type { Conversation } from '@/lib/dm/types';
+import { type Conversation, DM_KIND } from '@/lib/dm/types';
 import { displayName, shortNpub } from '@/lib/format';
 import { promptInstall, useCanInstall, useOnline } from '@/lib/install';
 import { cn } from '@/lib/utils';
@@ -76,7 +76,7 @@ export function ChatSidebar() {
       if (c.isSelf && 'saved messages'.includes(needle)) return true;
       if (c.subject?.toLowerCase().includes(needle)) return true;
       if (c.participants.some((p) => nameOf(p).includes(needle))) return true;
-      return c.messages.some((m) => m.content.toLowerCase().includes(needle));
+      return c.messages.some((m) => m.kind !== DM_KIND.call && m.content.toLowerCase().includes(needle));
     });
   }, [conversations, activeTab, query, queryClient]);
 

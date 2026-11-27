@@ -7,6 +7,7 @@
  *
  * It must run as one always-on process (it keeps relay WebSockets open).
  */
+import crypto from 'node:crypto';
 import dns from 'node:dns/promises';
 import fs from 'node:fs';
 import http from 'node:http';
@@ -36,6 +37,14 @@ const TWO_DAYS = 2 * 24 * 60 * 60;
 const SEEN_TTL_MS = 3 * 24 * 60 * 60 * 1000;
 const IGNORE_TTL_MS = 10 * 60 * 1000;
 const STALE_SUBSCRIPTION_MS = 60 * 24 * 60 * 60 * 1000;
+
+/**
+ * Optional TURN relay for calls (coturn with `use-auth-secret`). TURN_URLS is a comma
+ * separated list such as "turn:turn.example.com:3478,turns:turn.example.com:5349".
+ */
+const TURN_URLS = (process.env.TURN_URLS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+const TURN_SECRET = process.env.TURN_SECRET ?? '';
+const STUN_URLS = ['stun:stun.l.google.com:19302', 'stun:stun.cloudflare.com:3478'];
 
 const HEX64 = /^[0-9a-f]{64}$/;
 /** Only real browser push services may be used as endpoints (prevents SSRF). */
@@ -442,6 +451,17 @@ const routes = {
   'GET /health': () => ({ ok: true, subscriptions: subs.size, relays: relays.size }),
 
   'GET /vapid': () => ({ key: vapid.publicKey }),
+
+  /** Servers a call may use to connect two devices. TURN credentials expire after a day. */
+  'GET /ice': () => {
+    const iceServers = [{ urls: STUN_URLS }];
+    if (TURN_URLS.length > 0 && TURN_SECRET) {
+      const username = String(Math.floor(Date.now() / 1000) + 24 * 60 * 60);
+      const credential = crypto.createHmac('sha1', TURN_SECRET).update(username).digest('base64');
+      iceServers.push({ urls: TURN_URLS, username, credential });
+    }
+    return { iceServers };
+  },
 
   'POST /subscribe': (body) => {
     const { token, owner, subscription } = body;

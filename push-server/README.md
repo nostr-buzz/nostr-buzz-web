@@ -49,6 +49,7 @@ serverless platforms that sleep will miss messages.
 | `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | generated | Set both to bring your own keys |
 | `TRUST_PROXY` | off | Set to `1` behind a reverse proxy so rate limits use `X-Forwarded-For` |
 | `MAX_SUBSCRIPTIONS` | `50000` | Upper bound on registered devices |
+| `TURN_URLS` / `TURN_SECRET` | none | Optional TURN relay for calls (coturn `use-auth-secret`), e.g. `turn:turn.example.com:3478` |
 
 Keep `DATA_DIR/vapid.json`. If the VAPID keys change, every device has to subscribe again.
 
@@ -73,6 +74,7 @@ All bodies are JSON. `token` is a random 64-hex secret made by the device.
 | --- | --- | --- |
 | `GET /health` | | Liveness and counters |
 | `GET /vapid` | | `{ key }`, the VAPID public key |
+| `GET /ice` | | `{ iceServers }` for calls: STUN, plus short-lived TURN credentials when configured |
 | `POST /subscribe` | `{ token, owner, subscription, watch[], relays[], legacy }` | Register or update a device |
 | `POST /unsubscribe` | `{ token }` | Remove a device |
 | `POST /ignore` | `{ token, ids[] }` | Skip these event ids for the owner's devices (own messages) |

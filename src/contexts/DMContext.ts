@@ -1,5 +1,6 @@
 import { createContext } from 'react';
 
+import type { CallSignalType } from '@/lib/calls/protocol';
 import type { ChatMessage, Conversation } from '@/lib/dm/types';
 import type { GroupInvite } from '@/lib/groups/groups';
 
@@ -67,6 +68,10 @@ export interface DMContextValue {
   resetInviteLink(groupId: string): Promise<void>;
   /** Join a group from an invite link. Resolves to the group id. */
   joinGroup(invite: GroupInvite): Promise<string>;
+  /** Ring someone: sends the call offer as a private message. Resolves to false if it could not be delivered. */
+  sendCallOffer(pubkey: string, callId: string, video: boolean, sdp: string): Promise<boolean>;
+  /** Send a real-time call signal (not stored). `copySelf` also tells the user's other devices. */
+  sendCallSignal(to: string, callId: string, type: CallSignalType, sdp?: string, copySelf?: boolean): Promise<boolean>;
   /** Admins only: pin or unpin a message for everyone. */
   setGroupPinned(groupId: string, messageId: string, pinned: boolean): Promise<void>;
 }

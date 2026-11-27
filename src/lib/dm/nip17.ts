@@ -49,14 +49,17 @@ export async function sealRumor(signer: NostrSigner, rumor: Rumor, recipient: st
   });
 }
 
-/** Gift wrap (kind 1059) a seal for one recipient using a fresh, single-use key. */
-export function wrapSeal(seal: NostrEvent, recipient: string): NostrEvent {
+/**
+ * Gift wrap a seal for one recipient using a fresh, single-use key.
+ * `kind` is 1059 (stored) or 21059 (ephemeral, for real-time signals).
+ */
+export function wrapSeal(seal: NostrEvent, recipient: string, kind: 1059 | 21059 = 1059): NostrEvent {
   const ephemeralKey = generateSecretKey();
   const conversationKey = nip44.v2.utils.getConversationKey(ephemeralKey, recipient);
   const content = nip44.v2.encrypt(JSON.stringify(seal), conversationKey);
   const wrap = finalizeEvent(
     {
-      kind: 1059,
+      kind,
       content,
       created_at: randomPastTimestamp(),
       tags: [['p', recipient]],

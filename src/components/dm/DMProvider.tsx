@@ -24,6 +24,17 @@ import { dmRelayInfoQueryOptions, useDiscoveryRelays } from '@/hooks/useDMRelays
 import { useFollows } from '@/hooks/useFollows';
 import { usePushSync } from '@/hooks/usePushSync';
 import { getEffectiveBlossomServers } from '@/lib/appBlossom';
+import {
+  callOfferTags,
+  CALL_SIGNAL_KIND,
+  callSignalTags,
+  type CallSignalType,
+  emitCallEvent,
+  EPHEMERAL_WRAP_KIND,
+  parseCallOffer,
+  parseCallSignal,
+  RING_SECONDS,
+} from '@/lib/calls/protocol';
 import { clearCachedMessages, loadCachedMessages, saveCachedMessages } from '@/lib/dm/cache';
 import {
   BUZZ_CONTENT,
@@ -79,7 +90,7 @@ import { playMessageSound } from '@/lib/sounds';
 
 const TWO_DAYS = 2 * 24 * 60 * 60;
 const BUZZ_COOLDOWN_MS = 8000;
-const NIP17_KINDS: ReadonlySet<number> = new Set([DM_KIND.chat, DM_KIND.file, DM_KIND.reaction, DM_KIND.deletion]);
+const NIP17_KINDS: ReadonlySet<number> = new Set([DM_KIND.chat, DM_KIND.file, DM_KIND.reaction, DM_KIND.deletion, DM_KIND.call]);
 
 /* -------------------------------------------------------------------------- */
 /*                               Message store                                */
@@ -617,6 +628,18 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
     // A visible tab behind another window or app is not being looked at.
     const attending = document.visibilityState === 'visible' && document.hasFocus();
 
+    if (message.kind === DM_KIND.call) {
+      // Only people the user knows can make the app ring, and only while the call is live.
+      const offer = parseCallOffer(message);
+      if (!offer || !isKnown || message.via || conversation?.isGroup || now - message.created_at > RING_SECONDS) return;
+      emitCallEvent({ kind: 'offer', offer });
+      if (!attending && settings.notifications) {
+        const label = offer.video ? '📹 Incoming video call' : '📞 Incoming voice call';
+        void showLocalNotification(name, label, message.conversationId, route, !settings.notificationSound);
+      }
+      return;
+    }
+
     if (isBuzz(message)) {
       if (seenBuzzes.current.has(message.id)) return;
       seenBuzzes.current.add(message.id);
@@ -678,6 +701,16 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
     const process = async (event: NostrEvent) => {
       if (knownIds.current.has(event.id)) return;
       knownIds.current.add(event.id);
+      if (event.kind === EPHEMERAL_WRAP_KIND) {
+        try {
+          if (!event.tags.some(([name, value]) => name === 'p' && value === me)) return;
+          const callSignal = parseCallSignal(await limit(() => unwrapGiftWrap(signer, event)));
+          if (callSignal && !signal.aborted) emitCallEvent({ kind: 'signal', signal: callSignal });
+        } catch (error) {
+          if (!signal.aborted) console.debug('Could not read call signal', event.id, error);
+        }
+        return;
+      }
       try {
         const message = await limit(() => decryptEvent(signer, event, me));
         if (!message || signal.aborted) return;
@@ -709,7 +742,11 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
     };
 
     const subscribe = async () => {
-      const filters: NostrFilter[] = [{ kinds: [1059], '#p': [me], since: nowSeconds() - TWO_DAYS - 600 }];
+      const filters: NostrFilter[] = [
+        { kinds: [1059], '#p': [me], since: nowSeconds() - TWO_DAYS - 600 },
+        // Call signals: never stored by relays, so only live ones arrive.
+        { kinds: [EPHEMERAL_WRAP_KIND], '#p': [me], since: nowSeconds() - TWO_DAYS - 600 },
+      ];
       if (legacy) {
         const since = nowSeconds() - 60;
         filters.push({ kinds: [DM_KIND.legacy], '#p': [me], since }, { kinds: [DM_KIND.legacy], authors: [me], since });
@@ -1030,6 +1067,31 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
       return lastIncoming?.protocol === 'nip04';
     },
     [conversationMap, me],
+  );
+
+  const sendCallOffer = useCallback(
+    (pubkey: string, callId: string, video: boolean, sdp: string) => sendRumor(pubkey, DM_KIND.call, sdp, callOfferTags(callId, video)),
+    [sendRumor],
+  );
+
+  const sendCallSignal = useCallback(
+    async (to: string, callId: string, type: CallSignalType, sdp = '', copySelf = false): Promise<boolean> => {
+      if (!user || !me) return false;
+      const signer = user.signer;
+      if (!signer.nip44) return false;
+      const rumor = createRumor({ pubkey: me, kind: CALL_SIGNAL_KIND, content: sdp, tags: callSignalTags(to, callId, type) });
+      const recipients = copySelf && to !== me ? [to, me] : [to];
+      const results = await Promise.allSettled(
+        recipients.map(async (recipient) => {
+          const wrap = wrapSeal(await sealRumor(signer, rumor, recipient), recipient, EPHEMERAL_WRAP_KIND);
+          // This device already knows what it sent.
+          knownIds.current.add(wrap.id);
+          await nostr.event(wrap, { relays: await relaysFor(recipient), signal: AbortSignal.timeout(10_000) });
+        }),
+      );
+      return results[0].status === 'fulfilled';
+    },
+    [user, me, relaysFor, nostr],
   );
 
   const sendText = useCallback(
@@ -1546,6 +1608,8 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
       resetInviteLink,
       joinGroup,
       setGroupPinned,
+      sendCallOffer,
+      sendCallSignal,
     };
   }, [
     me,
@@ -1580,6 +1644,8 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
     resetInviteLink,
     joinGroup,
     setGroupPinned,
+    sendCallOffer,
+    sendCallSignal,
   ]);
 
   return <DMContext.Provider value={value}>{children}</DMContext.Provider>;

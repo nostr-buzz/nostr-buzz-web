@@ -85,6 +85,47 @@ export function playMessageSound(tone: MessageTone = 'pop'): void {
   }
 }
 
+/**
+ * Ring until the returned function is called: a two-tone ringtone (with vibration) for an
+ * incoming call, a quiet ringback tone for an outgoing one.
+ */
+export function startRinging(direction: 'incoming' | 'outgoing'): () => void {
+  const ctx = getAudioContext();
+  const incoming = direction === 'incoming';
+  const ring = () => {
+    if (incoming) vibrate([400, 200, 400]);
+    if (!ctx) return;
+    try {
+      if (ctx.state === 'suspended') void ctx.resume();
+      const start = ctx.currentTime;
+      const notes: [number, number, number][] = incoming
+        ? [[880, 0, 0.35], [1108.7, 0.4, 0.35], [880, 0.8, 0.35], [1108.7, 1.2, 0.45]]
+        : [[440, 0, 1]];
+      for (const [frequency, offset, length] of notes) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = frequency;
+        gain.gain.setValueAtTime(0.0001, start + offset);
+        gain.gain.exponentialRampToValueAtTime(incoming ? 0.22 : 0.06, start + offset + 0.03);
+        gain.gain.setValueAtTime(incoming ? 0.22 : 0.06, start + offset + length - 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + offset + length);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(start + offset);
+        osc.stop(start + offset + length + 0.03);
+      }
+    } catch {
+      // Audio is optional.
+    }
+  };
+  ring();
+  const timer = setInterval(ring, 3000);
+  return () => {
+    clearInterval(timer);
+    if (incoming) vibrate(0);
+  };
+}
+
 export function vibrate(pattern: number | number[]): void {
   try {
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(pattern);

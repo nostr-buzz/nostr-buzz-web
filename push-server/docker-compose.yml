@@ -20,6 +20,8 @@ services:
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-https://nostr.buzz}
       VAPID_SUBJECT: https://nostr.buzz
       TRUST_PROXY: "1"
+      TURN_URLS: ${TURN_URLS:-}
+      TURN_SECRET: ${TURN_SECRET:-}
     volumes:
       - push-data:/data
     stop_grace_period: 15s

@@ -1,4 +1,4 @@
-import { Copy, MoreHorizontal, Pencil, Pin, PinOff, Reply, RotateCw, Trash2, Users } from 'lucide-react';
+import { Copy, MoreHorizontal, Pencil, Phone, Pin, PinOff, Reply, RotateCw, Trash2, Users, Video } from 'lucide-react';
 import { nip19 } from 'nostr-tools';
 import { type ComponentType, type ReactNode, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -32,9 +32,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useCalls } from '@/hooks/useCalls';
 import { useDM } from '@/hooks/useDM';
 import { useSwipe } from '@/hooks/useSwipe';
 import { useToast } from '@/hooks/useToast';
+import { isCallOffer, isVideoCall } from '@/lib/calls/protocol';
 import { conversationRoute, isBuzz, messagePreview } from '@/lib/dm/conversation';
 import { isGroupInvite, isGroupJoin, parseInvite } from '@/lib/groups/groups';
 import { nowSeconds } from '@/lib/dm/nip17';
@@ -81,6 +83,7 @@ export function MessageBubble(props: MessageBubbleProps) {
   const { message, mine, conversation, first, last, replyTarget, reactions, edited, onReply, onEdit, onJump } = props;
   const { toggleReaction, deleteMessage, retryMessage, discardMessage, setGroupPinned } = useDM();
   const { toast } = useToast();
+  const calls = useCalls();
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const isNip17 = message.protocol === 'nip17';
@@ -134,7 +137,7 @@ export function MessageBubble(props: MessageBubbleProps) {
         swipeArmed.current = false;
       },
     },
-    canReply,
+    canReply && !isCallOffer(message),
   );
 
   const react = (emoji: string) => {
@@ -240,6 +243,34 @@ export function MessageBubble(props: MessageBubbleProps) {
       </AlertDialogContent>
     </AlertDialog>
   );
+
+  /* ---------------------------------- calls ---------------------------------- */
+  if (isCallOffer(message)) {
+    const video = isVideoCall(message);
+    const other = !conversation.isGroup && !conversation.isSelf ? conversation.participants[0] : undefined;
+    return (
+      <div id={`msg-${message.id}`} className="flex justify-center px-4 py-2">
+        <div className="flex max-w-full items-center gap-2 rounded-full border bg-background/90 py-1 pr-1.5 pl-3 text-sm">
+          {video ? <Video className="size-4 shrink-0 text-amber-600 dark:text-amber-400" /> : <Phone className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />}
+          <span className="min-w-0 truncate">
+            {mine ? 'Outgoing' : 'Incoming'} {video ? 'video' : 'voice'} call
+          </span>
+          <time className="shrink-0 text-xs whitespace-nowrap text-muted-foreground">{formatMessageTime(message.created_at)}</time>
+          {other && calls.supported ? (
+            <button
+              type="button"
+              onClick={() => calls.startCall(other, video)}
+              className="shrink-0 rounded-full bg-primary px-3 py-1 font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            >
+              {mine ? 'Call again' : 'Call back'}
+            </button>
+          ) : (
+            <span className="w-1.5" aria-hidden="true" />
+          )}
+        </div>
+      </div>
+    );
+  }
 
   /* --------------------------- joined by invite link -------------------------- */
   if (isGroupJoin(message)) {

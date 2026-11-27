@@ -1,6 +1,7 @@
 import { RefreshCw } from 'lucide-react';
 import { useEffect, useEffectEvent, useMemo, useSyncExternalStore } from 'react';
 
+import { useCalls } from '@/hooks/useCalls';
 import { useDM } from '@/hooks/useDM';
 import { useToast } from '@/hooks/useToast';
 import { applyUpdate, checkForUpdate, consumeJustUpdated, getUpdateState, subscribeUpdate } from '@/lib/appUpdate';
@@ -21,10 +22,11 @@ function isTyping(): boolean {
  * Updates the app on its own, at moments nobody notices: while it is in the background,
  * right as the user returns to it, or after a minute of inactivity. Someone in the middle
  * of using it gets a small "Update" pill instead. Nothing is lost: drafts are saved, and an
- * update never interrupts a message that is still being sent.
+ * update never interrupts a call or a message that is still being sent.
  */
 export function UpdateManager() {
   const { conversations } = useDM();
+  const { phase } = useCalls();
   const { toast } = useToast();
   const update = useSyncExternalStore(subscribeUpdate, getUpdateState, getUpdateState);
 
@@ -34,7 +36,7 @@ export function UpdateManager() {
   );
 
   const applyQuietly = useEffectEvent(() => {
-    if (getUpdateState().available && !sending) applyUpdate(true);
+    if (getUpdateState().available && !sending && phase === 'idle') applyUpdate(true);
   });
 
   useEffect(() => {

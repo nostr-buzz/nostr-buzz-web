@@ -2,6 +2,8 @@ import { nip19 } from 'nostr-tools';
 
 import { GROUP_JOIN_CONTENT, isGroupInvite, isGroupJoin } from '@/lib/groups/groups';
 
+import { isVideoCall } from '@/lib/calls/protocol';
+
 import { DM_KIND, type Rumor } from './types';
 
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -90,6 +92,7 @@ export function getTagValue(message: Pick<Rumor, 'tags'>, name: string): string 
 
 /** A short, human preview of a message for chat lists and notifications. */
 export function messagePreview(message: Pick<Rumor, 'kind' | 'tags' | 'content'>): string {
+  if (message.kind === DM_KIND.call) return isVideoCall(message) ? '📹 Video call' : '📞 Voice call';
   if (isBuzz(message)) return '🐝 BUZZ!!!';
   if (isGroupInvite(message)) return '📨 Group invite';
   if (isGroupJoin(message)) return GROUP_JOIN_CONTENT;

@@ -17,6 +17,7 @@ import {
   MAX_GROUP_PARTICIPANTS,
   messagePreview,
 } from '@/lib/dm/conversation';
+import { CALL_OFFER_KIND, isVideoCall, RING_SECONDS } from '@/lib/calls/protocol';
 import { unwrapGiftWrap } from '@/lib/dm/nip17';
 import { DM_KIND, type Rumor } from '@/lib/dm/types';
 import { shortNpub } from '@/lib/format';
@@ -270,6 +271,21 @@ function rumorAlert(rumor: Rumor, conversationId: string, state: PushState, buzz
 
   // Message requests stay quiet, like in the app.
   if (!known || isGroupJoin(rumor)) return undefined;
+
+  if (rumor.kind === CALL_OFFER_KIND) {
+    if (isRoom) return undefined;
+    const kind = isVideoCall(rumor) ? 'video' : 'voice';
+    const ringing = nowSeconds() - rumor.created_at <= RING_SECONDS;
+    return {
+      tag: conversationId,
+      title: sender,
+      line: ringing ? `📞 Incoming ${kind} call. Tap to answer` : `Missed ${kind} call`,
+      url,
+      icon,
+      buzz: ringing,
+      at: rumor.created_at,
+    };
+  }
 
   let text: string;
   if (rumor.kind === DM_KIND.chat || rumor.kind === DM_KIND.file) {

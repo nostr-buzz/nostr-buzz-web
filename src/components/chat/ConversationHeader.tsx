@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowLeft, Bell, BellOff, Copy, Info, Lock, MoreVertical, Pin, PinOff } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Bell, BellOff, Copy, Info, Lock, MoreVertical, Phone, Pin, PinOff, Video } from 'lucide-react';
 import { nip19 } from 'nostr-tools';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuthor } from '@/hooks/useAuthor';
+import { useCalls } from '@/hooks/useCalls';
 import { useDM } from '@/hooks/useDM';
 import { useDMRelayInfo } from '@/hooks/useDMRelays';
 import { useToast } from '@/hooks/useToast';
@@ -31,6 +32,8 @@ export function ConversationHeader({ conversation, onOpenInfo }: ConversationHea
   const other = !conversation.isGroup && !conversation.isSelf ? conversation.participants[0] : undefined;
   const author = useAuthor(other);
   const relayInfo = useDMRelayInfo(other);
+  const calls = useCalls();
+  const canCall = !!other && calls.supported && calls.phase === 'idle';
   const muted = isMuted(conversation.id);
   const pinned = isPinned(conversation.id);
 
@@ -94,6 +97,23 @@ export function ConversationHeader({ conversation, onOpenInfo }: ConversationHea
           </>
         )}
 
+        {canCall && (
+          <>
+            <Button variant="ghost" size="icon" className="shrink-0 rounded-full" aria-label="Voice call" onClick={() => calls.startCall(other, false)}>
+              <Phone className="size-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hidden shrink-0 rounded-full sm:inline-flex"
+              aria-label="Video call"
+              onClick={() => calls.startCall(other, true)}
+            >
+              <Video className="size-5" />
+            </Button>
+          </>
+        )}
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="shrink-0 rounded-full" aria-label="Chat options">
@@ -104,6 +124,16 @@ export function ConversationHeader({ conversation, onOpenInfo }: ConversationHea
             <DropdownMenuItem onSelect={onOpenInfo}>
               <Info /> {conversation.isGroup ? 'Group info' : 'View profile'}
             </DropdownMenuItem>
+            {canCall && (
+              <>
+                <DropdownMenuItem onSelect={() => calls.startCall(other, false)}>
+                  <Phone /> Voice call
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => calls.startCall(other, true)}>
+                  <Video /> Video call
+                </DropdownMenuItem>
+              </>
+            )}
             {other && (
               <DropdownMenuItem onSelect={() => void copyNpub()}>
                 <Copy /> Copy npub
