@@ -329,7 +329,7 @@
    * iPhones) is taller than the bar itself, so bottom controls sit a little into it,
    * as native apps do, instead of floating far above the edge.
    */
-  --safe-bottom: max(0px, calc(env(safe-area-inset-bottom, 0px) - 14px));
+  --safe-bottom: max(0px, calc(env(safe-area-inset-bottom, 0px) - 22px));
 }
 
 :root[data-keyboard] {
