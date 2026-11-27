@@ -315,6 +315,16 @@
   height: var(--vv-height, 100dvh);
 }
 
+/*
+ * Installed app, keyboard closed: always reach the bottom edge of the screen, even on
+ * systems that report a dynamic viewport shorter than the screen.
+ */
+@media (display-mode: standalone) {
+  :root:not([data-keyboard]) .app-viewport {
+    min-height: 100lvh;
+  }
+}
+
 /* While the messenger is open the page itself never scrolls; only its panes do. */
 :root[data-app-shell],
 :root[data-app-shell] body {
@@ -323,7 +333,12 @@
 }
 
 :root {
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  /*
+   * Room to leave above the home indicator / gesture bar. The system inset (34px on
+   * iPhones) is taller than the bar itself, so bottom controls sit a little into it,
+   * as native apps do, instead of floating far above the edge.
+   */
+  --safe-bottom: max(0px, calc(env(safe-area-inset-bottom, 0px) - 14px));
 }
 
 :root[data-keyboard] {

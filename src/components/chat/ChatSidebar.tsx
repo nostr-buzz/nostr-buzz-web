@@ -8,6 +8,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import AuthDialog from '@/components/auth/AuthDialog';
 import { Bee3D } from '@/components/brand/Bee3D';
 import { Logo } from '@/components/brand/Brand';
+import { CallsList } from '@/components/chat/CallsList';
 import { ChatListItem } from '@/components/chat/ChatListItem';
 import { InboxSetupBanner } from '@/components/chat/InboxSetupBanner';
 import { NewChatDialog } from '@/components/chat/NewChatDialog';
@@ -35,6 +36,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useCallHistory } from '@/hooks/useCallHistory';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useDM } from '@/hooks/useDM';
 import { useLoggedInAccounts } from '@/hooks/useLoggedInAccounts';
@@ -46,7 +48,7 @@ import { displayName, shortNpub } from '@/lib/format';
 import { promptInstall, useCanInstall, useOnline } from '@/lib/install';
 import { cn } from '@/lib/utils';
 
-type Tab = 'chats' | 'requests';
+type Tab = 'chats' | 'calls' | 'requests';
 
 export function ChatSidebar() {
   const { conversations, status, requestCount, activeConversationId } = useDM();
@@ -62,7 +64,10 @@ export function ChatSidebar() {
     const params = new URLSearchParams(window.location.search);
     if (params.has('new') || params.has('scan')) navigate('/', { replace: true });
   }, [navigate]);
-  const activeTab: Tab = requestCount === 0 ? 'chats' : tab;
+  const callHistory = useCallHistory(conversations);
+  // Calls and Requests only get a tab once there is something in them.
+  const tabs: Tab[] = ['chats', ...(callHistory.length > 0 ? (['calls'] as const) : []), ...(requestCount > 0 ? (['requests'] as const) : [])];
+  const activeTab: Tab = tabs.includes(tab) ? tab : 'chats';
 
   const visible = useMemo(() => {
     const list = conversations.filter((c) => (activeTab === 'requests' ? c.isRequest : !c.isRequest));
@@ -118,9 +123,9 @@ export function ChatSidebar() {
         </div>
       </div>
 
-      {requestCount > 0 && (
+      {tabs.length > 1 && (
         <div role="tablist" aria-label="Chat folders" className="flex gap-1 px-3 pb-2">
-          {(['chats', 'requests'] as const).map((value) => (
+          {tabs.map((value) => (
             <button
               key={value}
               type="button"
@@ -132,7 +137,7 @@ export function ChatSidebar() {
                 activeTab === value ? 'bg-foreground text-background' : 'text-muted-foreground hover:bg-accent',
               )}
             >
-              {value === 'chats' ? 'Chats' : `Requests · ${requestCount}`}
+              {value === 'chats' ? 'Chats' : value === 'calls' ? 'Calls' : `Requests · ${requestCount}`}
             </button>
           ))}
         </div>
@@ -150,8 +155,10 @@ export function ChatSidebar() {
         <NotificationsBanner />
       </div>
 
-      <nav aria-label="Conversations" className="min-h-0 flex-1 overflow-y-auto px-2 pb-28 scrollbar-thin">
-        {loading ? (
+      <nav aria-label="Conversations" className="min-h-0 flex-1 overflow-y-auto px-2 pb-[calc(var(--safe-bottom)+6rem)] scrollbar-thin">
+        {activeTab === 'calls' ? (
+          <CallsList entries={callHistory} />
+        ) : loading ? (
           <ChatListSkeleton />
         ) : visible.length > 0 ? (
           <ul className="space-y-0.5">
@@ -177,7 +184,7 @@ export function ChatSidebar() {
         type="button"
         onClick={() => setNewChatOpen(true)}
         aria-label="Start a new chat"
-        className="absolute right-5 bottom-[max(1.25rem,env(safe-area-inset-bottom))] flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform hover:scale-105 active:scale-95 focus-visible:ring-4 focus-visible:ring-ring/40 focus-visible:outline-none motion-reduce:transition-none"
+        className="absolute right-5 bottom-[calc(var(--safe-bottom)+1.25rem)] flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform hover:scale-105 active:scale-95 focus-visible:ring-4 focus-visible:ring-ring/40 focus-visible:outline-none motion-reduce:transition-none"
       >
         <MessageSquarePlus className="size-6" />
       </button>

@@ -36,9 +36,18 @@ const MAX_AGE_SECONDS = 30 * 60;
 const BUZZ_VIBRATION = [120, 60, 120, 60, 120, 60, 300];
 const CALL_VIBRATION = [500, 250, 500, 250, 500, 250, 500, 250, 500];
 const QUIET_TAG = 'nostr-buzz-quiet';
+/** Buttons on an incoming call notification (where the system shows them). */
+const CALL_ACTIONS = [
+  { action: 'answer', title: 'Answer' },
+  { action: 'dismiss', title: 'Dismiss' },
+];
+/** A call notification alerts again this often, like a phone that keeps ringing. */
+const RING_REPEAT_MS = 6000;
+const RING_REPEATS = 3;
 
 /** Notification options browsers support but TypeScript's DOM lib doesn't list. */
 interface RichNotificationOptions extends NotificationOptions {
+  actions?: { action: string; title: string }[];
   renotify?: boolean;
   vibrate?: number[];
   timestamp?: number;
@@ -259,7 +268,7 @@ async function missedCallAlert(rumor: Rumor, state: PushState): Promise<Alert | 
   return {
     tag: signal.from,
     title: nameOf(state, signal.from),
-    line: 'Missed call',
+    line: 'Missed nostr.buzz call',
     url: conversationRoute(signal.from),
     icon: pictureOf(state, signal.from),
     buzz: true,
@@ -309,7 +318,7 @@ function rumorAlert(rumor: Rumor, conversationId: string, state: PushState, buzz
     return {
       tag: conversationId,
       title: sender,
-      line: ringing ? `📞 Incoming ${kind} call. Tap to answer` : `Missed ${kind} call`,
+      line: ringing ? `📞 Incoming nostr.buzz ${kind} call` : `Missed nostr.buzz ${kind} call`,
       url,
       icon,
       buzz: ringing,
@@ -356,6 +365,7 @@ async function showAlert(alert: Alert): Promise<void> {
     renotify: !alert.quietUpdate,
     silent: alert.quietUpdate || !alert.sound,
     requireInteraction: !!alert.callId,
+    ...(alert.callId ? { actions: CALL_ACTIONS } : {}),
     timestamp: (alert.at ?? nowSeconds()) * 1000,
     data: { url: alert.url, lines, callId: alert.callId } satisfies NotificationData,
     ...(alert.buzz && alert.sound && !alert.quietUpdate ? { vibrate: alert.callId ? CALL_VIBRATION : BUZZ_VIBRATION } : {}),
@@ -366,6 +376,15 @@ async function showAlert(alert: Alert): Promise<void> {
   const badge = ((await pushGet('badge')) ?? 0) + 1;
   await pushSet('badge', badge);
   await setBadge(badge);
+
+  // Keep ringing for a while, as long as the call is still waiting on screen.
+  for (let i = 0; alert.callId && i < RING_REPEATS; i++) {
+    await new Promise((resolve) => setTimeout(resolve, RING_REPEAT_MS));
+    const shown = await self.registration.getNotifications({ tag: alert.tag });
+    const waiting = shown.some((item) => (item.data as NotificationData | undefined)?.callId === alert.callId);
+    if (!waiting || nowSeconds() - (alert.at ?? 0) > RING_SECONDS) break;
+    await self.registration.showNotification(alert.title, options);
+  }
 }
 
 /** Nothing to tell the user. On WebKit a push still has to show something, so make it brief. */
@@ -391,6 +410,7 @@ async function setBadge(count: number): Promise<void> {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  if (event.action === 'dismiss') return;
   const data = event.notification.data as NotificationData | undefined;
   const url = typeof data?.url === 'string' && data.url.startsWith('/') && !data.url.startsWith('//') ? data.url : '/';
   event.waitUntil(

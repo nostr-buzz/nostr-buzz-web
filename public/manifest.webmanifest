@@ -59,5 +59,13 @@
         }
       ]
     }
-  ]
+  ],
+  "dir": "ltr",
+  "launch_handler": {
+    "client_mode": [
+      "navigate-existing",
+      "auto"
+    ]
+  },
+  "prefer_related_applications": false
 }

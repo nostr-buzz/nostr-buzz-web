@@ -27,6 +27,8 @@ export function DeliveryIcon({ status, className }: { status?: DeliveryStatus; c
 
 /** Width of one swipe action button. */
 const ACTION_WIDTH = 76;
+/** How far the action color reaches under the row, so its rounded corners never show a gap. */
+const UNDERLAP = 16;
 /** Dragging the row this far (share of its width) runs the outer action on release. */
 const FULL_SWIPE = 0.6;
 const EASING = '320ms cubic-bezier(0.2, 0.8, 0.2, 1)';
@@ -94,7 +96,7 @@ export function ChatListItem({ conversation, active }: { conversation: Conversat
     for (const [element, width] of sides) {
       if (!element) continue;
       element.style.transition = animate ? `width ${EASING}, visibility ${EASING}` : 'none';
-      element.style.width = `${width}px`;
+      element.style.width = `${width > 0 ? width + UNDERLAP : 0}px`;
       element.style.visibility = width > 0 ? 'visible' : 'hidden';
     }
     frameRef.current?.toggleAttribute('data-swipe-open', offset !== 0);
@@ -170,10 +172,10 @@ export function ChatListItem({ conversation, active }: { conversation: Conversat
   return (
     <div ref={frameRef} className="relative overflow-hidden rounded-xl">
       {/* Swipe actions (touch only). The same actions are in the long-press menu. */}
-      <div ref={leadingRef} aria-hidden="true" className="invisible absolute inset-y-0 left-0 flex w-0 overflow-hidden">
+      <div ref={leadingRef} aria-hidden="true" className="invisible absolute inset-y-0 left-0 flex w-0 overflow-hidden bg-amber-500 pr-4">
         {actionButtons(leading)}
       </div>
-      <div ref={trailingRef} aria-hidden="true" className="invisible absolute inset-y-0 right-0 flex w-0 overflow-hidden">
+      <div ref={trailingRef} aria-hidden="true" className={cn('invisible absolute inset-y-0 right-0 flex w-0 overflow-hidden pl-4', unread > 0 ? 'bg-sky-700' : 'bg-stone-600')}>
         {actionButtons(trailing)}
       </div>
 
