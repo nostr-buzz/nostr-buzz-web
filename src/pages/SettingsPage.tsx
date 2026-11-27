@@ -156,7 +156,7 @@ function AppearanceSection() {
   const { theme, setTheme } = useTheme();
   return (
     <Section title="Appearance">
-      <div className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 px-4 py-4">
         <span className="font-medium">Theme</span>
         <ToggleGroup
           type="single"
@@ -164,14 +164,15 @@ function AppearanceSection() {
           onValueChange={(value) => value && setTheme(value as Theme)}
           variant="outline"
           aria-label="Theme"
+          className="w-full"
         >
-          <ToggleGroupItem value="light" aria-label="Light" className="gap-1.5 px-3">
+          <ToggleGroupItem value="light" aria-label="Light" className="flex-1 gap-1.5 px-3">
             <Sun className="size-4" /> Light
           </ToggleGroupItem>
-          <ToggleGroupItem value="dark" aria-label="Dark" className="gap-1.5 px-3">
+          <ToggleGroupItem value="dark" aria-label="Dark" className="flex-1 gap-1.5 px-3">
             <Moon className="size-4" /> Dark
           </ToggleGroupItem>
-          <ToggleGroupItem value="system" aria-label="System" className="gap-1.5 px-3">
+          <ToggleGroupItem value="system" aria-label="System" className="flex-1 gap-1.5 px-3">
             <Monitor className="size-4" /> Auto
           </ToggleGroupItem>
         </ToggleGroup>
@@ -303,7 +304,7 @@ function NotificationsSection() {
         checked={messageSound}
         onCheckedChange={setMessageSound}
       />
-      <div className="flex flex-col gap-3 border-b px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-b px-4 py-3.5">
         <span className={cn('font-medium', !messageSound && 'text-muted-foreground')}>Tone</span>
         <ToggleGroup
           type="single"
@@ -315,10 +316,11 @@ function NotificationsSection() {
           }}
           variant="outline"
           aria-label="In-app sound tone"
+          className="w-full"
           disabled={!messageSound}
         >
           {MESSAGE_TONE_NAMES.map((name) => (
-            <ToggleGroupItem key={name} value={name} className="px-3 capitalize">
+            <ToggleGroupItem key={name} value={name} className="flex-1 px-3 capitalize">
               {name}
             </ToggleGroupItem>
           ))}
