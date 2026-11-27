@@ -1,6 +1,6 @@
 import { Copy, MoreHorizontal, Pencil, Pin, PinOff, Reply, RotateCw, Trash2, Users } from 'lucide-react';
 import { nip19 } from 'nostr-tools';
-import { type ComponentType, type ReactNode, useState } from 'react';
+import { type ComponentType, type ReactNode, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { BeeMark } from '@/components/brand/Brand';
@@ -33,15 +33,19 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useDM } from '@/hooks/useDM';
+import { useSwipe } from '@/hooks/useSwipe';
 import { useToast } from '@/hooks/useToast';
 import { conversationRoute, isBuzz, messagePreview } from '@/lib/dm/conversation';
 import { isGroupInvite, isGroupJoin, parseInvite } from '@/lib/groups/groups';
 import { nowSeconds } from '@/lib/dm/nip17';
 import { type ChatMessage, type Conversation, DM_KIND, type ReactionGroup } from '@/lib/dm/types';
 import { formatMessageTime, isEmojiOnly } from '@/lib/format';
+import { hapticTick } from '@/lib/haptics';
 import { cn } from '@/lib/utils';
 
 const QUICK_REACTIONS =['👍', '❤️', '😂', '🔥', '😮', '😢', '🐝'];
+/** Swipe a message this far to the left to reply to it. */
+const REPLY_SWIPE = 56;
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -89,6 +93,49 @@ export function MessageBubble(props: MessageBubbleProps) {
   const isPinned = !!conversation.group?.pinned.includes(message.id);
   const groupId = conversation.group?.id;
   const canPin = canModerate && isNip17 && !isLocal && !message.status;
+  const canReply = !isLocal && message.status !== 'failed';
+
+  // Swipe left to reply (touch). The row follows the finger, then springs back.
+  const rowRef = useRef<HTMLDivElement>(null);
+  const replyHintRef = useRef<HTMLSpanElement>(null);
+  const swipeArmed = useRef(false);
+  const slideRow = (distance: number, animate: boolean) => {
+    const row = rowRef.current;
+    const hint = replyHintRef.current;
+    if (!row || !hint) return;
+    const progress = Math.min(1, distance / REPLY_SWIPE);
+    row.style.transition = animate ? 'transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none';
+    row.style.transform = distance > 0 ? `translate3d(${-distance}px, 0, 0)` : '';
+    hint.style.transition = animate ? 'opacity 200ms ease-out, transform 200ms ease-out' : 'none';
+    hint.style.opacity = String(progress);
+    // The hint rides inside the row, so move it back by the same distance to keep it at the screen edge.
+    hint.style.transform = `translate3d(${distance}px, 0, 0) scale(${0.5 + progress * 0.5})`;
+  };
+  useSwipe(
+    rowRef,
+    {
+      onStart: () => {
+        swipeArmed.current = false;
+      },
+      onMove: (dx) => {
+        const pull = Math.max(0, -dx);
+        // Follow the finger up to the trigger point, then resist.
+        const distance = pull <= REPLY_SWIPE ? pull : Math.min(96, REPLY_SWIPE + (pull - REPLY_SWIPE) * 0.25);
+        const armed = pull >= REPLY_SWIPE;
+        if (armed !== swipeArmed.current) {
+          swipeArmed.current = armed;
+          hapticTick();
+        }
+        slideRow(distance, false);
+      },
+      onEnd: () => {
+        slideRow(0, true);
+        if (swipeArmed.current) onReply(message);
+        swipeArmed.current = false;
+      },
+    },
+    canReply,
+  );
 
   const react = (emoji: string) => {
     toggleReaction(message, emoji).catch((error: unknown) =>
@@ -132,7 +179,7 @@ export function MessageBubble(props: MessageBubbleProps) {
             <Separator />
           </>
         )}
-        {!isLocal && message.status !== 'failed' && (
+        {canReply && (
           <Item onSelect={() => onReply(message)}>
             <Reply /> Reply
           </Item>
@@ -282,9 +329,21 @@ export function MessageBubble(props: MessageBubbleProps) {
 
   return (
     <div
+      ref={rowRef}
       id={`msg-${message.id}`}
-      className={cn('group flex items-end gap-2 rounded-lg px-2 md:px-4', mine ? 'justify-end' : 'justify-start', first ? 'mt-2' : 'mt-0.5')}
+      className={cn(
+        'group relative flex touch-pan-y items-end gap-2 rounded-lg px-2 motion-reduce:!transition-none md:px-4',
+        mine ? 'justify-end' : 'justify-start',
+        first ? 'mt-2' : 'mt-0.5',
+      )}
     >
+      <span
+        ref={replyHintRef}
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/2 right-3 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-background/90 text-foreground opacity-0 shadow-sm"
+      >
+        <Reply className="size-4" />
+      </span>
       {showAvatar &&
         (last ? (
           <Link to={`/${nip19.npubEncode(message.pubkey)}`} className="shrink-0 rounded-full" aria-label="Open profile">

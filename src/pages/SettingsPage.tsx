@@ -29,12 +29,14 @@ import { useDM } from '@/hooks/useDM';
 import { useDMRelayInfo, usePublishInboxRelays } from '@/hooks/useDMRelays';
 import { useLoginActions } from '@/hooks/useLoginActions';
 import { useNostrPublish } from '@/hooks/useNostrPublish';
+import { usePushStatus } from '@/hooks/usePushSync';
 import { useTheme } from '@/hooks/useTheme';
 import { useToast } from '@/hooks/useToast';
 import { nowSeconds } from '@/lib/dm/nip17';
 import { DEFAULT_INBOX_RELAYS, MAX_INBOX_RELAYS, uniqueRelays } from '@/lib/dm/relays';
 import { displayName, shortNpub } from '@/lib/format';
 import { normalizeRelayUrl } from '@/lib/sanitize';
+import { requestNotificationPermission, sendTestPush } from '@/lib/push/client';
 import { playMessageSound } from '@/lib/sounds';
 
 export default function SettingsPage() {
@@ -227,37 +229,69 @@ function NotificationsSection() {
   const { toast } = useToast();
   const [notifications, setNotifications] = useSetting('notifications');
   const [previews, setPreviews] = useSetting('notificationPreviews');
-  const supported = typeof Notification !== 'undefined';
+  const { user } = useCurrentUser();
+  const push = usePushStatus();
+  const [testing, setTesting] = useState(false);
+  const on = notifications && push.supported && push.permission === 'granted';
 
   const toggle = async (value: boolean) => {
     if (!value) {
       setNotifications(false);
       return;
     }
-    if (!supported) {
-      toast({ title: 'Not supported', description: 'This browser cannot show notifications.', variant: 'destructive' });
-      return;
-    }
-    const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
+    const permission = await requestNotificationPermission();
     if (permission === 'granted') setNotifications(true);
-    else toast({ title: 'Permission denied', description: 'Allow notifications for this site in your browser settings.', variant: 'destructive' });
+    else toast({ title: 'Notifications are blocked', description: 'Allow them for this site in your browser settings.', variant: 'destructive' });
   };
 
+  const test = async () => {
+    setTesting(true);
+    try {
+      await sendTestPush();
+      toast({ title: 'Test sent' });
+    } catch (error) {
+      toast({ title: 'Test failed', description: error instanceof Error ? error.message : undefined, variant: 'destructive' });
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  const status = push.needsInstall
+    ? 'Add nostr.buzz to your Home Screen first (Share, then Add to Home Screen).'
+    : !push.supported
+      ? 'Not supported in this browser.'
+      : push.permission === 'denied'
+        ? 'Blocked. Allow notifications in your browser settings.'
+        : !on
+          ? 'Messages and buzzes'
+          : push.delivery === 'push'
+            ? 'On, even when the app is closed'
+            : push.delivery === 'error'
+              ? 'On while the app is open. Push server unreachable.'
+              : 'On while the app is open';
+
   return (
-    <Section title="Notifications" description="When the tab is in the background.">
+    <Section title="Notifications">
       <SettingSwitch
-        label="Desktop notifications"
-        description={supported ? 'Messages and buzzes' : 'Not supported here'}
-        checked={notifications && supported}
+        label="Notifications"
+        description={status}
+        checked={on}
         onCheckedChange={(value) => void toggle(value)}
-        disabled={!supported}
+        disabled={!push.supported || push.permission === 'denied'}
       />
       <SettingSwitch
         label="Show message preview"
+        description={user?.method === 'nsec' ? 'Name and text in the notification' : 'This login keeps closed-app alerts generic'}
         checked={previews}
         onCheckedChange={setPreviews}
-        disabled={!notifications}
+        disabled={!on}
       />
+      <div className="flex items-center justify-between gap-4 px-4 py-3.5">
+        <SettingInline label="Test" description="Send yourself a notification" />
+        <Button variant="outline" size="sm" className="rounded-full" onClick={() => void test()} disabled={!on || testing}>
+          {testing ? <Loader2 className="animate-spin" /> : null} Send test
+        </Button>
+      </div>
     </Section>
   );
 }

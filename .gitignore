@@ -4,3 +4,4 @@ dist
 .eslintcache
 *.tsbuildinfo
 .tsbuildinfo
+push-server/data

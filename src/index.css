@@ -335,6 +335,58 @@
   --safe-bottom: 0px;
 }
 
+/* ------------------------------------------------------------------ */
+/* Native feel on phones                                               */
+/* ------------------------------------------------------------------ */
+
+@media (pointer: coarse) {
+  /* No double-tap zoom delay, no long-press link previews, no stray text selection in the app chrome. */
+  :root[data-app-shell] {
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+  }
+
+  :root[data-app-shell] .app-viewport {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  :root[data-app-shell] .app-viewport :is(input, textarea, [contenteditable="true"]) {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* Touch scrolling shows its own indicator; a permanent track looks like a web page. */
+  .app-viewport .scrollbar-thin {
+    scrollbar-width: none;
+  }
+
+  .app-viewport .scrollbar-thin::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Opening a chat slides it in over the list; going back brings the list in from the left. */
+@keyframes pane-push {
+  from { transform: translate3d(30%, 0, 0); opacity: 0.3; }
+  to { transform: none; opacity: 1; }
+}
+
+@keyframes pane-pop {
+  from { transform: translate3d(-14%, 0, 0); opacity: 0.4; }
+  to { transform: none; opacity: 1; }
+}
+
+@media (width < 48rem) and (prefers-reduced-motion: no-preference) {
+  .pane-push {
+    animation: pane-push 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .pane-pop {
+    animation: pane-pop 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+}
+
 .buzz-shake {
   animation: buzz-shake 0.9s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }

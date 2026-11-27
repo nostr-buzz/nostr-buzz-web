@@ -136,7 +136,7 @@ export function MessageList({ conversation, loading, onReply, onEdit }: MessageL
       <div
         ref={scrollRef}
         onScroll={onScroll}
-        className="h-full overflow-y-auto overscroll-contain pb-3 scrollbar-thin"
+        className="h-full overflow-x-hidden overflow-y-auto overscroll-contain pb-3 scrollbar-thin"
         role="log"
         aria-live="polite"
         aria-relevant="additions"

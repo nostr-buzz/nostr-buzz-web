@@ -11,6 +11,7 @@ import { Logo } from '@/components/brand/Brand';
 import { ChatListItem } from '@/components/chat/ChatListItem';
 import { InboxSetupBanner } from '@/components/chat/InboxSetupBanner';
 import { NewChatDialog } from '@/components/chat/NewChatDialog';
+import { NotificationsBanner } from '@/components/chat/NotificationsBanner';
 import { UserAvatar } from '@/components/chat/UserAvatar';
 import {
   AlertDialog,
@@ -128,6 +129,7 @@ export function ChatSidebar() {
       )}
 
       <InboxSetupBanner />
+      <NotificationsBanner />
 
       <nav aria-label="Conversations" className="min-h-0 flex-1 overflow-y-auto px-2 pb-28 scrollbar-thin">
         {loading ? (

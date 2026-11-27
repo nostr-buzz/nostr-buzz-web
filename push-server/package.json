@@ -1,0 +1,17 @@
+{
+  "name": "nostr-buzz-push-server",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Forwards encrypted Nostr DMs to devices as Web Push messages.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "nostr-tools": "^2.23.3",
+    "web-push": "^3.6.7"
+  }
+}

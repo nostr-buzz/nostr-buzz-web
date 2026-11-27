@@ -1,6 +1,6 @@
 import { useSeoMeta } from '@unhead/react';
 import { useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useNavigationType } from 'react-router-dom';
 
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
 import { Landing } from '@/components/landing/Landing';
@@ -17,6 +17,7 @@ export function AppShell() {
   const { user } = useCurrentUser();
   const { totalUnread } = useDM();
   const location = useLocation();
+  const navigationType = useNavigationType();
 
   useSeoMeta({
     title: totalUnread > 0 ? `(${totalUnread}) nostr.buzz` : 'nostr.buzz',
@@ -29,6 +30,8 @@ export function AppShell() {
   if (!user) return <Landing />;
 
   const isHome = location.pathname === '/';
+  // Slide panes only for taps inside the app: the system back gesture animates on its own.
+  const animate = navigationType === 'PUSH';
 
   return (
     <div className="app-viewport flex w-full overflow-hidden bg-background">
@@ -37,11 +40,12 @@ export function AppShell() {
         className={cn(
           'h-full w-full min-w-0 flex-col border-r bg-sidebar md:flex md:w-[360px] md:shrink-0 lg:w-[400px]',
           isHome ? 'flex' : 'hidden',
+          animate && 'pane-pop',
         )}
       >
         <ChatSidebar />
       </aside>
-      <main className={cn('h-full min-w-0 flex-1 flex-col', isHome ? 'hidden md:flex' : 'flex')}>
+      <main className={cn('h-full min-w-0 flex-1 flex-col', isHome ? 'hidden md:flex' : 'flex', animate && 'pane-push')}>
         <Outlet />
       </main>
     </div>

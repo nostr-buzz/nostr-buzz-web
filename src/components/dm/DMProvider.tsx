@@ -13,7 +13,6 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
 import { DMContext, type DMContextValue, type DMStatus, type SendOptions } from '@/contexts/DMContext';
@@ -23,6 +22,7 @@ import { useChatSettings } from '@/hooks/useChatSettings';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { dmRelayInfoQueryOptions, useDiscoveryRelays } from '@/hooks/useDMRelays';
 import { useFollows } from '@/hooks/useFollows';
+import { usePushSync } from '@/hooks/usePushSync';
 import { getEffectiveBlossomServers } from '@/lib/appBlossom';
 import { clearCachedMessages, loadCachedMessages, saveCachedMessages } from '@/lib/dm/cache';
 import {
@@ -74,6 +74,7 @@ import {
   saveKeyring,
   signGroupState,
 } from '@/lib/groups/groups';
+import { closeNotifications, ignoreOwnWraps, showLocalNotification } from '@/lib/push/client';
 import { playMessageSound } from '@/lib/sounds';
 
 const TWO_DAYS = 2 * 24 * 60 * 60;
@@ -453,20 +454,6 @@ async function streamFeed(
   }
 }
 
-function showNotification(title: string, body: string, tag: string, onClick: () => void) {
-  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
-  try {
-    const notification = new Notification(title, { body, tag, icon: '/icons/icon-192.png' });
-    notification.onclick = () => {
-      window.focus();
-      onClick();
-      notification.close();
-    };
-  } catch {
-    // Some mobile browsers only allow notifications from a service worker.
-  }
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                  Provider                                  */
 /* -------------------------------------------------------------------------- */
@@ -485,7 +472,6 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
   const me = user?.pubkey;
   const { nostr } = useNostr();
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const { config } = useAppContext();
   const { settings } = useChatSettings();
   const { triggerBuzz } = useBuzz();
@@ -627,7 +613,7 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
       followSet.has(message.pubkey) || (conversation ? !conversation.isRequest : false);
     const author = queryClient.getQueryData<{ metadata?: NostrMetadata }>(['nostr', 'author', message.pubkey]);
     const name = displayName(message.pubkey, author?.metadata);
-    const open = () => navigate(conversationRoute(message.conversationId));
+    const route = conversationRoute(message.conversationId);
 
     if (isBuzz(message)) {
       if (seenBuzzes.current.has(message.id)) return;
@@ -635,7 +621,7 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
       if (!isKnown && !settings.buzzFromStrangers) return;
       triggerBuzz({ from: message.pubkey, conversationId: message.conversationId });
       if (document.visibilityState === 'hidden' && settings.notifications) {
-        showNotification(`🐝 ${name}`, 'BUZZ!!!', message.conversationId, open);
+        void showLocalNotification(`🐝 ${name}`, 'BUZZ!!!', message.conversationId, route);
       }
       return;
     }
@@ -646,7 +632,7 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
     if (settings.messageSound) playMessageSound();
     if (!visible && settings.notifications) {
       const body = settings.notificationPreviews ? messagePreview(message) : 'New message';
-      showNotification(name, body, message.conversationId, open);
+      void showLocalNotification(name, body, message.conversationId, route);
     }
   });
 
@@ -891,6 +877,8 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
           if (recipient === me) {
             knownIds.current.add(wrap.id);
             selfWrapId = wrap.id;
+            // Our own copy must not come back as a push notification.
+            await ignoreOwnWraps([wrap.id]);
           }
           const relays = await relaysFor(recipient);
           await nostr.event(wrap, { relays, signal: AbortSignal.timeout(15_000) });
@@ -928,6 +916,7 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
         const seal = await sealRumor(signer, rumor, keys.current);
         const wrap = wrapSeal(seal, keys.current);
         knownIds.current.add(wrap.id);
+        await ignoreOwnWraps([wrap.id]);
         const relays = uniqueRelays([...keys.relays, ...DEFAULT_INBOX_RELAYS]).slice(0, 6);
         await nostr.event(wrap, { relays, signal: AbortSignal.timeout(15_000) });
         store.patch(rumor.id, { status: 'sent' });
@@ -1459,6 +1448,7 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
 
   const markRead = useCallback((conversationId: string) => {
     const now = nowSeconds();
+    void closeNotifications(conversationId);
     setPrefs((current) => {
       if ((current.read[conversationId] ?? 0) >= now) return current;
       return { ...current, read: { ...current.read, [conversationId]: now } };
@@ -1496,13 +1486,28 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
     [conversationMap, me],
   );
 
-  const value = useMemo<DMContextValue>(() => {
+  const { totalUnread, requestCount } = useMemo(() => {
     let totalUnread = 0;
     let requestCount = 0;
     for (const conversation of conversations) {
       if (conversation.isRequest) requestCount++;
       else if (!prefs.muted.includes(conversation.id)) totalUnread += conversation.unreadCount;
     }
+    return { totalUnread, requestCount };
+  }, [conversations, prefs.muted]);
+
+  const pushRelays = useMemo(() => readRelaysKey.split('|').filter(Boolean), [readRelaysKey]);
+  usePushSync({
+    me,
+    conversations,
+    follows: followSet,
+    muted: prefs.muted,
+    groups: groupContexts,
+    relays: pushRelays,
+    totalUnread,
+  });
+
+  const value = useMemo<DMContextValue>(() => {
     return {
       enabled: !!me,
       status,
@@ -1544,6 +1549,8 @@ function DMEngine({ user, children }: { user: NUser | undefined; children: React
     user,
     status,
     conversations,
+    totalUnread,
+    requestCount,
     prefs,
     getConversation,
     activeConversationId,

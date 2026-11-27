@@ -33,6 +33,10 @@ jobs:
       # so deep links like /chat/npub1… work on GitHub Pages).
       - name: Test & build
         run: npm test
+        env:
+          # Optional: URL of the push server (push-server/README.md). Without it,
+          # notifications only work while the app is open.
+          VITE_PUSH_SERVER_URL: ${{ vars.PUSH_SERVER_URL }}
 
       - uses: actions/configure-pages@v5
 

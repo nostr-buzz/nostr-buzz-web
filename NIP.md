@@ -16,6 +16,13 @@ private messenger, with one small, backwards-compatible convention for the *BUZZ
 | Inbox relays | Kind `10050` (NIP-17). Falls back to NIP-65 read relays, then to the app defaults. |
 | Legacy | NIP-04 kind `4` messages are read, and 1:1 replies use NIP-04 when the other side only speaks NIP-04. |
 
+## Push notifications
+
+No new event kinds. An optional push server (see [`push-server/`](push-server/README.md)) subscribes to
+kind `1059` (and kind `4`) events `p`-tagged to a device's pubkeys and forwards each event unchanged
+inside a Web Push message. The service worker unwraps it locally, so the server never sees keys,
+senders or text. For logins without a local key (NIP-07, NIP-46) the notification only says "New message".
+
 ## BUZZ
 
 A buzz is an ordinary NIP-17 **kind 14** chat message with a `t` tag of `buzz`:

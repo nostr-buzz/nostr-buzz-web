@@ -11,8 +11,12 @@ import '@fontsource/poppins/700.css';
 import '@fontsource/poppins/800.css';
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { registerServiceWorker } from '@/lib/push/client';
 import App from './App.tsx';
 import './index.css';
+
+// Notifications (and push with the app closed) run through the service worker.
+registerServiceWorker();
 
 createRoot(document.getElementById("root")!).render(
   <ErrorBoundary>
