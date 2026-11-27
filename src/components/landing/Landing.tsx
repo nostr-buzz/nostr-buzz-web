@@ -2,17 +2,12 @@ import { Lock } from 'lucide-react';
 
 import { LoginArea } from '@/components/auth/LoginArea';
 import { Bee3D } from '@/components/brand/Bee3D';
-import { Logo } from '@/components/brand/Brand';
 
 /** The page people see before they join: one screen, one message, one button. */
 export function Landing() {
   return (
     <div className="flex min-h-dvh flex-col bg-background">
-      <header className="mx-auto flex w-full max-w-5xl items-center px-6 pt-[max(1.25rem,env(safe-area-inset-top))]">
-        <Logo markClassName="size-8" />
-      </header>
-
-      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center px-6 py-10 text-center">
+      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center px-6 pt-[max(2.5rem,env(safe-area-inset-top))] pb-10 text-center">
         <Bee3D interactive label="The nostr.buzz bee" className="size-56 sm:size-64" />
 
         <h1 className="mt-4 font-display text-5xl leading-[1.05] font-extrabold tracking-tight text-balance sm:text-6xl">
