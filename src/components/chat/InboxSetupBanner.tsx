@@ -1,7 +1,7 @@
+import { Inbox } from 'lucide-react';
 import { useState } from 'react';
 
-import { BeeMark } from '@/components/brand/Brand';
-import { Button } from '@/components/ui/button';
+import { SetupPrompt } from '@/components/chat/SetupPrompt';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useDMRelayInfo, usePublishInboxRelays } from '@/hooks/useDMRelays';
 import { useToast } from '@/hooks/useToast';
@@ -25,22 +25,12 @@ export function InboxSetupBanner() {
   };
 
   return (
-    <div className="mx-3 mb-2 rounded-xl border border-amber-300/70 bg-amber-50 p-3 dark:border-amber-400/20 dark:bg-amber-400/10">
-      <div className="flex gap-3">
-        <BeeMark className="size-9 shrink-0" />
-        <div className="min-w-0">
-          <p className="text-sm font-semibold">Turn on your inbox</p>
-          <p className="text-xs text-muted-foreground">So others can message you.</p>
-        </div>
-      </div>
-      <div className="mt-3 flex gap-2">
-        <Button size="sm" onClick={enable} disabled={publish.isPending}>
-          {publish.isPending ? 'Enabling…' : 'Enable inbox'}
-        </Button>
-        <Button size="sm" variant="ghost" onClick={() => setDismissed(true)}>
-          Later
-        </Button>
-      </div>
-    </div>
+    <SetupPrompt
+      icon={<Inbox className="size-5" />}
+      title="Turn on your inbox"
+      text="So others can message you."
+      action={{ label: publish.isPending ? 'Enabling…' : 'Enable', onClick: enable, disabled: publish.isPending }}
+      dismiss={{ label: 'Later', onClick: () => setDismissed(true) }}
+    />
   );
 }

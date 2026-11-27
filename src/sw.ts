@@ -28,6 +28,8 @@ import { normalizeRelayUrl, sanitizeUrl } from '@/lib/sanitize';
 declare const self: ServiceWorkerGlobalScope;
 
 const ICON = '/icons/icon-192.png';
+/** White-on-transparent mark Android shows in the status bar. */
+const BADGE = '/icons/badge-96.png';
 const HEX64 = /^[0-9a-f]{64}$/;
 /** Pushes can be delayed while a phone sleeps; older messages are not news any more. */
 const MAX_AGE_SECONDS = 30 * 60;
@@ -102,6 +104,7 @@ async function onPush(event: PushEvent): Promise<void> {
     await self.registration.showNotification('Notifications work 🐝', {
       body: 'You will get messages here, even with the app closed.',
       icon: ICON,
+      badge: BADGE,
       tag: 'nostr-buzz-test',
       data: { url: '/settings', lines: [] } satisfies NotificationData,
     });
@@ -320,6 +323,7 @@ async function showAlert(alert: Alert): Promise<void> {
   const options: RichNotificationOptions = {
     body: lines.join('\n'),
     icon: alert.icon ?? ICON,
+    badge: BADGE,
     tag: alert.tag,
     renotify: true,
     silent: !alert.sound,

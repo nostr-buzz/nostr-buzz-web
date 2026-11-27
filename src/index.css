@@ -439,6 +439,20 @@
     animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
+  /* The grabber: drag the top of a sheet down to dismiss it. */
+  [data-slot="dialog-content"]::before {
+    content: "";
+    position: absolute;
+    top: 0.5rem;
+    left: 50%;
+    width: 2.25rem;
+    height: 0.25rem;
+    border-radius: 9999px;
+    background: color-mix(in oklab, var(--muted-foreground) 45%, transparent);
+    translate: -50% 0;
+    pointer-events: none;
+  }
+
   /* Keyboard open: the sheet fills the area above it. */
   :root[data-keyboard] [data-slot="dialog-content"] {
     top: calc(var(--vv-top, 0px) + 0.5rem);

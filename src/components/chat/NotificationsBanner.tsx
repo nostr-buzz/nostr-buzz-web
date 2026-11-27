@@ -1,7 +1,7 @@
 import { BellRing, Share } from 'lucide-react';
 import { useState } from 'react';
 
-import { Button } from '@/components/ui/button';
+import { SetupPrompt } from '@/components/chat/SetupPrompt';
 import { useChatSettings } from '@/hooks/useChatSettings';
 import { usePushStatus } from '@/hooks/usePushSync';
 import { useToast } from '@/hooks/useToast';
@@ -51,29 +51,24 @@ export function NotificationsBanner() {
     }
   };
 
+  if (push.needsInstall) {
+    return (
+      <SetupPrompt
+        icon={<Share className="size-5" />}
+        title="Install for notifications"
+        text="Tap Share, then Add to Home Screen."
+        dismiss={{ label: 'Got it', onClick: dismiss }}
+      />
+    );
+  }
+
   return (
-    <div className="mx-3 mb-2 rounded-xl border border-amber-300/70 bg-amber-50 p-3 dark:border-amber-400/20 dark:bg-amber-400/10">
-      <div className="flex gap-3">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-          {push.needsInstall ? <Share className="size-4.5" /> : <BellRing className="size-4.5" />}
-        </span>
-        <div className="min-w-0">
-          <p className="text-sm font-semibold">{push.needsInstall ? 'Install for notifications' : 'Turn on notifications'}</p>
-          <p className="text-xs text-muted-foreground">
-            {push.needsInstall ? 'Tap Share, then Add to Home Screen.' : 'Never miss a message or a buzz.'}
-          </p>
-        </div>
-      </div>
-      <div className="mt-3 flex gap-2">
-        {!push.needsInstall && (
-          <Button size="sm" onClick={() => void enable()} disabled={asking}>
-            Turn on
-          </Button>
-        )}
-        <Button size="sm" variant="ghost" onClick={dismiss}>
-          {push.needsInstall ? 'Got it' : 'Later'}
-        </Button>
-      </div>
-    </div>
+    <SetupPrompt
+      icon={<BellRing className="size-5" />}
+      title="Turn on notifications"
+      text="Never miss a message or a buzz."
+      action={{ label: 'Turn on', onClick: () => void enable(), disabled: asking }}
+      dismiss={{ label: 'Later', onClick: dismiss }}
+    />
   );
 }

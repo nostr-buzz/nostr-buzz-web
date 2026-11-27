@@ -14,6 +14,7 @@ import { useDM } from '@/hooks/useDM';
 import { claimOpenRow, closeOtherRows, releaseOpenRow, useSwipe } from '@/hooks/useSwipe';
 import { conversationRoute, isBuzz, messagePreview } from '@/lib/dm/conversation';
 import type { Conversation, DeliveryStatus } from '@/lib/dm/types';
+import { useDraft } from '@/lib/drafts';
 import { formatListTime } from '@/lib/format';
 import { hapticTick } from '@/lib/haptics';
 import { cn } from '@/lib/utils';
@@ -46,6 +47,7 @@ export function ChatListItem({ conversation, active }: { conversation: Conversat
   const pinned = isPinned(conversation.id);
   const unread = conversation.unreadCount;
   const buzz = last ? isBuzz(last) : false;
+  const draft = useDraft(conversation.id);
 
   const frameRef = useRef<HTMLDivElement>(null);
   const rowRef = useRef<HTMLDivElement>(null);
@@ -216,16 +218,25 @@ export function ChatListItem({ conversation, active }: { conversation: Conversat
                     dir="auto"
                     className={cn(
                       'min-w-0 flex-1 truncate text-sm text-muted-foreground',
-                      buzz && 'font-semibold text-amber-700 dark:text-amber-400',
+                      buzz && !(draft && !active) && 'font-semibold text-amber-700 dark:text-amber-400',
                     )}
                   >
-                    {last && mine && <span className="text-foreground/80">You: </span>}
-                    {last && !mine && conversation.isGroup && (
-                      <span className="text-foreground/80">
-                        <AuthorName pubkey={last.pubkey} />:{' '}
-                      </span>
+                    {draft && !active ? (
+                      <>
+                        <span className="font-medium text-red-600 dark:text-red-400">Draft: </span>
+                        {draft.replace(/\s+/g, ' ').trim()}
+                      </>
+                    ) : (
+                      <>
+                        {last && mine && <span className="text-foreground/80">You: </span>}
+                        {last && !mine && conversation.isGroup && (
+                          <span className="text-foreground/80">
+                            <AuthorName pubkey={last.pubkey} />:{' '}
+                          </span>
+                        )}
+                        {last ? messagePreview(last) : 'No messages yet'}
+                      </>
                     )}
-                    {last ? messagePreview(last) : 'No messages yet'}
                   </p>
                   {unread > 0 ? (
                     <span

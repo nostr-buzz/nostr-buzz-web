@@ -9,29 +9,11 @@ import { useChatSettings } from '@/hooks/useChatSettings';
 import { useDM } from '@/hooks/useDM';
 import { useToast } from '@/hooks/useToast';
 import { messagePreview } from '@/lib/dm/conversation';
+import { loadDraft, saveDraft } from '@/lib/drafts';
 import type { ChatMessage, Conversation } from '@/lib/dm/types';
 import { cn } from '@/lib/utils';
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024;
-const draftKey = (id: string) => `nostr-buzz:draft:${id}`;
-
-function loadDraft(id: string): string {
-  try {
-    return localStorage.getItem(draftKey(id)) ?? '';
-  } catch {
-    return '';
-  }
-}
-
-function saveDraft(id: string, value: string) {
-  try {
-    if (value.trim()) localStorage.setItem(draftKey(id), value);
-    else localStorage.removeItem(draftKey(id));
-  } catch {
-    // Drafts are a convenience.
-  }
-}
-
 interface ComposerProps {
   conversation: Conversation;
   replyTo: ChatMessage | null;

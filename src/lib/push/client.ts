@@ -22,6 +22,7 @@ const TOKEN_KEY = 'nostr-buzz:push-token';
 const SYNCED_KEY = 'nostr-buzz:push-synced';
 const RESYNC_AFTER_MS = 12 * 60 * 60 * 1000;
 const ICON = '/icons/icon-192.png';
+const BADGE = '/icons/badge-96.png';
 
 /**
  * - `off`: notifications are turned off (or nobody is logged in)
@@ -300,7 +301,7 @@ export function writePushState(state: PushState | undefined): Promise<void> {
  */
 export async function showLocalNotification(title: string, body: string, tag: string, url: string, silent = false): Promise<void> {
   if (delivery === 'push' || notificationPermission() !== 'granted') return;
-  const options = { body, tag, icon: ICON, silent, data: { url, lines: [body] } };
+  const options = { body, tag, icon: ICON, badge: BADGE, silent, data: { url, lines: [body] } };
   try {
     // Mobile browsers only allow notifications from a service worker.
     const registration = await getRegistration();
