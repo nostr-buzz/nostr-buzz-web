@@ -48,7 +48,7 @@ export default function SettingsPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col bg-muted/30">
-      <header className="flex items-center gap-2 border-b bg-background/90 px-2 pt-[max(0.5rem,env(safe-area-inset-top))] pb-2 backdrop-blur-md md:px-6">
+      <header className="app-bar gap-2 border-b bg-background/90 px-2 backdrop-blur-md md:px-6">
         <Button variant="ghost" size="icon" className="rounded-full md:hidden" aria-label="Back to chats" onClick={() => navigate('/')}>
           <ArrowLeft className="size-5" />
         </Button>

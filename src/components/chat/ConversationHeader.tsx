@@ -57,7 +57,7 @@ export function ConversationHeader({ conversation, onOpenInfo }: ConversationHea
 
   return (
     <>
-      <header className="z-10 flex items-center gap-1.5 border-b bg-background/85 px-2 pt-[max(0.5rem,env(safe-area-inset-top))] pb-2 backdrop-blur-md md:gap-2 md:px-4">
+      <header className="app-bar z-10 gap-1.5 border-b bg-background/85 px-2 backdrop-blur-md md:gap-2 md:px-4">
         <Button
           variant="ghost"
           size="icon"

@@ -76,7 +76,7 @@ export function ChatSidebar() {
 
   return (
     <div className="relative flex h-full min-h-0 flex-col">
-      <header className="flex items-center gap-2 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2">
+      <header className="app-bar gap-1 px-3">
         <Link to="/" className="mr-auto rounded-lg px-1 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
           <Logo markClassName="size-7" />
         </Link>
@@ -120,7 +120,7 @@ export function ChatSidebar() {
               aria-selected={activeTab === value}
               onClick={() => setTab(value)}
               className={cn(
-                'rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+                'rounded-full px-4 py-2 text-sm font-semibold transition-colors md:px-3.5 md:py-1.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
                 activeTab === value ? 'bg-foreground text-background' : 'text-muted-foreground hover:bg-accent',
               )}
             >
@@ -176,7 +176,7 @@ function ChatListSkeleton() {
     <div className="space-y-1 px-1" aria-busy="true" aria-label="Loading chats">
       {Array.from({ length: 7 }, (_, index) => (
         <div key={index} className="flex items-center gap-3 px-2 py-2.5">
-          <Skeleton className="size-12 rounded-full" />
+          <Skeleton className="size-13 rounded-full" />
           <div className="flex-1 space-y-2">
             <Skeleton className="h-4 w-2/5" />
             <Skeleton className="h-3 w-4/5" />

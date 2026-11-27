@@ -92,6 +92,16 @@ export function AppProvider(props: AppProviderProps) {
 }
 
 /**
+ * Paint the browser / system bars (status bar, Android task switcher) in the app's
+ * background color, so the app runs edge to edge like a native one.
+ */
+function syncThemeColor() {
+  const meta = document.querySelector('meta[name="theme-color"]');
+  const color = getComputedStyle(document.body).backgroundColor;
+  if (meta && color) meta.setAttribute('content', color);
+}
+
+/**
  * Hook to apply theme changes to the document root
  */
 function useApplyTheme(theme: Theme) {
@@ -107,10 +117,12 @@ function useApplyTheme(theme: Theme) {
         : 'light';
 
       root.classList.add(systemTheme);
+      syncThemeColor();
       return;
     }
 
     root.classList.add(theme);
+    syncThemeColor();
   }, [theme]);
 
   // Handle system theme changes when theme is set to "system"
@@ -125,6 +137,7 @@ function useApplyTheme(theme: Theme) {
 
       const systemTheme = mediaQuery.matches ? 'dark' : 'light';
       root.classList.add(systemTheme);
+      syncThemeColor();
     };
 
     mediaQuery.addEventListener('change', handleChange);

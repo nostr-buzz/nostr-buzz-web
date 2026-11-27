@@ -194,7 +194,7 @@ export function ChatListItem({ conversation, active }: { conversation: Conversat
                 active ? 'bg-amber-100/70 dark:bg-amber-300/10' : 'hover:bg-accent/70 active:bg-accent',
               )}
             >
-              <ConversationAvatar conversation={conversation} className="size-12" />
+              <ConversationAvatar conversation={conversation} className="size-13" />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
                   <ConversationTitle conversation={conversation} className="min-w-0 flex-1 truncate font-semibold" />

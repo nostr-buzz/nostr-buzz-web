@@ -4,8 +4,16 @@
  */
 import { base64UrlToBytes, type PushRegistration, pushSet, type PushState, type WorkerMessage } from './store';
 
-/** Base URL of the nostr.buzz push server, set at build time. Empty = no closed-app push. */
-export const PUSH_SERVER = (import.meta.env.VITE_PUSH_SERVER_URL ?? '').trim().replace(/\/+$/, '');
+/** The project's own push server, used unless a build overrides it. */
+const DEFAULT_PUSH_SERVER = 'https://push.nostr.buzz';
+
+/**
+ * Base URL of the push server. `VITE_PUSH_SERVER_URL` overrides the default at build time;
+ * set it to "off" to build without closed-app push.
+ */
+export const PUSH_SERVER = ((value: string) => (value === 'off' ? '' : value.replace(/\/+$/, '')))(
+  (import.meta.env.VITE_PUSH_SERVER_URL || DEFAULT_PUSH_SERVER).trim(),
+);
 
 /** Window event (detail = path) fired when a notification asks the app to open a chat. */
 export const PUSH_NAVIGATE_EVENT = 'nostr-buzz:navigate';

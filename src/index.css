@@ -387,6 +387,28 @@
   }
 }
 
+/* App bars: one height on every screen, sitting below the status bar or notch. */
+.app-bar {
+  display: flex;
+  align-items: center;
+  min-height: calc(3.5rem + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+@media (pointer: coarse) {
+  /* Comfortable touch targets: 44px, as iOS and Android both ask for. */
+  .app-viewport [data-slot="button"][data-size="icon"] {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  :is([data-slot="dropdown-menu-item"], [data-slot="context-menu-item"]):not([aria-label^="React with"]) {
+    min-height: 2.75rem;
+    padding-inline: 0.75rem;
+    font-size: 1rem;
+  }
+}
+
 /*
  * With the on-screen keyboard open, keep dialogs inside the part of the screen that is
  * still visible, so their lists can be reached and scrolled (iOS does not shrink 100dvh).
@@ -394,6 +416,41 @@
 :root[data-keyboard] [data-slot="dialog-content"] {
   top: calc(var(--vv-top, 0px) + var(--vv-height, 100dvh) / 2);
   max-height: calc(var(--vv-height, 100dvh) - 1rem);
+}
+
+/* On phones, dialogs are bottom sheets: full width, rounded top, sliding up from the edge. */
+@media (width < 40rem) {
+  [data-slot="dialog-content"] {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    translate: none;
+    width: 100%;
+    max-width: none;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 1.5rem);
+    overflow-y: auto;
+    border-inline-width: 0;
+    /* Extra room above the home indicator, whatever padding the dialog uses. */
+    border-bottom: env(safe-area-inset-bottom, 0px) solid transparent;
+    border-radius: 1.5rem 1.5rem 0 0;
+    --tw-enter-scale: 1;
+    --tw-exit-scale: 1;
+    --tw-enter-opacity: 1;
+    --tw-exit-opacity: 1;
+    --tw-enter-translate-y: 100%;
+    --tw-exit-translate-y: 100%;
+    animation-duration: 0.32s;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  /* Keyboard open: the sheet fills the area above it. */
+  :root[data-keyboard] [data-slot="dialog-content"] {
+    top: calc(var(--vv-top, 0px) + 0.5rem);
+    bottom: auto;
+    max-height: calc(var(--vv-height, 100dvh) - 0.5rem);
+    border-bottom-width: 0;
+  }
 }
 
 /* QR scanner: a line sweeping through the viewfinder */
