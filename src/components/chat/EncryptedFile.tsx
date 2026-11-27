@@ -25,6 +25,25 @@ function parseDim(value: string | undefined): { width: number; height: number } 
   return width > 0 && height > 0 ? { width, height } : undefined;
 }
 
+/** Largest and smallest box a photo or video takes in the chat (CSS px). */
+const MEDIA_MAX_WIDTH = 320;
+const MEDIA_MAX_HEIGHT = 360;
+const MEDIA_MIN_WIDTH = 150;
+const MEDIA_MIN_HEIGHT = 110;
+
+/**
+ * The box a picture gets in the chat: scaled to fit, never tiny, never huge. Knowing it
+ * up front means the bubble hugs the picture and nothing jumps when it finishes loading.
+ */
+function mediaBox(dim: { width: number; height: number } | undefined): { width: number; height: number } {
+  if (!dim) return { width: 260, height: 195 };
+  const scale = Math.min(MEDIA_MAX_WIDTH / dim.width, MEDIA_MAX_HEIGHT / dim.height);
+  return {
+    width: Math.round(Math.min(MEDIA_MAX_WIDTH, Math.max(MEDIA_MIN_WIDTH, dim.width * scale))),
+    height: Math.round(Math.min(MEDIA_MAX_HEIGHT, Math.max(MEDIA_MIN_HEIGHT, dim.height * scale))),
+  };
+}
+
 /** NIP-17 kind 15 attachment: downloads the ciphertext, decrypts it on-device and renders it. */
 export function EncryptedFile({ message }: { message: ChatMessage }) {
   const mimeType = getTagValue(message, 'file-type') ?? 'application/octet-stream';
@@ -39,6 +58,10 @@ export function EncryptedFile({ message }: { message: ChatMessage }) {
 
   const [manual, setManual] = useState(false);
   const [lightbox, setLightbox] = useState(false);
+  /** Real size of a picture that came without a `dim` tag, known once it has loaded. */
+  const [loadedDim, setLoadedDim] = useState<{ width: number; height: number }>();
+  const box = mediaBox(dim ?? loadedDim);
+  const boxStyle = { width: box.width, aspectRatio: `${box.width} / ${box.height}` };
   const autoDownload = !size || size <= MAX_AUTO_DOWNLOAD;
 
   const query = useQuery({
@@ -104,8 +127,8 @@ export function EncryptedFile({ message }: { message: ChatMessage }) {
     }
     return (
       <Skeleton
-        className="w-64 max-w-full rounded-lg"
-        style={{ aspectRatio: dim && isImage ? `${dim.width} / ${dim.height}` : isImage ? '4 / 3' : undefined, height: isImage ? undefined : 56 }}
+        className={cn('max-w-full', isImage || isVideo ? 'rounded-xl' : 'w-64 rounded-lg')}
+        style={isImage || isVideo ? boxStyle : { height: 56 }}
       />
     );
   }
@@ -116,14 +139,19 @@ export function EncryptedFile({ message }: { message: ChatMessage }) {
         <button
           type="button"
           onClick={() => setLightbox(true)}
-          className="relative block max-w-full overflow-hidden rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          className="relative block max-w-full overflow-hidden rounded-xl bg-black/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none dark:bg-white/5"
+          style={boxStyle}
           aria-label="Open photo"
         >
           <img
             src={src}
             alt=""
-            className={cn('max-h-[22rem] w-auto max-w-full object-cover', uploading && 'opacity-60')}
-            style={dim ? { aspectRatio: `${dim.width} / ${dim.height}` } : undefined}
+            draggable={false}
+            onLoad={(event) => {
+              const { naturalWidth, naturalHeight } = event.currentTarget;
+              if (!dim && naturalWidth > 0 && naturalHeight > 0) setLoadedDim({ width: naturalWidth, height: naturalHeight });
+            }}
+            className={cn('size-full object-cover', uploading && 'opacity-60')}
           />
           {uploading && (
             <span className="absolute inset-0 flex items-center justify-center">
@@ -150,7 +178,7 @@ export function EncryptedFile({ message }: { message: ChatMessage }) {
   }
 
   if (isVideo) {
-    return <video src={src} controls playsInline preload="metadata" className="max-h-80 max-w-full rounded-lg bg-black" />;
+    return <video src={src} controls playsInline preload="metadata" className="max-w-full rounded-xl bg-black object-contain" style={boxStyle} />;
   }
 
   if (isAudio) {

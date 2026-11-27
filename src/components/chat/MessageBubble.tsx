@@ -340,6 +340,7 @@ export function MessageBubble(props: MessageBubbleProps) {
 
   /* ------------------------------ regular bubble ----------------------------- */
   const emojiOnly = message.kind !== DM_KIND.file && isEmojiOnly(message.content);
+  const isPhoto = message.kind === DM_KIND.file && (message.tags.find(([name]) => name === 'file-type')?.[1] ?? '').startsWith('image/');
   const showAuthor = conversation.isGroup && !mine && first;
   const showAvatar = conversation.isGroup && !mine;
 
@@ -397,7 +398,7 @@ export function MessageBubble(props: MessageBubbleProps) {
                   mine ? 'bg-bubble-out text-bubble-out-foreground' : 'bg-bubble-in text-bubble-in-foreground',
                   last && (mine ? 'rounded-br-md' : 'rounded-bl-md'),
                 ],
-                message.kind === DM_KIND.file && 'p-1.5',
+                message.kind === DM_KIND.file && (isPhoto ? 'p-1' : 'p-1.5'),
               )}
             >
               {showAuthor && (
@@ -423,7 +424,17 @@ export function MessageBubble(props: MessageBubbleProps) {
                 </button>
               )}
 
-              {message.kind === DM_KIND.file ? (
+              {isPhoto ? (
+                // Photos fill the bubble; the time sits on the picture, as in native messengers.
+                <div className="relative">
+                  <EncryptedFile message={message} />
+                  <span className="pointer-events-none absolute right-1.5 bottom-1.5 flex items-center gap-1 rounded-full bg-black/55 px-2 py-1 text-[11px] leading-none whitespace-nowrap text-white backdrop-blur-sm select-none">
+                    {isPinned && <Pin className="size-3" aria-label="Pinned" />}
+                    <time dateTime={new Date(message.created_at * 1000).toISOString()}>{formatMessageTime(message.created_at)}</time>
+                    {mine && <DeliveryIcon status={message.status} className="size-3.5" />}
+                  </span>
+                </div>
+              ) : message.kind === DM_KIND.file ? (
                 <div className="flex flex-col gap-1">
                   <EncryptedFile message={message} />
                   <span className="px-1.5 pb-0.5">{meta}</span>
