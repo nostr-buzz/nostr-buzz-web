@@ -5,22 +5,22 @@
  * plays the system haptic (iOS 17.4+), so a hidden one is flipped. Fails silently elsewhere.
  */
 
-let switchLabel: HTMLLabelElement | undefined;
-
+/**
+ * One system haptic tap on iOS: toggle a native switch control that exists only for this
+ * moment. A fresh, detached-looking control each time is the form known to work; a
+ * reused or styled one does not reliably fire the haptic.
+ */
 function iosTick(): void {
-  if (!switchLabel) {
-    const label = document.createElement('label');
-    label.setAttribute('aria-hidden', 'true');
-    label.style.cssText = 'position:fixed;left:-100px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none';
-    const input = document.createElement('input');
-    input.type = 'checkbox';
-    input.setAttribute('switch', '');
-    input.tabIndex = -1;
-    label.appendChild(input);
-    document.body.appendChild(label);
-    switchLabel = label;
-  }
-  switchLabel.click();
+  const label = document.createElement('label');
+  label.ariaHidden = 'true';
+  label.style.display = 'none';
+  const input = document.createElement('input');
+  input.type = 'checkbox';
+  input.setAttribute('switch', '');
+  label.appendChild(input);
+  document.head.appendChild(label);
+  label.click();
+  document.head.removeChild(label);
 }
 
 /**
@@ -38,7 +38,7 @@ export function hapticBuzz(pattern: number[]): void {
     }
     if (typeof document === 'undefined') return;
     const total = pattern.reduce((sum, part) => sum + part, 0);
-    const taps = Math.max(3, Math.min(14, Math.round(total / 70)));
+    const taps = Math.max(3, Math.min(10, Math.round(total / 110)));
     iosTick();
     for (let i = 1; i < taps; i++) {
       window.setTimeout(() => {
@@ -47,7 +47,7 @@ export function hapticBuzz(pattern: number[]): void {
         } catch {
           // Haptics are a nicety.
         }
-      }, i * 70);
+      }, i * 110);
     }
   } catch {
     // Haptics are a nicety.
