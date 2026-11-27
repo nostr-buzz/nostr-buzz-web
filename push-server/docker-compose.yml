@@ -1,0 +1,43 @@
+# nostr.buzz push server behind nginx-proxy + acme-companion (automatic HTTPS).
+#
+#   echo "PUSH_HOST=push.example.com" > .env
+#   docker compose up -d --build
+#
+# PUSH_HOST must have a DNS record pointing at this machine. Expects an external
+# Docker network named "proxy" that nginx-proxy is attached to.
+name: nostr-buzz-push
+services:
+  push:
+    build: .
+    image: nostr-buzz-push:local
+    restart: unless-stopped
+    expose: ["8787"]
+    environment:
+      VIRTUAL_HOST: ${PUSH_HOST:?Set PUSH_HOST in .env}
+      VIRTUAL_PORT: "8787"
+      VIRTUAL_PROTO: http
+      LETSENCRYPT_HOST: ${PUSH_HOST}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-https://nostr.buzz}
+      VAPID_SUBJECT: https://nostr.buzz
+      TRUST_PROXY: "1"
+    volumes:
+      - push-data:/data
+    stop_grace_period: 15s
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks: [proxy]
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+networks:
+  proxy:
+    external: true
+    name: proxy
+volumes:
+  push-data:
