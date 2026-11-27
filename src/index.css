@@ -293,11 +293,6 @@
   50% { transform: rotate(9deg) translateY(-3px); }
 }
 
-@keyframes bee-float {
-  0%, 100% { transform: translateY(0) rotate(-3deg); }
-  50% { transform: translateY(-14px) rotate(3deg); }
-}
-
 @keyframes message-in {
   from { transform: translateY(6px) scale(0.98); opacity: 0; }
   to { transform: none; opacity: 1; }
@@ -502,26 +497,6 @@
   animation: buzz-cooldown linear forwards;
 }
 
-/* Landing page phone mockup: a short buzz every few seconds */
-@keyframes phone-buzz {
-  0%, 16%, 100% { transform: translate3d(0, 0, 0) rotate(0); }
-  2% { transform: translate3d(-7px, 1px, 0) rotate(-1.4deg); }
-  4% { transform: translate3d(7px, -1px, 0) rotate(1.4deg); }
-  6% { transform: translate3d(-6px, 1px, 0) rotate(-1.1deg); }
-  8% { transform: translate3d(6px, 0, 0) rotate(1deg); }
-  10% { transform: translate3d(-4px, 1px, 0) rotate(-0.6deg); }
-  12% { transform: translate3d(3px, 0, 0) rotate(0.4deg); }
-  14% { transform: translate3d(-1px, 0, 0); }
-}
-
-.phone-buzz {
-  animation: phone-buzz 5s ease-in-out 1.2s infinite;
-}
-
-.bee-float {
-  animation: bee-float 4.5s ease-in-out infinite;
-}
-
 .message-in {
   animation: message-in 0.22s ease-out both;
 }
@@ -540,10 +515,8 @@
   .buzz-shake-soft,
   .buzz-toast-in,
   .bee-wiggle,
-  .bee-float,
   .message-in,
   .buzz-bubble-fresh,
-  .phone-buzz,
   .buzz-cooldown-ring {
     animation: none !important;
   }
